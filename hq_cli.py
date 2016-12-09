@@ -7,13 +7,13 @@ import argparse
 
 import six
 
-from hq.sina import sinahq
-from hq.ths import thshq
-from hq.leverfun import leverfunhq
-from hq.tencent import tencenthq
+from server.hq.sina import sinahq
+from server.hq.ths import thshq
+from server.hq.leverfun import leverfunhq
+from server.hq.tencent import tencenthq
 
 if sys.platform == 'win32':
-    from hq.tdx import tdxhq
+    from server.hq.tdx import tdxhq
 
 
 def main():
