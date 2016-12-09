@@ -1,0 +1,24 @@
+six
+PyQt5
+
+# Flask
+Flask
+Flask-DebugToolbar
+Flask-Login
+Flask-WTF
+Flask-SQLAlchemy
+Flask-Bcrypt
+
+# BeautifulSoup with html5lib or lxml
+BeautifulSoup4
+html5lib
+# lxml
+
+# proxy
+pysocks
+rsttable
+
+xlsxwriter
+xlrd
+SQLAlchemy
+pypinyin
