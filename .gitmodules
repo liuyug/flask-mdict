@@ -1,0 +1,3 @@
+[submodule "hq_gui/gui/utils"]
+	path = hq_gui/gui/utils
+	url = http://github.com/liuyug/utils
