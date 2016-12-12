@@ -9,7 +9,6 @@ import struct
 import datetime
 from collections import OrderedDict
 
-from bs4 import BeautifulSoup
 import xlrd
 
 from ..utils import url_downloader
@@ -120,31 +119,6 @@ def get_report_from_json(mcode, report='all'):
             data.append(record)
         report_data[report] = data
     return report_data
-
-
-def get_pdf_report(mcode):
-    html_url = 'http://basic.10jqka.com.cn/%s/finance.html' % mcode[2:]
-    logger.debug('Get report links from THS site...%s' % mcode[2:])
-    response = url_downloader(html_url)
-    if response['data'] is None:
-        logger.error(response['error'])
-        return []
-    soup = BeautifulSoup(response['data'], 'html5lib')
-    table = soup.find(id='view').find('table')
-    data = []
-    for tag in table.find_all('tr'):
-        record = []
-        for child in tag.children:
-            if child.name is None:
-                continue
-            a = child.find('a')
-            if a:
-                record.append(a['href'])
-            else:
-                text = None if child.string == '--' else child.string
-                record.append(text)
-        data.append(record)
-    return data
 
 
 def load_history_data(hpath):

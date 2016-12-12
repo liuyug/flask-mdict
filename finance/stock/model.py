@@ -23,3 +23,7 @@ class Market(MarketBase, Base):
 
 class Plate(PlateBase, Base):
     pass
+
+
+class PdfReport(PdfReportBase, Base):
+    pass

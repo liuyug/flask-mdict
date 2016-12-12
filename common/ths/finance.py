@@ -4,6 +4,7 @@ import json
 import logging
 import struct
 
+from bs4 import BeautifulSoup
 from six import BytesIO
 
 from ..utils import url_downloader
@@ -11,6 +12,34 @@ from ..utils import url_downloader
 from . import config
 
 logger = logging.getLogger(__name__)
+
+
+def get_pdf_report(mcode):
+    html_url = 'http://basic.10jqka.com.cn/%s/finance.html' % mcode[2:]
+    logger.debug('Get report links from THS site...%s' % mcode[2:])
+    response = url_downloader(html_url)
+    if response['data'] is None:
+        logger.error(response['error'])
+        return []
+    soup = BeautifulSoup(response['data'], 'html5lib')
+    data = []
+    view = soup.find(id='view')
+    if not view:
+        return data
+    table = view.find('table')
+    for tag in table.find_all('tr'):
+        record = []
+        for child in tag.children:
+            if child.name is None:
+                continue
+            a = child.find('a')
+            if a:
+                record.append(a['href'])
+            else:
+                text = None if child.string == '--' else child.string
+                record.append(text)
+        data.append(record)
+    return data
 
 
 def get_news(mcode, typ=None):

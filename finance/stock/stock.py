@@ -10,6 +10,7 @@ import xlsxwriter
 from ..utils import url_downloader
 from ..config import get_config
 from ..database import get_session
+from ..ths import get_pdf_report
 
 from .model import Stock, Market
 from . import sse
@@ -101,6 +102,10 @@ def create_stock_info():
             logger.warn('Could not find %s %s' % (row[0], row[1]))
     get_session().bulk_update_mappings(Stock, info_data)
     get_session().commit()
+
+
+def create_disclosure_report_pdf():
+    pass
 
 
 def get_stock(mcode=None):

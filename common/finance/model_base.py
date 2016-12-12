@@ -131,3 +131,25 @@ class BenefitBase(BenefitBaseBase):
     @classmethod
     def get_columns(cls):
         return cls._columns
+
+
+class PdfReportBase(object):
+    __doc__ = 'PDF Report'
+    __tablename__ = 'pdfreport'
+
+    year = Column(String)
+    period = Column(String(length=1))
+    link = Column(String)
+
+    def __repr__(self):
+        return '<date: %s>' % self.date
+
+    @declared_attr
+    def stock_mcode(cls):
+        return Column(String, ForeignKey('stock.mcode'))
+
+    @declared_attr
+    def stock(cls):
+        return relationship(
+            'Stock', backref=backref('Benefits'),
+        )
