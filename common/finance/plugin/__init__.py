@@ -85,4 +85,11 @@ Plugins = {
         'calc': functools.ltgb_zgb,
         'chart': 'chart_line_ratio',
     },
+    'mgjxjll': {
+        'desc': u'每股净现金流量',
+        'unit': u'元',
+        'type': 'plugin',
+        'calc': functools.mgjxjll,
+        'chart': 'chart_line_value',
+    },
 }

@@ -132,6 +132,24 @@ def mgjlr(stock):
     return values
 
 
+def mgjxjll(stock):
+    """ 每股净现金流量 """
+    values = {}
+    cashs = stock.Cashs
+    debts = stock.Debts
+    for cash in cashs:
+        date = cash.date
+        jyxjllje = cash.jyxjllje
+        gb = None
+        for debt in debts:
+            if debt.date == date:
+                gb = debt.gb
+                break
+        if jyxjllje is not None and gb is not None:
+            values[date] = jyxjllje / gb
+    return values
+
+
 def zgb(stock):
     return {datetime.date.today(): stock.zgb}
 
@@ -141,4 +159,6 @@ def ltgb(stock):
 
 
 def ltgb_zgb(stock):
-    return {datetime.date.today(): stock.ltgb * 100.0 / stock.zgb}
+    if stock.ltgb and stock.zgb:
+        return {datetime.date.today(): stock.ltgb * 100.0 / stock.zgb}
+    return {datetime.date.today(): None}
