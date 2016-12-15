@@ -87,6 +87,9 @@ def stock_main(args, parser):
 
     for mcode in args.stock:
         stock = get_stock(mcode)
+        if not stock:
+            print('Invalid MCODE: %s' % mcode)
+            continue
 
         stock_info = []
         stock_info.append(stock.mcode)
@@ -96,6 +99,8 @@ def stock_main(args, parser):
         stock_info.append(stock.market.name)
         stock_info.append(stock.plate.code)
         stock_info.append(stock.plate.name)
+        stock_info.append(u'%.2f 股' % stock.ltgb)
+        stock_info.append(u'%.2f %%' % stock.ltgb_percent())
 
         data = get_stock_values(stock, fields)
         if book:

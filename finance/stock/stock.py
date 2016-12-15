@@ -10,7 +10,6 @@ import xlsxwriter
 from ..utils import url_downloader
 from ..config import get_config
 from ..database import get_session
-from ..ths import get_pdf_report
 
 from .model import Stock, Market
 from . import sse

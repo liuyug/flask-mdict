@@ -137,6 +137,7 @@ class PdfReportBase(object):
     __doc__ = 'PDF Report'
     __tablename__ = 'pdfreport'
 
+    id = Column(Integer, primary_key=True)
     year = Column(String)
     period = Column(String(length=1))
     link = Column(String)
@@ -151,5 +152,5 @@ class PdfReportBase(object):
     @declared_attr
     def stock(cls):
         return relationship(
-            'Stock', backref=backref('Benefits'),
+            'Stock', backref=backref('PdfReport'),
         )

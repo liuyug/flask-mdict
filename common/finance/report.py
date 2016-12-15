@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- encoding:utf-8 -*-
 
 import logging
 import time
@@ -122,20 +124,22 @@ def get_field_values(field, stocks):
         info = '%(desc)s (%(unit)s)' % value
     else:
         info = '%(desc)s' % value
-    header = [info, ''] + sorted(list(date_data), reverse=True)
+    header = [info, '', u'流通股本 (股)', u'流通股本/总股本 (%)'] + sorted(list(date_data), reverse=True)
 
     for stock in stocks:
         records = [None] * len(header)
         values = stock_values[stock.mcode]
         records[0] = stock.mcode
         records[1] = stock.name
+        records[2] = stock.ltgb
+        records[3] = stock.ltgb_percent()
         for date, value in values['values'].items():
             idx = header.index(date)
             records[idx] = value
         data.append(records)
     data = sorted(
         data,
-        key=lambda x: [float('-inf') if v is None else v for v in x[2:6]],
+        key=lambda x: [float('-inf') if v is None else v for v in x[4:8]],
         reverse=True)
     data.insert(0, header)
     return data

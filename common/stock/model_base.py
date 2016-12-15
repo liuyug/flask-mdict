@@ -37,6 +37,10 @@ class StockBase(object):
             'Plate', backref=backref('stocks'),
         )
 
+    def ltgb_percent(self):
+        if self.ltgb and self.zgb:
+            return self.ltgb * 100.0 / self.zgb
+
     def __repr__(self):
         return '<code: %s>' % self.mcode
 

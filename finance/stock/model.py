@@ -9,6 +9,7 @@ common_path = os.path.abspath(os.path.join(
 sys.path.append(common_path)
 
 from common.stock.model_base import *
+from common.finance.model_base import *
 
 from ..database_base import Base
 
