@@ -9,6 +9,13 @@ PluginDesc = u'插件'
 
 
 Plugins = {
+    'yylr_lrze': {
+        'desc': u'营业利润/利润总额',
+        'unit': u'%',
+        'type': 'plugin',
+        'calc': functools.yylr_lrze,
+        'chart': 'chart_line_ratio',
+    },
     'tzsy_lrze': {
         'desc': u'投资收益/利润总额',
         'unit': u'%',
@@ -64,26 +71,6 @@ Plugins = {
         'type': 'plugin',
         'calc': functools.mgjlr,
         'chart': 'chart_line_value',
-    },
-    'zgb': {
-        'desc': u'总股本',
-        'unit': u'股',
-        'type': 'plugin',
-        'calc': functools.zgb,
-        'chart': 'chart_line_value',
-    },
-    'ltgb': {
-        'desc': u'流通股本',
-        'unit': u'股',
-        'type': 'plugin',
-        'calc': functools.ltgb,
-        'chart': 'chart_line_value',
-    },
-    'ltgb_zgb': {
-        'desc': u'流通股本/总股本',
-        'unit': u'%',
-        'calc': functools.ltgb_zgb,
-        'chart': 'chart_line_ratio',
     },
     'mgjxjll': {
         'desc': u'每股净现金流量',

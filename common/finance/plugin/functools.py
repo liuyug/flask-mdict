@@ -6,6 +6,19 @@ import datetime
 from ..formula import last_year_end
 
 
+def yylr_lrze(stock):
+    """ 营业利润/利润总额 """
+    values = {}
+    benefits = stock.Benefits
+    for benefit in benefits:
+        date = benefit.date
+        yylr = benefit.yylr
+        lrze = benefit.lrze
+        if yylr is not None and lrze is not None:
+            values[date] = yylr * 100.0 / lrze
+    return values
+
+
 def tzsy_lrze(stock):
     """ 投资收益/利润总额 """
     values = {}
@@ -148,17 +161,3 @@ def mgjxjll(stock):
         if jyxjllje is not None and gb is not None:
             values[date] = jyxjllje / gb
     return values
-
-
-def zgb(stock):
-    return {datetime.date.today(): stock.zgb}
-
-
-def ltgb(stock):
-    return {datetime.date.today(): stock.ltgb}
-
-
-def ltgb_zgb(stock):
-    if stock.ltgb and stock.zgb:
-        return {datetime.date.today(): stock.ltgb * 100.0 / stock.zgb}
-    return {datetime.date.today(): None}
