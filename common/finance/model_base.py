@@ -71,7 +71,7 @@ class MainBase(MainBaseBase):
     @declared_attr
     def stock(cls):
         return relationship(
-            'Stock', backref=backref('Mains'),
+            'Stock', backref=backref('Mains', lazy='dynamic'),
         )
 
     @classmethod
@@ -89,7 +89,7 @@ class DebtBase(DebtBaseBase):
     @declared_attr
     def stock(cls):
         return relationship(
-            'Stock', backref=backref('Debts'),
+            'Stock', backref=backref('Debts', lazy='dynamic'),
         )
 
     @classmethod
@@ -107,7 +107,7 @@ class CashBase(CashBaseBase):
     @declared_attr
     def stock(cls):
         return relationship(
-            'Stock', backref=backref('Cashs'),
+            'Stock', backref=backref('Cashs', lazy='dynamic'),
         )
 
     @classmethod
@@ -125,7 +125,7 @@ class BenefitBase(BenefitBaseBase):
     @declared_attr
     def stock(cls):
         return relationship(
-            'Stock', backref=backref('Benefits'),
+            'Stock', backref=backref('Benefits', lazy='dynamic'),
         )
 
     @classmethod

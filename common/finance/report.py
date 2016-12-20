@@ -4,7 +4,7 @@
 import logging
 import time
 from collections import OrderedDict
-
+from sqlalchemy.orm import load_only
 
 from .plugin import Plugins, PluginDesc
 from .formula import Formula, FormulaDesc
@@ -54,7 +54,8 @@ def get_value(stock, field):
                 find = True
                 break
         if find:
-            records = getattr(stock, '%ss' % model.__name__[:-4])
+            query = getattr(stock, '%ss' % model.__name__[:-4])
+            records = query.options(load_only('date', name)).all()
             for record in records:
                 date = record.date
                 value = getattr(record, name)
