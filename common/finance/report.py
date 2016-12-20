@@ -124,7 +124,8 @@ def get_field_values(field, stocks):
         info = '%(desc)s (%(unit)s)' % value
     else:
         info = '%(desc)s' % value
-    header = [info, '', u'流通股本 (股)', u'流通股本/总股本 (%)'] + sorted(list(date_data), reverse=True)
+    header = [info, '', u'流通股本 (股)', u'流通股本 (%)']
+    header += sorted(list(date_data), reverse=True)
 
     for stock in stocks:
         records = [None] * len(header)

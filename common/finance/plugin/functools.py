@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding:utf-8 -*-
 
-import datetime
-
 from ..formula import last_year_end
 
 
