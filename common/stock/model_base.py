@@ -24,7 +24,8 @@ class StockBase(object):
     @declared_attr
     def market(cls):
         return relationship(
-            'Market', backref=backref('stocks'),
+            'Market', backref=backref('stocks', lazy='dynamic'),
+            lazy='joined',
         )
 
     @declared_attr
@@ -34,7 +35,8 @@ class StockBase(object):
     @declared_attr
     def plate(cls):
         return relationship(
-            'Plate', backref=backref('stocks'),
+            'Plate', backref=backref('stocks', lazy='dynamic'),
+            lazy='joined',
         )
 
     def ltgb_percent(self):

@@ -55,8 +55,7 @@ def get_value(stock, field):
                 break
         if find:
             query = getattr(stock, '%ss' % model.__name__[:-4])
-            records = query.options(load_only('date', name)).all()
-            for record in records:
+            for record in query.options(load_only('date', name)):
                 date = record.date
                 value = getattr(record, name)
                 values[date] = value

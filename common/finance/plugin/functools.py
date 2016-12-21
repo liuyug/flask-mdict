@@ -48,7 +48,7 @@ def zzcsyl(stock):
     """ 总资产收益率 """
     values = {}
     benefits = stock.Benefits
-    debts = stock.Debts
+    debts = stock.Debts.all()
     for benefit in benefits:
         date = benefit.date
         jlr = benefit.jlr
@@ -69,7 +69,7 @@ def zczzl(stock):
     """ 资产周转率 """
     values = {}
     benefits = stock.Benefits
-    debts = stock.Debts
+    debts = stock.Debts.all()
     for benefit in benefits:
         date = benefit.date
         yysr = benefit.yysr
@@ -129,7 +129,7 @@ def mgjlr(stock):
     """ 每股净利润 """
     values = {}
     benefits = stock.Benefits
-    debts = stock.Debts
+    debts = stock.Debts.all()
     for benefit in benefits:
         date = benefit.date
         jlr = benefit.jlr
@@ -147,7 +147,7 @@ def mgjxjll(stock):
     """ 每股净现金流量 """
     values = {}
     cashs = stock.Cashs
-    debts = stock.Debts
+    debts = stock.Debts.all()
     for cash in cashs:
         date = cash.date
         jyxjllje = cash.jyxjllje
