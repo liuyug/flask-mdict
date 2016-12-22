@@ -74,10 +74,11 @@ def get_stocks():
     csv_path = os.path.join(base_dir, 'sha.csv')
     encoding = 'gbk'
     response = download_stocks_csv(csv_path)
+    data = []
     if not response['path']:
         logger.error(response['error'])
-        return
-    data = []
+        logger.error(response['url'])
+        return data
     header = [
         u'A股代码',
         u'A股简称',

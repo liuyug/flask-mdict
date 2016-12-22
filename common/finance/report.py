@@ -4,7 +4,6 @@
 import logging
 import time
 from collections import OrderedDict
-from sqlalchemy.orm import load_only
 
 from .plugin import Plugins, PluginDesc
 from .formula import Formula, FormulaDesc
@@ -133,7 +132,7 @@ def get_field_values(field, stocks):
         records[0] = stock.mcode
         records[1] = stock.name
         records[2] = stock.ltgb
-        records[3] = stock.ltgb_percent()
+        records[3] = stock.ltgb_percent
         for date, value in values['values'].items():
             idx = header.index(date)
             records[idx] = value

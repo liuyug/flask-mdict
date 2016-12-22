@@ -4,6 +4,20 @@
 from ..formula import last_year_end
 
 
+def average_zzc(stock):
+    debts = stock.Debts.all()
+    values = {}
+    for debt in debts:
+        date = debt.date
+        values[date] = debt.zzc
+    for date in values:
+        last_date = last_year_end(date)
+        last_zzc = values.get(last_date)
+        if last_zzc:
+            values[date] = (values[date] + last_zzc) * 1.0 / 2
+    return values
+
+
 def yylr_lrze(stock):
     """ 营业利润/利润总额 """
     values = {}
@@ -48,20 +62,13 @@ def zzcsyl(stock):
     """ 总资产收益率 """
     values = {}
     benefits = stock.Benefits
-    debts = stock.Debts.all()
+    zzcs = average_zzc(stock)
     for benefit in benefits:
         date = benefit.date
         jlr = benefit.jlr
-        last_date = last_year_end(date)
-        zzc = last_zzc = None
-        for debt in debts:
-            if debt.date == date:
-                zzc = debt.zzc
-            if debt.date == last_date:
-                last_zzc = debt.zzc
-                break
-        if jlr is not None and zzc is not None and last_zzc is not None:
-            values[date] = jlr * 100.0 * 2 / (zzc + last_zzc)
+        zzc = zzcs.get(date)
+        if jlr is not None and zzc is not None:
+            values[date] = jlr * 100.0 / zzc
     return values
 
 
@@ -69,20 +76,13 @@ def zczzl(stock):
     """ 资产周转率 """
     values = {}
     benefits = stock.Benefits
-    debts = stock.Debts.all()
+    zzcs = average_zzc(stock)
     for benefit in benefits:
         date = benefit.date
         yysr = benefit.yysr
-        last_date = last_year_end(date)
-        zzc = last_zzc = None
-        for debt in debts:
-            if debt.date == date:
-                zzc = debt.zzc
-            if debt.date == last_date:
-                last_zzc = debt.zzc
-                break
-        if yysr is not None and zzc is not None and last_zzc is not None:
-            values[date] = yysr * 100.0 * 2 / (zzc + last_zzc)
+        zzc = zzcs.get(date)
+        if yysr is not None and zzc is not None:
+            values[date] = yysr * 100.0 / zzc
     return values
 
 
@@ -129,15 +129,13 @@ def mgjlr(stock):
     """ 每股净利润 """
     values = {}
     benefits = stock.Benefits
-    debts = stock.Debts.all()
+    gbs = {}
+    for debt in stock.Debts:
+        gbs[debt.date] = debt.gb
     for benefit in benefits:
         date = benefit.date
         jlr = benefit.jlr
-        gb = None
-        for debt in debts:
-            if debt.date == date:
-                gb = debt.gb
-                break
+        gb = gbs.get(date)
         if jlr is not None and gb is not None:
             values[date] = jlr / gb
     return values
@@ -146,16 +144,14 @@ def mgjlr(stock):
 def mgjxjll(stock):
     """ 每股净现金流量 """
     values = {}
+    gbs = {}
+    for debt in stock.Debts:
+        gbs[debt.date] = debt.gb
     cashs = stock.Cashs
-    debts = stock.Debts.all()
     for cash in cashs:
         date = cash.date
         jyxjllje = cash.jyxjllje
-        gb = None
-        for debt in debts:
-            if debt.date == date:
-                gb = debt.gb
-                break
+        gb = gbs.get(date)
         if jyxjllje is not None and gb is not None:
             values[date] = jyxjllje / gb
     return values

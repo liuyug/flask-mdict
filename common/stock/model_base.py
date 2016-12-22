@@ -16,6 +16,7 @@ class StockBase(object):
     date = Column(Date)
     zgb = Column(Float)
     ltgb = Column(Float)
+    ltgb_percent = Column(Float)
 
     @declared_attr
     def market_code(cls):
@@ -38,10 +39,6 @@ class StockBase(object):
             'Plate', backref=backref('stocks', lazy='dynamic'),
             lazy='joined',
         )
-
-    def ltgb_percent(self):
-        if self.ltgb and self.zgb:
-            return self.ltgb * 100.0 / self.zgb
 
     def __repr__(self):
         return '<code: %s>' % self.mcode

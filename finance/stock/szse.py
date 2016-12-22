@@ -30,10 +30,11 @@ def get_stocks():
     base_dir = get_config().get('general', 'base_dir')
     xlsx_path = os.path.join(base_dir, 'sza.xlsx')
     response = download_stocks_xlsx(xlsx_path)
+    data = []
     if not response['path']:
         logger.error(response['error'])
-        return
-    data = []
+        logger.error(response['url'])
+        return data
     try:
         book = xlrd.open_workbook(xlsx_path)
     except Exception as err:

@@ -82,6 +82,7 @@ def create_stock_info():
                 'date': row[2],
                 'zgb': row[3],
                 'ltgb': row[4],
+                'ltgb_percent': row[4] * 100.0 / row[3],
             })
         else:
             logger.warn('Could not find %s %s' % (row[0], row[1]))
@@ -96,6 +97,7 @@ def create_stock_info():
                 'date': row[2],
                 'zgb': row[3],
                 'ltgb': row[4],
+                'ltgb_percent': row[4] * 100.0 / row[3],
             })
         else:
             logger.warn('Could not find %s %s' % (row[0], row[1]))
