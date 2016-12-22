@@ -100,7 +100,7 @@ def stock_main(args, parser):
         stock_info.append(stock.plate.code)
         stock_info.append(stock.plate.name)
         stock_info.append(u'%.2f 股' % stock.ltgb)
-        stock_info.append(u'%.2f %%' % stock.ltgb_percent())
+        stock_info.append(u'%.2f %%' % stock.ltgb_percent)
 
         data = get_stock_values(stock, fields)
         if book:
