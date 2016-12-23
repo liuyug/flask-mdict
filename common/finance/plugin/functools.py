@@ -18,16 +18,34 @@ def average_zzc(stock):
     return values
 
 
-def yylr_lrze(stock):
-    """ 营业利润/利润总额 """
+def zyywlr_lrze(stock):
+    """ 主营业务利润/利润总额 """
     values = {}
     benefits = stock.Benefits
     for benefit in benefits:
         date = benefit.date
+        yyzsr = benefit.yyzsr
+        yyzcb = benefit.yyzcb
+        lrze = benefit.lrze
+        if yyzsr is not None and yyzcb is not None and lrze is not None:
+            values[date] = (yyzsr - yyzcb) * 100.0 / lrze
+    return values
+
+
+def qtywlr_lrze(stock):
+    """ 其它业务利润/利润总额 """
+    values = {}
+    benefits = stock.Benefits
+    for benefit in benefits:
+        date = benefit.date
+        yyzsr = benefit.yyzsr
+        yyzcb = benefit.yyzcb
+        tzsy = benefit.tzsy
         yylr = benefit.yylr
         lrze = benefit.lrze
-        if yylr is not None and lrze is not None:
-            values[date] = yylr * 100.0 / lrze
+        if yylr is not None and tzsy is not None and \
+                yyzsr is not None and yyzcb is not None and lrze is not None:
+            values[date] = (yylr - tzsy - (yyzsr - yyzcb)) * 100.0 / lrze
     return values
 
 
@@ -55,6 +73,23 @@ def yywlr_lrze(stock):
         lrze = benefit.lrze
         if yywsr is not None and yywzc is not None and lrze is not None:
             values[date] = (yywsr - yywzc) * 100.0 / lrze
+    return values
+
+
+def jlrxjhl(stock):
+    """ 净利润现金含量 """
+    values = {}
+    benefits = stock.Benefits
+    cashs = stock.Cashs
+    jyxjlljes = {}
+    for cash in cashs:
+        jyxjlljes[cash.date] = cash.jyxjllje
+    for benefit in benefits:
+        date = benefit.date
+        jlr = benefit.jlr
+        jyxjllje = jyxjlljes.get(date)
+        if jyxjllje is not None and jlr is not None:
+            values[date] = jyxjllje * 100.0 / jlr
     return values
 
 
@@ -151,7 +186,16 @@ def mgjxjll(stock):
     for cash in cashs:
         date = cash.date
         jyxjllje = cash.jyxjllje
+        tzxjllje = cash.tzxjllje
+        czxjllje = cash.czxjllje
+        xjllje = 0
+        if jyxjllje is not None:
+            xjllje += jyxjllje
+        if tzxjllje is not None:
+            xjllje += tzxjllje
+        if czxjllje is not None:
+            xjllje += czxjllje
         gb = gbs.get(date)
-        if jyxjllje is not None and gb is not None:
-            values[date] = jyxjllje / gb
+        if gb is not None:
+            values[date] = xjllje / gb
     return values

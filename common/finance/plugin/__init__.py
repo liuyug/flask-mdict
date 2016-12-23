@@ -9,11 +9,18 @@ PluginDesc = u'插件'
 
 
 Plugins = {
-    'yylr_lrze': {
-        'desc': u'营业利润/利润总额',
+    'zyywlr_lrze': {
+        'desc': u'主营业务利润/利润总额',
         'unit': u'%',
         'type': 'plugin',
-        'calc': functools.yylr_lrze,
+        'calc': functools.zyywlr_lrze,
+        'chart': 'chart_line_ratio',
+    },
+    'qtywlr_lrze': {
+        'desc': u'其它业务利润/利润总额',
+        'unit': u'%',
+        'type': 'plugin',
+        'calc': functools.qtywlr_lrze,
         'chart': 'chart_line_ratio',
     },
     'tzsy_lrze': {
@@ -28,6 +35,13 @@ Plugins = {
         'unit': u'%',
         'type': 'plugin',
         'calc': functools.yywlr_lrze,
+        'chart': 'chart_line_ratio',
+    },
+    'jlrxjhl': {
+        'desc': u'净利润现金含量',
+        'unit': u'%',
+        'type': 'plugin',
+        'calc': functools.jlrxjhl,
         'chart': 'chart_line_ratio',
     },
     'zzcsyl': {
