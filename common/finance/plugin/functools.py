@@ -11,6 +11,9 @@ def average_zzc(stock):
         date = debt.date
         values[date] = debt.zzc
     for date in values:
+        zzc = values.get(date)
+        if not zzc:
+            continue
         last_date = last_year_end(date)
         last_zzc = values.get(last_date)
         if last_zzc:
