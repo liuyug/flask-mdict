@@ -415,14 +415,14 @@ class MainWindow(QtWidgets.QMainWindow):
             if s_mcode == mcode:
                 record = []
                 record.append({QtCore.Qt.DisplayRole: s_mcode})
-                record.append({QtCore.Qt.DisplayRole: s['zqmc']})
+                record.append({QtCore.Qt.DisplayRole: s['name']})
                 record.append({QtCore.Qt.EditRole: ''})
                 row = model.rowCount()
                 model.insertRow(row)
                 for column in range(len(record)):
                     model.setItemData(model.index(row, column), record[column])
                 self.ui.lineEdit_stock.clear()
-                self.status_show_message('Add stock: %s[%s]' % (mcode, s['zqmc']))
+                self.status_show_message('Add stock: %s[%s]' % (mcode, s['name']))
                 break
 
     @QtCore.pyqtSlot()

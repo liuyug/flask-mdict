@@ -13,6 +13,8 @@ def do_policy(policies, record):
     states = []
     this = sys.modules[__name__]
     for p in policies:
+        if not p:
+            continue
         state = None
         if '_' in p:
             name = p.partition('_')[0]
