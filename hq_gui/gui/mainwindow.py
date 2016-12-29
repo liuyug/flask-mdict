@@ -749,5 +749,5 @@ class MainWindow(QtWidgets.QMainWindow):
             for column in range(model.columnCount()):
                 if '_profit' == model.headerData(
                         column, QtCore.Qt.Horizontal, self._HeaderRole):
+                    model.setData(model.index(lf.row(), column), float('nan'))
                     break
-            model.setData(model.index(lf.row(), column), float('nan'))
