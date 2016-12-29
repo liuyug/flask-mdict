@@ -48,8 +48,9 @@ class StockTableModel(QtCore.QAbstractTableModel):
         col_data = []
         for row in range(self.rowCount()):
             index = self.index(row, column)
-            key = self.data(index, QtCore.Qt.UserRole) or \
-                self.data(index, QtCore.Qt.DisplayRole)
+            key = self.data(index, QtCore.Qt.UserRole)
+            if key is None:
+                key = self.data(index, QtCore.Qt.DisplayRole)
             col_data.append((key, row))
         col_data.sort(key=lambda x: float('-inf') if x[0] != x[0] else x[0],
                       reverse=order == QtCore.Qt.AscendingOrder)

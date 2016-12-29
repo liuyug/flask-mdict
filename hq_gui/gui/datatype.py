@@ -50,7 +50,7 @@ UserDataType = {
         'desc': '涨幅',
         'calc': functools.zhangdiefu,
         'preformat': functools.percent_format,
-        'format': '%+0.2f%%',
+        'format': '%+0.2f %%',
     },
     '_policy': {
         'desc': '策略',
@@ -58,4 +58,17 @@ UserDataType = {
         'preformat': None,
         'format': '%s',
     },
+    '_cost': {
+        'desc': '成本',
+        'calc': None,
+        'preformat': None,
+        'format': '%s',
+    },
+    '_profit': {
+        'desc': '盈利',
+        'calc': None,
+        'preformat': functools.percent_format,
+        'format': '%+0.2f %%',
+    },
+
 }

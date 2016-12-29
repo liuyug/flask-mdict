@@ -76,7 +76,10 @@ class MainWindow(QtWidgets.QMainWindow):
     _work_thread = None
     _lcd_clock = None
     _clock_timer = None
-    _selected_header = ['MCODE', 'ZQMC', '_policy']
+    _selected_header = ['MCODE', 'ZQMC', '_cost', '_policy']
+    _AbbrRole = QtCore.Qt.UserRole
+    _PolicyRole = QtCore.Qt.UserRole + 1
+    _HeaderRole = QtCore.Qt.UserRole + 2
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -124,7 +127,7 @@ class MainWindow(QtWidgets.QMainWindow):
         header_dt = []
         for row in range(self.ui.listWidget_hq_header_right.count()):
             item = self.ui.listWidget_hq_header_right.item(row)
-            header_dt.append(item.data(QtCore.Qt.UserRole))
+            header_dt.append(item.data(self._HeaderRole))
         setting['general']['hq_header'] = ','.join(header_dt)
 
         state = self.ui.tableView_hq.horizontalHeader().saveState()
@@ -134,6 +137,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for k, v in selected_stock.items():
             setting['policy'][k] = v['_policy']
+            setting['cost'][k] = v['_cost']
         setting['log']['log'] = self.ui.checkBox_log_to_file.isChecked()
         setting['log']['logfile'] = self.ui.lineEdit_logfile.text()
 
@@ -174,13 +178,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self._setting['general'] = OrderedDict((
                 ('stockhq_url', 'http://127.0.0.1/stock/hq'),
                 ('selected', ''),
-                ('hq_header', 'MCODE,ZQMC,_policy'),
+                ('hq_header', 'MCODE,ZQMC,_policy,_cost,_profit'),
             ))
             self._setting['state'] = OrderedDict((
                 ('hq_header', ''),
                 ('mainwindow', ''),
             ))
             self._setting['policy'] = OrderedDict()
+            self._setting['cost'] = OrderedDict()
             self._setting['log'] = OrderedDict((
                 ('log', 'false'),
                 ('logfile', 'stockhq.log'),
@@ -225,7 +230,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_clearall_stock.clicked.connect(self.selected_stock_clearall)
 
         model = StockTableModel(self)
-        setting = self.get_setting()
+        self.ui.tableView_selected_stock.setModel(model)
 
         header = []
         for dt in self._selected_header:
@@ -237,10 +242,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 desc = dt
             header.append({
                 QtCore.Qt.DisplayRole: desc,
-                QtCore.Qt.UserRole: dt,
+                self._HeaderRole: dt,
             })
 
         data = []
+        setting = self.get_setting()
         mcodes = setting['general']['selected'].split(',')
         stock_code = self.get_stock_code()
         for s in stock_code:
@@ -250,15 +256,29 @@ class MainWindow(QtWidgets.QMainWindow):
                 record.append({QtCore.Qt.DisplayRole: s_mcode})
                 record.append({
                     QtCore.Qt.DisplayRole: s['name'],
-                    QtCore.Qt.UserRole: s['abbr'],
+                    self._AbbrRole: s['abbr'],
                 })
+                cost = setting['cost'].get(s_mcode) or ''
+                record.append({QtCore.Qt.EditRole: cost})
                 policy = setting['policy'].get(s_mcode) or ''
                 record.append({QtCore.Qt.EditRole: policy})
                 mcodes.remove(s_mcode)
                 data.append(record)
         model.setTableData(data, header)
 
-        self.ui.tableView_selected_stock.setModel(model)
+        column = 0
+        for dt in self._selected_header:
+            # set item delegate
+            if dt in DataType:
+                fmt = DataType[dt].get('format')
+                prefmt = DataType[dt].get('preformat')
+            elif dt in UserDataType:
+                fmt = UserDataType[dt].get('format')
+                prefmt = UserDataType[dt].get('preformat')
+            self.ui.tableView_selected_stock.setItemDelegateForColumn(
+                column, FormatItemDelegate(fmt, prefmt, self))
+            column += 1
+
         self.ui.tableView_selected_stock.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows)
         self.ui.tableView_selected_stock.setTabKeyNavigation(False)
@@ -281,7 +301,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for dt, data in DataType.items():
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.DisplayRole, data.get('desc'))
-            item.setData(QtCore.Qt.UserRole, dt)
+            item.setData(self._HeaderRole, dt)
             if dt in hq_header:
                 hq_header[dt] = item
             else:
@@ -289,7 +309,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for dt, data in UserDataType.items():
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.DisplayRole, data.get('desc'))
-            item.setData(QtCore.Qt.UserRole, dt)
+            item.setData(self._HeaderRole, dt)
             if dt in hq_header:
                 hq_header[dt] = item
             else:
@@ -304,13 +324,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setup_stock_hq(self):
         model = StockTableModel(self)
+        self.ui.tableView_hq.setModel(model)
 
         header = OrderedDict()
         for row in range(self.ui.listWidget_hq_header_right.count()):
             item = self.ui.listWidget_hq_header_right.item(row)
-            header[item.data(QtCore.Qt.UserRole)] = {
+            header[item.data(self._HeaderRole)] = {
                 QtCore.Qt.DisplayRole: item.data(QtCore.Qt.DisplayRole),
-                QtCore.Qt.UserRole: item.data(QtCore.Qt.UserRole),
+                self._HeaderRole: item.data(self._HeaderRole),
             }
 
         data = []
@@ -320,11 +341,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         model.setTableData(data, list(header.values()))
 
-        format_delegate = FormatItemDelegate('%s', self)
-        for column in range(model.columnCount()):
-            self.ui.tableView_hq.setItemDelegateForColumn(column, format_delegate)
-
-        self.ui.tableView_hq.setModel(model)
+        column = 0
+        for dt, data in header.items():
+            # set item delegate
+            if dt in DataType:
+                fmt = DataType[dt].get('format')
+                prefmt = DataType[dt].get('preformat')
+            elif dt in UserDataType:
+                fmt = UserDataType[dt].get('format')
+                prefmt = UserDataType[dt].get('preformat')
+            self.ui.tableView_hq.setItemDelegateForColumn(
+                column, FormatItemDelegate(fmt, prefmt, self))
+            column += 1
 
         self.ui.tableView_hq.setSelectionBehavior(
             QtWidgets.QAbstractItemView.SelectRows)
@@ -416,6 +444,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 record = []
                 record.append({QtCore.Qt.DisplayRole: s_mcode})
                 record.append({QtCore.Qt.DisplayRole: s['name']})
+                # policy
+                record.append({QtCore.Qt.EditRole: ''})
+                # cost
                 record.append({QtCore.Qt.EditRole: ''})
                 row = model.rowCount()
                 model.insertRow(row)
@@ -458,15 +489,15 @@ class MainWindow(QtWidgets.QMainWindow):
         header = []
         for x in range(model.columnCount()):
             header.append(model.headerData(
-                x, QtCore.Qt.Horizontal, QtCore.Qt.UserRole))
+                x, QtCore.Qt.Horizontal, self._HeaderRole))
 
         for row in range(model.rowCount()):
             stock = {}
             for column in range(model.columnCount()):
                 h = model.headerData(
-                    column, QtCore.Qt.Horizontal, QtCore.Qt.UserRole).lower()
+                    column, QtCore.Qt.Horizontal, self._HeaderRole).lower()
                 if h == 'zqmc':
-                    abbr = model.data(model.index(row, column), QtCore.Qt.UserRole)
+                    abbr = model.data(model.index(row, column), self._AbbrRole)
                     stock['abbr'] = abbr
                 stock[h] = model.data(model.index(row, column))
             selected_stock[stock['mcode']] = stock
@@ -480,12 +511,17 @@ class MainWindow(QtWidgets.QMainWindow):
             elif dt == 'ZQMC':
                 row.append({
                     QtCore.Qt.DisplayRole: stock['zqmc'],
-                    QtCore.Qt.UserRole: stock['abbr'],
+                    self._AbbrRole: stock['abbr'],
                 })
             elif dt in ['DATE', 'TIME']:
                 row.append({QtCore.Qt.DisplayRole: ''})
             elif dt == '_policy':
-                row.append({QtCore.Qt.EditRole: stock['_policy']})
+                row.append({
+                    QtCore.Qt.EditRole: stock['_policy'],
+                    self._PolicyRole: set(),
+                })
+            elif dt == '_cost':
+                row.append({QtCore.Qt.EditRole: stock['_cost']})
             else:
                 row.append({QtCore.Qt.DisplayRole: float('nan')})
         return row
@@ -504,8 +540,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if 'dec_10' not in policies:
             policies.append('dec_10')
         new_states = set(dt['calc'](policies, record))
-        states = item.get(QtCore.Qt.UserRole) or set()
-        item[QtCore.Qt.UserRole] = new_states
+        states = item.get(self._PolicyRole)
+        item[self._PolicyRole] = new_states
         diff_on = new_states - states
         diff_off = states - new_states
 
@@ -538,7 +574,7 @@ class MainWindow(QtWidgets.QMainWindow):
         model = self.ui.tableView_hq.model()
         header_datatype = []
         for column in range(model.columnCount()):
-            dt = model.headerData(column, QtCore.Qt.Horizontal, QtCore.Qt.UserRole)
+            dt = model.headerData(column, QtCore.Qt.Horizontal, self._HeaderRole)
             header_datatype.append(dt)
 
         red = QtGui.QColor('red')
@@ -582,13 +618,28 @@ class MainWindow(QtWidgets.QMainWindow):
                 for k, dt in UserDataType.items():
                     if k not in header_datatype:
                         continue
+                    if k == '_cost':
+                        continue
                     column = header_datatype.index(k)
                     if k == '_policy':
                         self.hq_check_policy(
                             model.index(cur_row, column), record)
                         continue
-                    value = dt['calc'](record)
-                    if k == '_zhangdiefu':
+
+                    # calc
+                    value = float('nan')
+                    if k == '_profit':
+                        cost_column = header_datatype.index('_cost')
+                        cost_item = model.itemData(model.index(cur_row, cost_column))
+                        cost_value = cost_item.get(QtCore.Qt.EditRole)
+                        if cost_value:
+                            cost_value = float(cost_value)
+                            value = (record['NEW'] - cost_value) / cost_value
+                    else:
+                        value = dt['calc'](record)
+
+                    # set color
+                    if value is not None and k in ['_zhangdiefu', '_profit']:
                         color = black
                         if value > 0:
                             color = red
@@ -596,6 +647,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             color = green
                         model.setData(model.index(cur_row, column),
                                       color, QtCore.Qt.ForegroundRole)
+                    # set value
                     model.setData(model.index(cur_row, column), value)
 
     @QtCore.pyqtSlot()
@@ -613,9 +665,9 @@ class MainWindow(QtWidgets.QMainWindow):
         header = OrderedDict()
         for row in range(self.ui.listWidget_hq_header_right.count()):
             item = self.ui.listWidget_hq_header_right.item(row)
-            header[item.data(QtCore.Qt.UserRole)] = {
+            header[item.data(self._HeaderRole)] = {
                 QtCore.Qt.DisplayRole: item.data(QtCore.Qt.DisplayRole),
-                QtCore.Qt.UserRole: item.data(QtCore.Qt.UserRole),
+                self._HeaderRole: item.data(self._HeaderRole),
             }
 
         diff = model.columnCount() - len(header)
@@ -674,8 +726,8 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot('QModelIndex', 'QModelIndex', 'QVector<int>')
     def on_data_changed(self, lf, br, roles):
         dt = lf.model().headerData(
-            lf.column(), QtCore.Qt.Horizontal, QtCore.Qt.UserRole)
-        if dt == '_policy' and QtCore.Qt.EditRole in roles:
+            lf.column(), QtCore.Qt.Horizontal, self._HeaderRole)
+        if dt in ['_policy', '_cost'] and QtCore.Qt.EditRole in roles:
             mcode = lf.sibling(lf.row(), 0).data()
             if lf.model() == self.ui.tableView_hq.model():
                 model = self.ui.tableView_selected_stock.model()
@@ -687,7 +739,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     break
             for column in range(model.columnCount()):
                 if dt == model.headerData(
-                        column, QtCore.Qt.Horizontal, QtCore.Qt.UserRole):
+                        column, QtCore.Qt.Horizontal, self._HeaderRole):
                     break
             model.setData(
                 model.index(row, column),
