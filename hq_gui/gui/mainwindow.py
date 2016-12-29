@@ -727,8 +727,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def on_data_changed(self, lf, br, roles):
         dt = lf.model().headerData(
             lf.column(), QtCore.Qt.Horizontal, self._HeaderRole)
+        mcode = lf.sibling(lf.row(), 0).data()
         if dt in ['_policy', '_cost'] and QtCore.Qt.EditRole in roles:
-            mcode = lf.sibling(lf.row(), 0).data()
             if lf.model() == self.ui.tableView_hq.model():
                 model = self.ui.tableView_selected_stock.model()
             else:
@@ -744,3 +744,10 @@ class MainWindow(QtWidgets.QMainWindow):
             model.setData(
                 model.index(row, column),
                 lf.data(), QtCore.Qt.EditRole)
+        if dt == '_cost':
+            model = lf.model()
+            for column in range(model.columnCount()):
+                if '_profit' == model.headerData(
+                        column, QtCore.Qt.Horizontal, self._HeaderRole):
+                    break
+            model.setData(model.index(lf.row(), column), float('nan'))
