@@ -65,10 +65,15 @@ UserDataType = {
         'format': '%s',
     },
     '_profit': {
-        'desc': '盈利',
+        'desc': '每股盈亏',
+        'calc': None,
+        'preformat': None,
+        'format': '%+0.2f',
+    },
+    '_profit_percent': {
+        'desc': '盈亏比例 (%)',
         'calc': None,
         'preformat': functools.percent_format,
-        'format': '%+0.2f %%',
+        'format': '%+0.2f',
     },
-
 }

@@ -178,7 +178,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self._setting['general'] = OrderedDict((
                 ('stockhq_url', 'http://127.0.0.1/stock/hq'),
                 ('selected', ''),
-                ('hq_header', 'MCODE,ZQMC,_policy,_cost,_profit'),
+                ('hq_header', 'MCODE,ZQMC,_policy,_cost,_profit,_profit_percent'),
             ))
             self._setting['state'] = OrderedDict((
                 ('hq_header', ''),
@@ -259,7 +259,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     self._AbbrRole: s['abbr'],
                 })
                 cost = setting['cost'].get(s_mcode) or ''
-                record.append({QtCore.Qt.EditRole: cost})
+                record.append({
+                    QtCore.Qt.EditRole: cost,
+                    QtCore.Qt.TextAlignmentRole: QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter,
+                })
                 policy = setting['policy'].get(s_mcode) or ''
                 record.append({QtCore.Qt.EditRole: policy})
                 mcodes.remove(s_mcode)
@@ -521,9 +524,15 @@ class MainWindow(QtWidgets.QMainWindow):
                     self._PolicyRole: set(),
                 })
             elif dt == '_cost':
-                row.append({QtCore.Qt.EditRole: stock['_cost']})
+                row.append({
+                    QtCore.Qt.EditRole: stock['_cost'],
+                    QtCore.Qt.TextAlignmentRole: QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter,
+                })
             else:
-                row.append({QtCore.Qt.DisplayRole: float('nan')})
+                row.append({
+                    QtCore.Qt.DisplayRole: float('nan'),
+                    QtCore.Qt.TextAlignmentRole: QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter,
+                })
         return row
 
     def hq_check_policy(self, index, record):
@@ -634,12 +643,20 @@ class MainWindow(QtWidgets.QMainWindow):
                         cost_value = cost_item.get(QtCore.Qt.EditRole)
                         if cost_value:
                             cost_value = float(cost_value)
+                            value = record['NEW'] - cost_value
+                    elif k == '_profit_percent':
+                        cost_column = header_datatype.index('_cost')
+                        cost_item = model.itemData(model.index(cur_row, cost_column))
+                        cost_value = cost_item.get(QtCore.Qt.EditRole)
+                        if cost_value:
+                            cost_value = float(cost_value)
                             value = (record['NEW'] - cost_value) / cost_value
                     else:
                         value = dt['calc'](record)
 
                     # set color
-                    if value is not None and k in ['_zhangdiefu', '_profit']:
+                    if value is not None and k in [
+                            '_zhangdiefu', '_profit', '_profit_percent']:
                         color = black
                         if value > 0:
                             color = red
@@ -747,7 +764,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if dt == '_cost':
             model = lf.model()
             for column in range(model.columnCount()):
-                if '_profit' == model.headerData(
-                        column, QtCore.Qt.Horizontal, self._HeaderRole):
+                if model.headerData(
+                        column, QtCore.Qt.Horizontal, self._HeaderRole) in [
+                            '_profit', '_profit_percent']:
                     model.setData(model.index(lf.row(), column), float('nan'))
-                    break
