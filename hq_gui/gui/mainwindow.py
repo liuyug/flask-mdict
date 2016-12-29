@@ -176,7 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self._setting = OrderedDict()
             self._setting['general'] = OrderedDict((
-                ('stockhq_url', 'http://127.0.0.1/stock/hq'),
+                ('stockhq_url', 'http://127.0.0.1/stock/hq/sina'),
                 ('selected', ''),
                 ('hq_header', 'MCODE,ZQMC,_policy,_cost,_profit,_profit_percent'),
             ))
@@ -608,21 +608,17 @@ class MainWindow(QtWidgets.QMainWindow):
                     if k in ['MCODE', 'ZQMC', 'DATE', 'TIME']:
                         # must be string
                         v = v or ''
-                    elif record['NEW'] is None:
-                        # pause transaction
-                        v = float('nan')
                     elif v is None:
                         # no value at some datetype
                         v = float('nan')
                     elif k in ['VOL']:
                         v = float(v) / 100.0
                     else:
-                        # reset to '0' for '-0.0'
-                        v = float(v) or 0.0
+                        v = float(v)
                     column = header_datatype.index(k)
                     model.setData(model.index(cur_row, column), v)
                 # calculate
-                if record['NEW'] is None:
+                if record['BUYPRICE1'] is None:
                     continue
                 for k, dt in UserDataType.items():
                     if k not in header_datatype:
@@ -731,9 +727,7 @@ class MainWindow(QtWidgets.QMainWindow):
             'mcode': ';'.join(list(selected_stock.keys())),
             'datatype': ','.join(list(DataType.keys())),
         }
-        hq_source = 'ths'
-        url = '%s/%s/hq?%s' % (
-            base_url, hq_source, urlencode(data, safe=';,'))
+        url = '%s/hq?%s' % (base_url, urlencode(data, safe=';,'))
         logger.debug('request hq from ' + url)
 
         self._worker_object.set_request(url, 500)
