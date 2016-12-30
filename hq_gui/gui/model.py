@@ -195,4 +195,6 @@ class FormatItemDelegate(QtWidgets.QStyledItemDelegate):
         # for float('nan')
         if value != value:
             return ''
+        if value == '':
+            return ''
         return self._format % value

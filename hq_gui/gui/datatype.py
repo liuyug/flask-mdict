@@ -62,13 +62,13 @@ UserDataType = {
         'desc': '成本',
         'calc': None,
         'preformat': None,
-        'format': '%s',
+        'format': '￥ %s',
     },
     '_profit': {
         'desc': '每股盈亏',
         'calc': None,
         'preformat': None,
-        'format': '%+0.2f',
+        'format': '￥ %+0.2f',
     },
     '_profit_percent': {
         'desc': '盈亏比例 (%)',
