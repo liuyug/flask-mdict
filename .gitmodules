@@ -1,3 +1,6 @@
 [submodule "hq_gui/gui/utils"]
 	path = hq_gui/gui/utils
 	url = http://github.com/liuyug/utils
+[submodule "common/utils"]
+	path = common/utils
+	url = https://github.com/liuyug/utils
