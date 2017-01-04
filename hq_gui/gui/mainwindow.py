@@ -176,7 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self._setting = OrderedDict()
             self._setting['general'] = OrderedDict((
-                ('stockhq_url', 'http://127.0.0.1/stock/hq/sina'),
+                ('stockhq_url', 'http://127.0.0.1/stock/hq/ths'),
                 ('selected', ''),
                 ('hq_header', 'MCODE,ZQMC,_policy,_cost,_profit,_profit_percent'),
             ))
@@ -390,7 +390,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 logger.info('Read stock code from "%s"' % stock_code_json)
                 return self._stock_code
         base_url = self.ui.lineEdit_url.text()
-        url = '%s/ths/code/' % base_url
+        url = '%s/code/' % base_url
         logger.debug('request stock code from ' + url)
         res = url_downloader(url)
         if res['data'] is None:
