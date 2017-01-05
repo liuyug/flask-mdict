@@ -29,8 +29,9 @@ def main():
 
     logger.info('Stock HQ Gui client')
 
+    if sys.platform == 'win32':
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     app = QtWidgets.QApplication(sys.argv)
-    app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     font = QtGui.QFont()
     font.setPointSize(10)
     app.setFont(font)
