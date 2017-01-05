@@ -4,7 +4,7 @@
 import sys
 import logging
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 from .mainwindow import MainWindow
 
@@ -30,6 +30,7 @@ def main():
     logger.info('Stock HQ Gui client')
 
     app = QtWidgets.QApplication(sys.argv)
+    app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     font = QtGui.QFont()
     font.setPointSize(10)
     app.setFont(font)
