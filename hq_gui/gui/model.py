@@ -60,9 +60,11 @@ class StockTableModel(QtCore.QAbstractTableModel):
             new_data.append(self._data[item[1]])
 
         self.resetBlinkCell()
-        self.layoutAboutToBeChanged.emit()
         self._data = new_data
-        self.layoutChanged.emit()
+        self.dataChanged.emit(
+            self.index(0,0),
+            self.index(self.rowCount() - 1, self.columnCount() - 1)
+        )
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid():
