@@ -14,22 +14,30 @@ from .model import Main, Cash, Debt, Benefit
 logger = logging.getLogger(__name__)
 
 
-def download_finance_report(mcodes, overwrite=False, typ='json'):
+def download_finance_report(mcodes=None, typ='json'):
+    for stock in get_session().query(Stock):
+        if mcodes and stock.mcode not in mcodes:
+            continue
+        download_finance_data(stock.mcode, typ=typ)
+
+
+def create_finance(mcodes=None, typ='json'):
     if mcodes is None:
-        stocks = get_session().query(Stock).all()
-        mcodes = [stock.mcode for stock in stocks]
-    for mcode in mcodes:
-        download_finance_data(mcode, overwrite=overwrite, typ=typ)
+        for report_class in [Main, Cash, Benefit, Debt]:
+            report_class.__table__.drop(get_session().get_bind(), checkfirst=True)
+            report_class.__table__.create(get_session().get_bind(), checkfirst=True)
+        get_session().commit()
+    for stock in get_session().query(Stock):
+        if mcodes:
+            if stock.mcode in mcodes:
+                stock.Mains.delete()
+                stock.Cashs.delete()
+                stock.Debts.delete()
+                stock.Benefits.delete()
+                get_session().commit()
+            else:
+                continue
 
-
-def create_finance(typ='json'):
-    stocks = get_session().query(Stock).all()
-
-    for report_class in [Main, Cash, Benefit, Debt]:
-        report_class.__table__.drop(get_session().get_bind(), checkfirst=True)
-        report_class.__table__.create(get_session().get_bind(), checkfirst=True)
-    get_session().commit()
-    for stock in stocks:
         logger.info('Add [%s %s]' % (stock.mcode, stock.name))
         report_data = get_report_from_json(stock.mcode)
         for report, data in report_data.items():

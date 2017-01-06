@@ -20,7 +20,7 @@ from . import config
 logger = logging.getLogger(__name__)
 
 
-def download_finance_data(mcode, report='all', overwrite=False, typ='json'):
+def download_finance_data(mcode, report='all', typ='json'):
     """ typ: xls or json """
     base_dir = get_config().get('general', 'base_dir')
 
@@ -43,10 +43,7 @@ def download_finance_data(mcode, report='all', overwrite=False, typ='json'):
     for report in reports:
         path = os.path.join(finance_dir, '%s-%s.%s' % (mcode, report, typ))
         if os.path.exists(path):
-            if overwrite:
-                os.remove(path)
-            else:
-                continue
+            os.remove(path)
         url = url_map[report] % {'stock': mcode[2:]}
         logger.info('Download %s %s ...\t%s' % (
             mcode, report, os.path.basename(path)))
