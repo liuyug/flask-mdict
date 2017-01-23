@@ -85,6 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self._setting_ini = os.path.abspath(self._setting_ini)
 
         self.setWindowTitle('Stock HQ')
 

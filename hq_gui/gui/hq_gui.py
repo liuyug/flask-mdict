@@ -18,7 +18,7 @@ def list_system_fonts(family=QtGui.QFontDatabase.SimplifiedChinese):
         logger.info(name)
 
 
-def main():
+def main(category):
     # fmt = '[%(module)-10s: %(levelname)-5s] %(message)s',
     fmt = '[%(levelname)-5s] %(message)s'
     logging_config = {
