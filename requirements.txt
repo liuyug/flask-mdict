@@ -1,6 +1,9 @@
 six
-PyQt5
+# for client
+# PyQt5
 
+# pip install --upgrade ciff
+ciff
 # Flask
 Flask
 Flask-DebugToolbar
