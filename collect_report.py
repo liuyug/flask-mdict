@@ -30,7 +30,7 @@ def stock_main(parser):
 
     if args.download:
         download_finance_report(mcodes, typ='json')
-    elif args.create_db:
+    elif args.update_db:
         create_finance(mcodes, typ='json')
     else:
         parser.print_help()
@@ -48,9 +48,9 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--create-db',
+        '--update-db',
         action='store_true',
-        help='collect finance report and create database'
+        help='collect finance report and update database'
     )
 
     parser.add_argument(
