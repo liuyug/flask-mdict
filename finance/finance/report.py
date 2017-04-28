@@ -21,7 +21,7 @@ def download_finance_report(mcodes=None, typ='json'):
         download_finance_data(stock.mcode, typ=typ)
 
 
-def create_finance(mcodes=None, typ='json'):
+def import_finance_report(mcodes=None, typ='json'):
     if mcodes is None:
         for report_class in [Main, Cash, Benefit, Debt]:
             report_class.__table__.drop(get_session().get_bind(), checkfirst=True)
@@ -38,7 +38,7 @@ def create_finance(mcodes=None, typ='json'):
             else:
                 continue
 
-        logger.info('Add [%s %s]' % (stock.mcode, stock.name))
+        logger.info('Import [%s %s]' % (stock.mcode, stock.name))
         report_data = get_report_from_json(stock.mcode)
         for report, data in report_data.items():
             fields = []
