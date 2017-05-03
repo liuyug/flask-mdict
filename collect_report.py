@@ -30,6 +30,8 @@ def stock_main(parser):
 
     if args.download:
         download_finance_report(mcodes, typ='json')
+    elif args.download_overwrite:
+        download_finance_report(mcodes, typ='json', overwrite=True)
     elif args.import_:
         import_finance_report(mcodes, typ='json')
     else:
@@ -45,6 +47,11 @@ if __name__ == '__main__':
         '--download',
         action='store_true',
         help='download report from THS site'
+    )
+    parser.add_argument(
+        '--download-overwrite',
+        action='store_true',
+        help='download from THS site and overwrite old report'
     )
 
     parser.add_argument(

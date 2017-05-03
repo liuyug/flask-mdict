@@ -14,11 +14,11 @@ from .model import Main, Cash, Debt, Benefit
 logger = logging.getLogger(__name__)
 
 
-def download_finance_report(mcodes=None, typ='json'):
+def download_finance_report(mcodes=None, typ='json', overwrite=False):
     for stock in get_session().query(Stock):
         if mcodes and stock.mcode not in mcodes:
             continue
-        download_finance_data(stock.mcode, typ=typ)
+        download_finance_data(stock.mcode, typ=typ, overwrite=overwrite)
 
 
 def import_finance_report(mcodes=None, typ='json'):
