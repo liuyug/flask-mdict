@@ -37,7 +37,7 @@ Plugins = {
         'calc': functools.yywlr_lrze,
         'chart': 'chart_line_ratio',
     },
-    'zzcsyl': {
+    'zzcjll': {
         'desc': u'总资产净利率',
         'unit': u'%',
         'type': 'plugin',
@@ -51,7 +51,7 @@ Plugins = {
         'calc': functools.zczzl,
         'chart': 'chart_line_value',
     },
-    'xsjll': {
+    'yyjll': {
         'desc': u'营业净利率',
         'unit': u'%',
         'type': 'plugin',
