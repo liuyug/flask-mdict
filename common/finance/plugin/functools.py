@@ -17,7 +17,7 @@ def average_zzc(stock):
         last_date = last_year_end(date)
         last_zzc = values.get(last_date)
         if last_zzc:
-            values[date] = (values[date] + last_zzc) * 1.0 / 2
+            values[date] = (zzc + last_zzc) * 1.0 / 2
     return values
 
 
