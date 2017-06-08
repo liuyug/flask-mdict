@@ -4,7 +4,7 @@
 
 FinanceModelDesc = dict([
     ('Main', u'主要指标'),
-    ('Debt', u'资产负载表'),
+    ('Debt', u'资产负债表'),
     ('Benefit', u'利润表'),
     ('Cash', u'现金流量表'),
 ])
