@@ -98,10 +98,19 @@ def get_stocks():
         if not line:
             continue
         rows = line.split('\t')
+        str_date = rows[header_index[2]].strip()
+        if len(str_date) == 10:
+            pub_date = datetime.datetime.strptime(str_date, '%Y-%m-%d').date()
+        else:
+            logger.error('Error date: [%s] %s %s' % (
+                'SH%s' % rows[header_index[0]].strip(),
+                rows[header_index[1]].strip(),
+                str_date,
+            ))
         data.append([
             'SH%s' % rows[header_index[0]].strip(),
             rows[header_index[1]].strip(),
-            datetime.datetime.strptime(rows[header_index[2]].strip(), '%Y-%m-%d').date(),
+            pub_date,
             float(rows[header_index[3]].strip()) * 10000.0,
             float(rows[header_index[4]].strip()) * 10000.0,
         ])

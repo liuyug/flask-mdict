@@ -16,7 +16,54 @@ from .model import Stock, Plate
 logger = logging.getLogger(__name__)
 
 
-def create_plate(frm='ths_site'):
+# many to many stock plate
+def create_plate():
+    plates_data = create_plate_from_site()
+
+    Plate.__table__.drop(get_session().get_bind(), checkfirst=True)
+    Plate.__table__.create(get_session().get_bind())
+    get_session().commit()
+
+    stock_plates = {}
+    for plates in plates_data.values():
+        for plate in plates:
+            stock_mcodes = []
+            for stock_code in plate['stock']:
+                if stock_code.startswith('6'):
+                    mcode = 'SH%s' % stock_code
+                elif stock_code.startswith('0'):
+                    mcode = 'SZ%s' % stock_code
+                elif stock_code.startswith('3'):
+                    mcode = 'SZ%s' % stock_code
+                else:
+                    raise ValueError(stock_code)
+
+                q_stock = get_session().query(Stock).filter_by(mcode=mcode)
+                scalar = get_session().query(q_stock.exists()).scalar()
+                if scalar:
+                    stock_mcodes.append(mcode)
+                    if mcode in stock_plates:
+                        stock_plates[mcode]['plate_codes'] = '%s;%s' % (
+                            stock_plates[mcode]['plate_codes'], plate['code'])
+                    else:
+                        stock_plates[mcode] = {
+                            'mcode': mcode,
+                            'plate_codes': plate['code'],
+                        }
+                else:
+                    logger.warn('Could not find %s' % (mcode))
+            plate['stock_mcodes'] = ';'.join(stock_mcodes)
+            logger.info('Add plate: <%(code)s: %(name)s>' % plate)
+
+        logger.info('Add plate into database...')
+        get_session().bulk_insert_mappings(Plate, plates)
+        get_session().commit()
+    logger.info('Update stock database...')
+    get_session().bulk_update_mappings(Stock, stock_plates.values())
+    get_session().commit()
+
+
+def create_plate_2(frm='ths_site'):
     if frm == 'ths_site':
         plates_data = create_plate_from_site()
     elif frm == 'ths_local':

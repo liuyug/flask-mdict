@@ -54,10 +54,19 @@ def get_stocks():
     data.append(header)
     for row in range(1, sheet.nrows):
         values = sheet.row_values(row)
+        str_date = values[header_index[2]]
+        if len(str_date) == 10:
+            pub_date = datetime.datetime.strptime(str_date, '%Y-%m-%d').date()
+        else:
+            logger.error('Error date: [%s] %s %s' % (
+                'SZ%s' % values[header_index[0]],
+                values[header_index[1]],
+                str_date
+            ))
         data.append([
             'SZ%s' % values[header_index[0]],
             values[header_index[1]],
-            datetime.datetime.strptime(values[header_index[2]], '%Y-%m-%d').date(),
+            pub_date,
             float(values[header_index[3]].replace(',', '')),
             float(values[header_index[4]].replace(',', '')),
         ])

@@ -17,6 +17,7 @@ class StockBase(object):
     zgb = Column(Float)
     ltgb = Column(Float)
     ltgb_percent = Column(Float)
+    plate_codes = Column(String)
 
     @declared_attr
     def market_code(cls):
@@ -26,17 +27,6 @@ class StockBase(object):
     def market(cls):
         return relationship(
             'Market', backref=backref('stocks', lazy='dynamic'),
-            lazy='joined',
-        )
-
-    @declared_attr
-    def plate_code(cls):
-        return Column(String, ForeignKey('plate.code'))
-
-    @declared_attr
-    def plate(cls):
-        return relationship(
-            'Plate', backref=backref('stocks', lazy='dynamic'),
             lazy='joined',
         )
 
@@ -57,8 +47,11 @@ class MarketBase(object):
 class PlateBase(object):
     __tablename__ = 'plate'
 
+    plate_category = Column(String)
+    plate_category_name = Column(String)
     code = Column(String, primary_key=True)
     name = Column(String)
+    stock_mcodes = Column(String)
 
     def __repr__(self):
         return '<code: %s>' % self.code
