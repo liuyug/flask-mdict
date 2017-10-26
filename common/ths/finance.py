@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 
 def get_pdf_report(mcode):
     html_url = 'http://basic.10jqka.com.cn/%s/finance.html' % mcode[2:]
+    referer = 'http://basic.10jqka.com.cn/%s/' % mcode[2:]
     logger.debug('Get report links from THS site...%s' % mcode[2:])
-    response = url_downloader(html_url)
+    response = url_downloader(html_url, referer=referer)
     if response['data'] is None:
         logger.error(response['error'])
         return []
@@ -27,9 +28,9 @@ def get_pdf_report(mcode):
     if not view:
         return data
     table = view.find('table')
-    for tag in table.find_all('tr'):
+    for tr in table.find_all('tr'):
         record = []
-        for child in tag.children:
+        for child in tr.children:
             if child.name is None:
                 continue
             a = child.find('a')
