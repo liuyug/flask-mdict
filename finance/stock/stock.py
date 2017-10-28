@@ -11,7 +11,7 @@ from ..utils import url_downloader
 from ..config import get_config
 from ..database import get_session
 
-from .model import Stock, Market
+from .model import Stock
 from . import sse
 from . import szse
 
@@ -19,17 +19,18 @@ from . import szse
 logger = logging.getLogger(__name__)
 
 
-def create_stock():
+def create_stock(stock_json='stock.json'):
     """
     SH: http://query.sse.com.cn/security/stock/downloadStockListFile.do?csrcCode=&stockCode=&areaName=&stockType=1
     SZ: http://www.szse.cn/szseWeb/ShowReport.szse?SHOWTYPE=xlsx&CATALOGID=1110&tab2PAGENUM=1&ENCODE=1&TABKEY=tab2
     """
-    tmp_code_json = '/tmp/stock_code.json'
-    if os.path.exists(tmp_code_json):
-        stocks = json.loads(open(tmp_code_json).read().decode('utf8'))
+    if os.path.exists(stock_json):
+        stocks = json.loads(open(stock_json).read().decode('utf8'))
+        os.remove(stock_json)
     else:
         config = get_config()
         stock_url = config.get('hq', 'url') + '/ths/code/'
+        logger.info('fetch stock from "%s"' % stock_url)
         response = url_downloader(stock_url)
         if response['data'] is None:
             logger.warn(response['error'])
@@ -41,16 +42,16 @@ def create_stock():
         mcode = '%(market)s%(code)s' % stock
         stock['mcode'] = mcode
         if stock['code'].startswith('6'):
-            market_code = 'SHA'
+            market_code = 'SSE'
             sh_count += 1
         elif stock['code'].startswith('3'):
-            market_code = 'SZCN'
+            market_code = 'SZSE_GEM'
             sz_count += 1
         elif stock['code'].startswith('002'):
-            market_code = 'SZSME'
+            market_code = 'SZSE_SME'
             sz_count += 1
         else:
-            market_code = 'SZA'
+            market_code = 'SZSE_MAIN'
             sz_count += 1
         stock['market_code'] = market_code
         del stock['code']

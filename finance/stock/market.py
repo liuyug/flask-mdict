@@ -11,14 +11,15 @@ logger = logging.getLogger(__name__)
 
 market_dict = dict([
     ('SHSZA', u'沪深A股'),
-    ('SHA', u'沪市主板'),
-    ('SZA', u'深市主板'),
-    ('SZSME', u'深市中小板'),
-    ('SZCN', u'深市创业板'),
+    ('SSE', u'沪市主板'),
+    ('SZSE_MAIN', u'深市主板'),
+    ('SZSE_SME', u'深市中小板'),
+    ('SZSE_GEM', u'深市创业板'),
 ])
 
 
 def create_market():
+    Market.__table__.drop(get_session().get_bind(), checkfirst=True)
     Market.__table__.create(get_session().get_bind(), checkfirst=True)
     get_session().commit()
 
