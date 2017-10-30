@@ -16,19 +16,19 @@ def get_pdf_report(mcode):
     logger.debug('Get report links from CNINFO site...%s' % mcode[2:])
     category = {
         1: {
-            'name': u'一季度报告',
+            'name': u'一季度报告(本年4月30日前发布)',
             'key': 'category_yjdbg_szsh',
         },
         2: {
-            'name': u'中报',
+            'name': u'中报(本年8月31日前发布)',
             'key': 'category_bndbg_szsh',
         },
         3: {
-            'name': u'三季度报告',
+            'name': u'三季度报告(本年10月31日前发布)',
             'key': 'category_sjdbg_szsh',
         },
         4: {
-            'name': u'年报',
+            'name': u'年报(次年4月30前发布)',
             'key': 'category_ndbg_szsh',
         },
     }
