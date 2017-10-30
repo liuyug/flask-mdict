@@ -57,7 +57,7 @@ def get_pdf_report(mcode):
             return []
         json_data = json.loads(response['data'].decode('utf8'))
         for report in json_data['announcements']:
-            if report['adjunctType'].lower() != 'pdf':
+            if report['adjunctType'] and report['adjunctType'].lower() != 'pdf':
                 continue
             if u'摘要' in report['announcementTitle']:
                 continue
