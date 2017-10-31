@@ -43,19 +43,20 @@ def create_plate():
                 if scalar:
                     stock_mcodes.append(mcode)
                     if mcode in stock_plates:
-                        stock_plates[mcode]['plate_codes'] = '%s;%s' % (
-                            stock_plates[mcode]['plate_codes'], plate['code'])
+                        stock_plates[mcode]['_plate_codes'] = '%s;%s' % (
+                            stock_plates[mcode]['_plate_codes'], plate['code'])
                     else:
                         stock_plates[mcode] = {
                             'mcode': mcode,
-                            'plate_codes': plate['code'],
+                            '_plate_codes': plate['code'],
                         }
                 else:
                     logger.warn('Could not find %s' % (mcode))
-            plate['stock_mcodes'] = stock_mcodes
+            plate['_mcodes'] = ';'.join(stock_mcodes)
             logger.info('Add plate: <%(code)s: %(name)s>' % plate)
 
         logger.info('Add plate into database...')
+        # for bulk operation, don't use setter method?
         get_session().bulk_insert_mappings(Plate, plates)
         get_session().commit()
     logger.info('Update stock database...')

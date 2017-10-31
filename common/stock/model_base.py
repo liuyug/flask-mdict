@@ -17,7 +17,7 @@ class StockBase(object):
     zgb = Column(Float)
     ltgb = Column(Float)
     ltgb_percent = Column(Float)
-    plate_codes = Column(String)
+    _plate_codes = Column('plate_codes', String)
 
     @declared_attr
     def market_code(cls):
@@ -32,6 +32,17 @@ class StockBase(object):
 
     def __repr__(self):
         return '<code: %s>' % self.mcode
+
+    @property
+    def plate_codes(self):
+        if self._plate_codes:
+            return self._plate_codes.split(';')
+        else:
+            return []
+
+    @plate_codes.setter
+    def plate_codes(self, codes):
+        self._codes = ';'.join(codes)
 
 
 class MarketBase(object):
@@ -58,7 +69,10 @@ class PlateBase(object):
 
     @property
     def stock_mcodes(self):
-        return self._mcodes.split(';')
+        if self._mcodes:
+            return self._mcodes.split(';')
+        else:
+            return []
 
     @stock_mcodes.setter
     def stock_mcodes(self, mcodes):
