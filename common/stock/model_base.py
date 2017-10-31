@@ -51,7 +51,15 @@ class PlateBase(object):
     plate_category_name = Column(String)
     code = Column(String, primary_key=True)
     name = Column(String)
-    stock_mcodes = Column(String)
+    _mcodes = Column('stock_mcodes', String)
 
     def __repr__(self):
         return '<code: %s>' % self.code
+
+    @property
+    def stock_mcodes(self):
+        return self._mcodes.split(';')
+
+    @stock_mcodes.setter
+    def stock_mcodes(self, mcodes):
+        self._mcodes = ';'.join(mcodes)

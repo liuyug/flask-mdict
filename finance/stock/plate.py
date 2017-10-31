@@ -52,7 +52,7 @@ def create_plate():
                         }
                 else:
                     logger.warn('Could not find %s' % (mcode))
-            plate['stock_mcodes'] = ';'.join(stock_mcodes)
+            plate['stock_mcodes'] = stock_mcodes
             logger.info('Add plate: <%(code)s: %(name)s>' % plate)
 
         logger.info('Add plate into database...')

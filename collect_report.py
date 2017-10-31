@@ -22,7 +22,7 @@ def stock_main(parser):
         for code in args.mcode:
             plate = get_plate(code)
             if plate:
-                mcodes = [stock.mcode for stock in plate.stocks]
+                mcodes = plate.stock_mcodes
     elif args.mcode:
         mcodes = args.mcode
     else:
