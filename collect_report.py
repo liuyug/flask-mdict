@@ -64,7 +64,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--by-plate',
         action='store_true',
-        help='batch operation by THS plate code',
+        help='input stock mcode as plate code',
     )
 
     parser.add_argument('mcode',
