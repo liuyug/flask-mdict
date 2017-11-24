@@ -10,6 +10,7 @@ else
     export APP_CONFIG_FILE="`pwd`/config/debug.py"
 fi
 
+echo $APP_CONFIG_FILE
 python3 -m flask run
 
 # vim: tabstop=4 shiftwidth=4 expandtab
