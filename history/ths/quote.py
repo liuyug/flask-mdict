@@ -10,33 +10,82 @@ from .config import ths_dir
 def load_history_data(hpath):
     """parse ths history data
     """
+    datatype = dict([
+        (1, 'date'),
+        (7, 'open'),
+        (8, 'high'),
+        (9, 'low'),
+        (11, 'close'),
+        (19, 'money'),
+        (13, 'vol'),
+        (14, 'outvol'),
+        (15, 'invol'),
+        (17, 'openvol'),
+        (18, 'volamount'),
+        (80, 'yjlx'),
+        (231, 'buytick'),
+        (232, 'selltick'),
+        (122, 'avgbuyprice'),
+        (123, 'allbuycount'),
+        (124, 'avgsellprice'),
+        (125, 'allsellcount'),
+        (201, 'bigbuycount1'),
+        (202, 'bigsellcount1'),
+        (203, 'bigbuycount2'),
+        (204, 'bigsellcount2'),
+        (205, 'bigbuycount3'),
+        (206, 'bigsellcount3'),
+        (207, 'waitbuycount1'),
+        (208, 'waitsellcount1'),
+        (209, 'waitbuycount2'),
+        (210, 'waitsellcount2'),
+        (211, 'waitbuycount3'),
+        (212, 'waitsellcount3'),
+        (223, 'bigbuymoney1'),
+        (224, 'bigsellmony1'),
+        (225, 'bigbuymony2'),
+        (226, 'bigsellmony2'),
+        (227, 'waitbuymoney1'),
+        (228, 'waitsellmoney1'),
+        (229, 'waitbuymoney2'),
+        (230, 'waitsellmoney2'),
+        (3, 'codetype'),
+        (4, 'n/a'),
+        (5, 'code'),
+        (6, 'pre'),
+    ])
+
     if not os.path.exists(hpath):
         raise OSError('could not find file: %s' % hpath)
     f = open(hpath, 'rb')
     tag, = struct.unpack('<6s', f.read(6))
     if tag != b'hd1.0\x00':
         raise Exception('%s header error' % hpath)
-    rnum, roffset, rsize, rcnum = struct.unpack('<LHHH', f.read(10))
+    row, offset, size, column = struct.unpack('<LHHH', f.read(10))
     data = []
-    # XXX: unknown
-    for x in range(rcnum):
-        B = struct.unpack('<2H', f.read(4))
-    for x in range(rnum):
-        # day
-        B = struct.unpack('<%dL' % rcnum, f.read(rsize))
-        day = dict([
-            ('date', datetime.strptime('%s' % B[0], '%Y%m%d').date()),
-            ('open', 1.0 * (B[1] & 0x0FFFFFFF) / 10 ** ((B[1] >> 28) - 8)),
-            ('max', 1.0 * (B[2] & 0x0FFFFFFF) / 10 ** ((B[2] >> 28) - 8)),
-            ('min', 1.0 * (B[3] & 0x0FFFFFFF) / 10 ** ((B[3] >> 28) - 8)),
-            ('close', 1.0 * (B[4] & 0x0FFFFFFF) / 10 ** ((B[4] >> 28) - 8)),
-            ('amount', 1.0 * (B[5] & 0x0FFFFFFF) / 10 ** ((B[5] >> 28) - 8 + 9)),
-            ('volume', 1.0 * (B[6] & 0x0FFFFFFF) / 10 ** ((B[6] >> 28) - 8 + 9)),
-        ])
-        data.append(day)
+    header = []
+    for x in range(column):
+        B = struct.unpack('<4B', f.read(4))
+        # other 3B, unknown
+        header.append(datatype.get(B[0]))
+    for y in range(row):
+        d = []
+        B = struct.unpack('<%dL' % column, f.read(size))
+        for x in range(column):
+            if B[x] == 0xFFFFFFFF:
+                continue
+            if header[x] == 'date':
+                value = datetime.strptime('%s' % B[0], '%Y%m%d').date()
+            else:
+                v = B[x] & 0x0fffffff
+                sign = -1 if (B[x] >> 31) == 1 else 1
+                power = (B[x] >> 28 & 0b0111) * sign
+                value = 10 ** power * v
+            d.append((header[x], value))
+        data.append(dict(d))
     f.close()
     data.sort(key=lambda x: x['date'], reverse=True)
-    return data
+    return {'header': header, 'data': data}
 
 
 def add_arguments(parser):
@@ -59,4 +108,7 @@ def exec_args(args):
         hpath = os.path.join(
             args.ths_dir, 'history', market_path, args.period, filename)
         data = load_history_data(hpath)
-        print(data)
+        if data['data']:
+            fmt = '\n'.join(['%s: %%(%s)s' % (h, h) for h in data['header'][:7]])
+            for d in data['data']:
+                print(fmt % d)

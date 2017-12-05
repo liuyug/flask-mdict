@@ -327,7 +327,7 @@ def add_arguments(parser):
     parser.add_argument('--directory', dest='ths_dir', default=ths_dir, help='THS Software directory')
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--make-config', action='store_true', help='Make a config file')
+    group.add_argument('--make-config', action='store_true', help='Make a config file for Web Server')
     group.add_argument('--host', action='store_true', help='All THS HQ Hosts')
     group.add_argument('--datatype', action='store_true', help='All THS Functions.')
     group.add_argument('--market', action='store_true', help='catch market')
@@ -335,6 +335,7 @@ def add_arguments(parser):
     group.add_argument('--stock-json', help='catch SH&SZ stock code and output to json')
     group.add_argument('--quote', action='store_true', help='HQ data with hq-datatype')
     parser.add_argument('--hq-datatype', required=False, help='HQ datatype')
+    parser.add_argument('--output', required=False, help='output to csv file')
     parser.add_argument('mcode', nargs='*', help='Stock code, SH600000')
 
 
@@ -372,9 +373,13 @@ def exec_args(args):
         return
     if args.datatype:
         datatype = syscfg.datatype()
-        table = [list(datatype.getDatatype()[0].keys())]
-        table.extend([list(dt.values()) for dt in datatype.getDatatype()])
-        print(RstTable(table).table())
+        data = [list(datatype.getDatatype()[0].keys())]
+        data.extend([list(dt.values()) for dt in datatype.getDatatype()])
+        table = RstTable(data)
+        if args.output:
+            table.csv(args.output)
+        else:
+            print(table.table())
         return
 
     thshq = ThsHq(datatype)
