@@ -5,9 +5,7 @@ import os
 import os.path
 import logging
 import json
-import struct
 import datetime
-from collections import OrderedDict
 
 import xlrd
 
@@ -119,32 +117,3 @@ def get_report_from_json(mcode, report='all'):
             data.append(record)
         report_data[report] = data
     return report_data
-
-
-def load_history_data(hpath):
-    """parse ths history data
-    test...
-    """
-    f = open(hpath)
-    tag, = struct.unpack('<6s', f.read(6))
-    if tag != 'hd1.0\x00':
-        raise Exception('%s header error' % hpath)
-    rnum, roffset, rsize, rcnum = struct.unpack('<LHHH', f.read(10))
-    # XXX: what's this?
-    for x in range(rcnum):
-        B = struct.unpack('<4B', f.read(4))
-        # print('column', B)
-    for x in range(rnum):
-        # day
-        B = struct.unpack('<%dL' % rcnum, f.read(rsize))
-        day = OrderedDict([
-            ('date', '%s' % B[0]),
-            ('open', 1.0 * (B[1] & 0x0FFFFFFF) / 10 ** ((B[1] >> 28) - 8)),
-            ('max', 1.0 * (B[2] & 0x0FFFFFFF) / 10 ** ((B[2] >> 28) - 8)),
-            ('min', 1.0 * (B[3] & 0x0FFFFFFF) / 10 ** ((B[3] >> 28) - 8)),
-            ('close', 1.0 * (B[4] & 0x0FFFFFFF) / 10 ** ((B[4] >> 28) - 8)),
-            ('amount', 1.0 * (B[5] & 0x0FFFFFFF) / 10 ** ((B[5] >> 28) - 8 + 9)),
-            ('volume', 1.0 * (B[6] & 0x0FFFFFFF) / 10 ** ((B[6] >> 28) - 8 + 9)),
-        ])
-        print(day)
-    f.close()
