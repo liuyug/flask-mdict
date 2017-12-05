@@ -332,7 +332,6 @@ def add_arguments(parser):
     group.add_argument('--datatype', action='store_true', help='All THS Functions.')
     group.add_argument('--market', action='store_true', help='catch market')
     group.add_argument('--stock', action='store_true', help='catch SH&SZ stock code')
-    group.add_argument('--stock-json', help='catch SH&SZ stock code and output to json')
     group.add_argument('--quote', action='store_true', help='HQ data with hq-datatype')
     parser.add_argument('--hq-datatype', required=False, help='HQ datatype')
     parser.add_argument('--output', required=False, help='output to csv file')
@@ -350,9 +349,7 @@ def exec_args(args):
     datatype = syscfg.datatype()
 
     if args.make_config:
-        if args.mcode:
-            filename = args.mcode[0]
-        else:
+        if not args.output:
             print('Please input config filename')
             return
 
@@ -362,7 +359,7 @@ def exec_args(args):
             'hosts': thscfg.getHQHosts(),
             'datatype': syscfg.datatype().getDatatype(),
         }
-        json.dump(data, open(filename, 'w'))
+        json.dump(data, open(args.output, 'w'))
         return
     if args.host:
         hosts = thscfg.getHQHosts()
@@ -391,12 +388,12 @@ def exec_args(args):
         return
     if args.stock:
         stocks = thshq.getStock()
-        table = [stock.values() for stock in stocks]
-        print(RstTable(table, header=False).table())
-        return
-    if args.stock_json:
-        stocks = thshq.getStock()
-        json.dump(stocks, open(args.stock_json, 'w'))
+        if args.output:
+            json.dump(stocks, open(args.output, 'w'))
+        else:
+            data = [stock.values() for stock in stocks]
+            table = RstTable(data, header=False)
+            print(table.table())
         return
     if args.quote:
         if args.hq_datatype:
