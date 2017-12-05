@@ -7,13 +7,12 @@ import argparse
 
 import six
 
-from server.hq.sina import sinahq
-from server.hq.ths import thshq
-from server.hq.leverfun import leverfunhq
-from server.hq.tencent import tencenthq
+from quote.sina import sinahq
+from quote.ths import thshq
+from quote.tencent import tencenthq
 
 if sys.platform == 'win32':
-    from server.hq.tdx import tdxhq
+    from quote.tdx import tdxhq
 
 
 def main():
@@ -32,9 +31,6 @@ def main():
     parser = subparsers.add_parser('sina')
     sinahq.add_arguments(parser)
 
-    parser = subparsers.add_parser('leverfun')
-    leverfunhq.add_arguments(parser)
-
     parser = subparsers.add_parser('tencent')
     tencenthq.add_arguments(parser)
 
@@ -49,10 +45,10 @@ def main():
         tdxhq.exec_args(args)
     elif args.category == 'sina':
         sinahq.exec_args(args)
-    elif args.category == 'leverfun':
-        leverfunhq.exec_args(args)
     elif args.category == 'tencent':
         tencenthq.exec_args(args)
+    else:
+        argparser.print_help()
 
 
 if __name__ == '__main__':

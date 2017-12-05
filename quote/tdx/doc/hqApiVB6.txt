@@ -1,0 +1,49 @@
+Option Explicit
+
+
+
+Private Declare Function TdxHq_Connect Lib "TdxHqApi.dll" (ByVal IP As String, ByVal Port As Long, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '连接券商行情服务器
+Private Declare Function TdxHq_Disconnect Lib "TdxHqApi.dll" () As Boolean   '断开服务器
+Private Declare Function TdxHq_GetSecurityCount Lib "TdxHqApi.dll" (ByVal Market As Byte, ByRef Result As Integer, ByVal ErrInfo As String) As Boolean   '获取市场内所有证券的数目
+Private Declare Function TdxHq_GetSecurityList Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Start As Integer, ByRef Count As Integer, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取指定范围内所有的证券代码
+Private Declare Function TdxHq_GetSecurityBars Lib "TdxHqApi.dll" (ByVal Category As Byte, ByVal Market As Byte, ByVal Zqdm As String, ByVal Start As Integer, ByRef Count As Integer, ByVal Result As String, ByVal ErrInfo As String) As Boolean  '获取股票K线
+Private Declare Function TdxHq_GetIndexBars Lib "TdxHqApi.dll" (ByVal Category As Byte, ByVal Market As Byte, ByVal Zqdm As String, ByVal Start As Integer, ByRef Count As Integer, ByVal Result As String, ByVal ErrInfo As String) As Boolean  '获取指数K线
+Private Declare Function TdxHq_GetMinuteTimeData Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Result As String, ByVal ErrInfo As String) As Boolean    '获取分时图数据
+Private Declare Function TdxHq_GetHistoryMinuteTimeData Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Date1 As Long, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取历史分时图数据
+Private Declare Function TdxHq_GetTransactionData Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Start As Integer, ByRef Count As Integer, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取分时成交
+Private Declare Function TdxHq_GetHistoryTransactionData Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Start As Integer, ByRef Count As Integer, ByVal Date1 As Long, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取历史分时成交
+Private Declare Function TdxHq_VB_GetSecurityQuotes Lib "TdxHqApi.dll" (ByRef Market As Byte, ByVal Zqdm As Variant, ByRef Count As Integer, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取盘口五档报价
+Private Declare Function TdxHq_GetCompanyInfoCategory Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Result As String, ByVal ErrInfo As String) As Boolean  '获取F10信息类别
+Private Declare Function TdxHq_GetCompanyInfoContent Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal FileName As String, ByVal Start As Long, ByVal Length As Long, ByVal Result As String, ByVal ErrInfo As String) As Boolean      '获取F10信息内容
+Private Declare Function TdxHq_GetXDXRInfo Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取权息数据
+Private Declare Function TdxHq_GetFinanceInfo Lib "TdxHqApi.dll" (ByVal Market As Byte, ByVal Zqdm As String, ByVal Result As String, ByVal ErrInfo As String) As Boolean   '获取财务信息
+
+
+Private Sub Form_Load()
+
+ Dim bool1 As Boolean, Result As String, ErrInfo As String, Zqdms(1) As String, Markets(1) As Byte, ZqdmCount As Integer, Count As Integer
+ Result = Space$(409600)
+ ErrInfo = Space$(256)
+ Count = 10
+
+  Markets(0) = 0
+  Zqdms(0) = "000001"
+  Markets(1) = 1
+  Zqdms(1) = "600000"
+  
+  ZqdmCount = 2
+  
+ 
+ bool1 = TdxHq_Connect("121.14.110.200", 443, Result, ErrInfo)
+ 
+ 
+
+ 
+ bool1 = TdxHq_VB_GetSecurityQuotes10(Markets(0), Zqdms, ZqdmCount, Result, ErrInfo)
+ 
+
+ 
+
+ TdxHq_Disconnect
+
+End Sub

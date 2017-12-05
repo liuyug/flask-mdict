@@ -1,0 +1,266 @@
+/*需要注意的这个只是获取单只股票
+
+代码的用处，通过这个代码有炒股的朋友就可以写出简单的自动止损和按一定价格入场的程序了。（国内正规券商不支持这种功能，可能是为了防止一些东西。）
+
+我们先来看一下股票信息的类*/
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Qianfa.net.DataServices;
+using Qianfa.net.Library.Entity;
+using System.Net;
+using Qianfa.net.Library;
+
+
+
+namespace Qianfa.net.Library.Entity
+{
+    /*http://hq.sinajs.cn/list=sh600066  sh上海 sz深圳
+     * 0：”大秦铁路”，股票名字；
+   1：”27.55″，今日开盘价；
+   2：”27.25″，昨日收盘价；
+   3：”26.91″，当前价格；//时间结束后也就是收盘价了
+   4：”27.55″，今日最高价；
+   5：”26.20″，今日最低价；
+   6：”26.91″，竞买价，即“买一”报价；
+   7：”26.92″，竞卖价，即“卖一”报价；
+   8：”22114263″，成交的股票数，由于股票交易以一百股为基本单位，所以在使用时，通常把该值除以一百；
+   9：”589824680″，成交金额，单位为“元”，为了一目了然，通常以“万元”为成交金额的单位，所以通常把该值除以一万；
+   10：”4695″，“买一”申请4695股，即47手；
+   11：”26.91″，“买一”报价；
+   12：”57590″，“买二”
+   13：”26.90″，“买二”
+   14：”14700″，“买三”
+   15：”26.89″，“买三”
+   16：”14300″，“买四”
+   17：”26.88″，“买四”
+   18：”15100″，“买五”
+   19：”26.87″，“买五”
+   20：”3100″，“卖一”申报3100股，即31手；
+   21：”26.92″，“卖一”报价
+   (22, 23), (24, 25), (26,27), (28, 29)分别为“卖二”至“卖四的情况”
+   30：”2008-01-11″，日期；
+   31：”15:05:32″，时间；
+   */
+    public class StockInfo
+    {
+        public string Name
+        {
+            get;
+            set;
+        }
+
+        public decimal TodayOpen
+        {
+            get;
+            set;
+        }
+
+        public decimal YesterdayClose
+        {
+            get;
+            set;
+        }
+
+        public decimal Current
+        {
+            get;
+            set;
+        }
+
+        public decimal High
+        {
+            get;
+            set;
+        }
+
+        public decimal Low
+        { get; set; }
+
+        /// <summary>
+        /// 竟买价 买1
+        /// </summary>
+        public decimal Buy
+        { get; set; }
+
+        /// <summary>
+        /// 竟卖价 卖1
+        /// </summary>
+        public decimal Sell { get; set; }
+
+        /// <summary>
+        /// 成交数 单位股数 通常除于100成为手
+        /// </summary>
+        public int VolAmount { get; set; }
+
+        /// <summary>
+        /// 成交多少钱,单位元
+        /// </summary>
+        public decimal VolMoney { get; set; }
+
+        /// <summary>
+        /// 新浪是可以看到5个,5档看盘 ,买1-买5
+        /// </summary>
+        public List<GoodsInfo> BuyList { get; set; }
+
+        /// <summary>
+        /// 卖1－卖5
+        /// </summary>
+        public List<GoodsInfo> SellList { get; set; }
+
+        /// <summary>
+        /// Date and Time
+        /// </summary>
+        public DateTime Time { get; set; }
+
+        public override string ToString()
+        {
+            return Name + ": " + VolAmount + ":" + Current;
+        }
+       
+    }
+
+
+}
+
+
+
+namespace Qianfa.net.Library
+{
+
+///股票数据获取接口,你可以自己实现新浪yahoo...
+    public interface IDataService
+    {
+         StockInfo GetCurrent(string stockCode);  
+    }
+}
+
+namespace Qianfa.net.DataServices
+{
+    public class Sina : IDataService
+    {
+
+        private const string dataurl = "http://hq.sinajs.cn/list={0}";
+        #region IStockInfo Members
+        WebClient client;
+        private StockInfo PrevInfo;
+        public StockInfo GetCurrent(string stockCode)
+        {
+            try
+            {
+                if (client == null)
+                {
+                    client = new WebClient();
+                }
+                if (stockCode.Substring(0, 2) == "60")//上海是600打头
+                {
+                    stockCode = "sh" + stockCode;
+                }
+                else if(stockCode.Substring(0,2)=="00")//深圳
+                {
+                    stockCode = "sz" + stockCode;
+                }
+                else if (stockCode.Substring(0, 2) == "51")//上海基金
+                {
+                    stockCode = "sh" + stockCode;
+                }
+                string url = string.Format(dataurl, stockCode);
+                string data = client.DownloadString(string.Format(url, stockCode));
+                PrevInfo = Parse(data);
+                return PrevInfo;
+            }
+            catch
+            {
+                return PrevInfo;
+            }
+           
+        }
+
+        /// <summary>
+        /// Parse Sina data to stock Info
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static StockInfo Parse(string content)
+        {
+           // var hq_str_sh600066 = "宇通客车,9.27,9.35,9.76,9.80,9.27,9.77,9.78,4567858,44306952,3100,9.77,1200,9.76,20500,9.75,1400,9.74,15300,9.73,10030,9.78,28093,9.79,156827,9.80,2800,9.81,6400,9.82,2009-01-09,15:03:32";
+            int start = content.IndexOf('"')+1;
+            int end = content.IndexOf('"',start);
+            string input = content.Substring(start, end - start);
+            string[] temp = input.Split(',');
+            if (temp.Length != 32)
+            {
+                return null;
+            }
+            StockInfo info = new StockInfo();
+            info.Name = temp[0];
+            info.TodayOpen = decimal.Parse(temp[1]);
+            info.YesterdayClose = decimal.Parse(temp[2]);
+            info.Current = decimal.Parse(temp[3]);
+            info.High = decimal.Parse(temp[4]);
+            info.Low = decimal.Parse(temp[5]);
+            info.Buy = decimal.Parse(temp[6]);
+            info.Sell = decimal.Parse(temp[7]);
+            info.VolAmount = int.Parse(temp[8]);
+            info.VolMoney = decimal.Parse(temp[9]);
+            info.BuyList = new List<GoodsInfo>(5);
+            int index = 10;
+            for (int i = 0; i < 5; i++)
+            {
+                GoodsInfo goods = new GoodsInfo();
+                goods.State = GoodsState.Buy;
+                goods.Amount = int.Parse(temp[index]);
+                index++;
+                goods.Price = decimal.Parse(temp[index]);
+                index++;
+                info.BuyList.Add(goods);
+            }
+            info.SellList = new List<GoodsInfo>(5);
+
+            for (int i = 0; i < 5; i++)
+            {
+                GoodsInfo goods = new GoodsInfo();
+                goods.State = GoodsState.Sell;
+                goods.Amount = int.Parse(temp[index]);
+                index++;
+                goods.Price = decimal.Parse(temp[index]);
+                index++;
+                info.SellList.Add(goods);
+            }
+            info.Time = DateTime.Parse(temp[30] + " " + temp[31]);
+            return info;
+
+        }
+
+        #endregion
+    }
+ public class GoodsInfo
+    {
+        public int Amount
+        { get; set; }
+        public decimal Price
+        {
+            get;
+            set;
+        }
+        public GoodsState State { get; set; }
+    }
+
+
+    public enum GoodsState
+    {
+        Buy,
+        Sell,
+    }
+
+}
+
+
+
+   
+/*如果C#新浪的股票接口满足不了你需要的话你还可以了解一些商业的股票接口 
+该股票交易接口由千发股票提供。另外千发股票还提供收费的实时股票实时数据接口。
+使用这样的接口你可以作出模拟交易的网站，自动交易的股票程序。等。
+http://www.qianfa.net/StockInfoSoft.html*/

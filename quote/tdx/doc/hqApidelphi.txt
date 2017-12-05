@@ -1,0 +1,54 @@
+program Hello;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils;
+
+  function  TdxHq_Connect(IP:PAnsiChar;Port:integer;  Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  procedure TdxHq_Disconnect();stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetSecurityCount(Market:byte; var Result:SmallInt; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetSecurityList(Market:byte; Start:SmallInt; var Count:SmallInt; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetSecurityBars(Category:byte; Market:byte; Zqdm:PAnsiChar; Start:SmallInt;  var Count:SmallInt; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetIndexBars(Category:byte; Market:byte; Zqdm:PAnsiChar; Start:SmallInt;  var Count:SmallInt; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetMinuteTimeData(Market:byte; Zqdm:PAnsiChar; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetHistoryMinuteTimeData(Market:byte; Zqdm:PAnsiChar; date:integer; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetTransactionData(Market:byte; Zqdm:PAnsiChar; Start:SmallInt; var Count:SmallInt; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetHistoryTransactionData(Market:byte; Zqdm:PAnsiChar; Start:SmallInt; var Count:SmallInt; date:integer; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetSecurityQuotes(var Market:byte, var Zqdm:PAnsiChar;  var Count:SmallInt; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetCompanyInfoCategory(Market:byte; Zqdm:PAnsiChar; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetCompanyInfoContent(Market:byte; Zqdm:PAnsiChar; FileName:PAnsiChar; Start:integer; Length:integer; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetXDXRInfo(Market:byte; Zqdm:PAnsiChar; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+  function  TdxHq_GetFinanceInfo(Market:byte; Zqdm:PAnsiChar; Result:PAnsiChar; ErrInfo:PAnsiChar):boolean;stdcall;external 'TdxHqApi.dll';
+
+var
+ Result: PAnsiChar;
+ ErrInfo: PAnsiChar;
+ Ret:boolean;
+
+ Markets:array[0..1] of byte
+ Zqdms:array[0..1] of PAnsiChar;
+begin
+ GetMem(Result, 1024*1024);
+ GetMem(ErrInfo, 256);
+
+ {无论用什么语言编程，都必须仔细阅读VC版内的关于DLL导出函数的功能和参数含义说明，不仔细阅读完就提出问题者因时间精力所限，恕不解答。}
+
+ Ret:=TdxHq_GetSecurityBars(0, 0, '000001', 0, Count, Result, ErrInfo)
+ Writeln(Result);Writeln(ErrInfo);
+
+
+
+
+  Markets[0]:=0;    Markets[1]:=1;
+  Zqdms[0]:='000001';    Zqdms[1]:='600000';
+  Ret:=TdxHq_GetSecurityQuotes(Markets[0],   Zqdms[0], 2, Result, ErrInfo);
+  Writeln(Result);Writeln(ErrInfo);
+
+
+
+ FreeMem(Result, 1024*1024);
+ FreeMem(ErrInfo, 256);
+
+ Readln;
+end.
