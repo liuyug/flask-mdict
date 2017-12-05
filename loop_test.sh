@@ -4,7 +4,7 @@ hq=$1
 port=$2
 
 if [ "x$hq" = "x" ];then
-    echo "loop_test.sh <ths, sina , leverfun, tencent or tdx> [port]"
+    echo "loop_test.sh <ths, sina , tencent> [port]"
     exit 1
 fi
 
