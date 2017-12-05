@@ -14,7 +14,7 @@ else
     base_url="http://127.0.0.1:$port/hq"
 fi
 
-url="$base_url/${hq}hq/hq?mcode=sz000002;sh600168&datatype=new,vol,money,pre,date,time,fromopen"
+url="$base_url/${hq}/hq?mcode=sz000002;sh600168&datatype=new,vol,money,pre,date,time,fromopen"
 
 
 while true; do
