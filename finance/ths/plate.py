@@ -21,6 +21,8 @@ def create_plate_from_local():
     Create plate from ths local data
     """
     plate_path = os.path.join(ths_dir, 'industry.ini')
+    if not os.path.exists(plate_path):
+        raise TypeError('could not find directory: %s' % plate_path)
     plate_config = ConfigParser()
     plate_config.read(plate_path)
     plates = []

@@ -8,8 +8,8 @@ from collections import OrderedDict
 
 if sys.platform == 'win32':
     ths_dir = 'C:\同花顺软件\同花顺'
-if sys.platform.startswith('linux'):
-    ths_dir = '/mnt/c/同花顺软件/同花顺'
+else:
+    ths_dir = ''
 
 
 xls_url_map = OrderedDict((

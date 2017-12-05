@@ -23,6 +23,7 @@ def create_stock(stock_json='stock.json'):
     """
     SH: http://query.sse.com.cn/security/stock/downloadStockListFile.do?csrcCode=&stockCode=&areaName=&stockType=1
     SZ: http://www.szse.cn/szseWeb/ShowReport.szse?SHOWTYPE=xlsx&CATALOGID=1110&tab2PAGENUM=1&ENCODE=1&TABKEY=tab2
+    通过同花顺行情获取股票数据: python hq_direct.py ths --stock-json stock.json
     """
     if os.path.exists(stock_json):
         stocks = json.loads(open(stock_json).read().decode('utf8'))

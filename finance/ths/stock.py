@@ -36,6 +36,8 @@ def create_market_from_local():
         return codes
 
     market_path = os.path.join(ths_dir, 'realtime', 'market.txt')
+    if not os.path.exists(market_path):
+        raise TypeError('could not find file: %s' % market_path)
     market_config = ConfigParser()
     market_config.read(market_path)
 
@@ -82,6 +84,8 @@ def create_stock_from_local():
 
     stock = {}
     market_path = os.path.join(ths_dir, 'realtime', 'market.txt')
+    if not os.path.exists(market_path):
+        raise TypeError('could not find file: %s' % market_path)
     market_config = ConfigParser()
     market_config.read(market_path)
 
