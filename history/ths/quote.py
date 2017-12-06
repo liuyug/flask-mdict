@@ -26,8 +26,8 @@ def ths_date_to_datetime(ths_date):
     return datetime.strptime(str(ths_date), '%Y%m%d')
 
 
-def load_history_data(hpath, typ='day'):
-    """parse ths history data
+def load_quote_file(hpath, period):
+    """parse ths history file: .day .min .mn5
     """
     if not os.path.exists(hpath):
         raise OSError('could not find file: %s' % hpath)
@@ -53,7 +53,7 @@ def load_history_data(hpath, typ='day'):
         B = struct.unpack('<%dL' % column, f.read(size))
         for x in range(column):
             if header[x] == 'DATETIME':
-                if typ == 'day':
+                if period == 'day':
                     value = ths_date_to_datetime(B[0])
                 else:
                     value = ths_time_to_datetime(B[0])
@@ -71,31 +71,36 @@ def load_history_data(hpath, typ='day'):
     return {'header': header, 'data': data}
 
 
+def load_quote_data(ths_dir, mcode, period):
+    """period: day, min, min5
+    """
+    mcode = mcode.upper()
+    if mcode.startswith('SH'):
+        market_path = 'shase'
+    elif mcode.startswith('SZ'):
+        market_path = 'sznse'
+    else:
+        market_path = ''
+
+    if period == 'min5':
+        filename = '%s.mn5' % (mcode[2:])
+    else:
+        filename = '%s.%s' % (mcode[2:], period)
+
+    hpath = os.path.join(ths_dir, 'history', market_path, period, filename)
+    return load_quote_file(hpath, period)
+
+
 def add_arguments(parser):
     parser.add_argument('--directory', dest='ths_dir', default=ths_dir, help='THS Software directory')
 
-    parser.add_argument('--period', choices=['day', 'min', 'min5'], help='HQ data with hq-datatype')
+    parser.add_argument('--period', choices=['day', 'min', 'min5'], help='history period')
     parser.add_argument('mcode', nargs='+', help='Stock code, SH600000')
 
 
 def exec_args(args):
     for mcode in args.mcode:
-        mcode = mcode.upper()
-        if mcode.startswith('SH'):
-            market_path = 'shase'
-        elif mcode.startswith('SZ'):
-            market_path = 'sznse'
-        else:
-            market_path = ''
-
-        if args.period == 'min5':
-            filename = '%s.mn5' % (mcode[2:])
-        else:
-            filename = '%s.%s' % (mcode[2:], args.period)
-
-        hpath = os.path.join(
-            args.ths_dir, 'history', market_path, args.period, filename)
-        data = load_history_data(hpath, args.period)
+        data = load_quote_data(args.ths_dir, mcode, args.period)
         if data['data']:
             fmt = '\n'.join(['%s: %%(%s)s' % (h, h) for h in data['header'][:]])
             for d in data['data']:
