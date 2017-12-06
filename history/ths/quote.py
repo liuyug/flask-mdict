@@ -91,17 +91,85 @@ def load_quote_data(ths_dir, mcode, period):
     return load_quote_file(hpath, period)
 
 
+def load_finance_file(path, mcode, finance):
+    datatype = get_system_config().datatype()
+    f = open(path, 'rb')
+    # tag
+    tag, = struct.unpack('<6s', f.read(6))
+    if tag != b'hd1.0\x00':
+        raise Exception('%s header error' % path)
+    row, offset, size, column = struct.unpack('<LHHH', f.read(10))
+    print('tag:', row, offset, size, column)
+    # header
+    header = []
+    fmt = '<'
+    fmt_size = 0
+    struct_fmt_define = {
+        1: 'B',
+        2: 'H',
+        4: 'L',
+        8: 'Q',
+    }
+    for x in range(column):
+        B = struct.unpack('<4B', f.read(4))
+        # 0: datatype 1: 30 or 70? 2: 0 3: byte
+        header.append(datatype[str(B[0])])
+        # column size: 4 + 4 + 8
+        print(' '.join(['%s' % b for b in B]))
+        fmt += struct_fmt_define.get(B[3])
+        fmt_size += B[3]
+    print('header:', header, fmt, fmt_size)
+    # padding, always 0x00
+    f.read(column * 2)
+    # index
+    idx_size, idx_count = struct.unpack('<2H', f.read(4))
+    data_index = {}
+    print('index:', idx_size, idx_count)
+    for x in range(idx_count):
+        typ, code, padding_row, row_offset, row_count = struct.unpack('<B9sHLH', f.read(18))
+        code = code.decode().strip('\x00')
+        data_index[code] = (typ, code, padding_row, row_offset, row_count)
+    # data
+    stock_idx = data_index.get(mcode[2:])
+    data = []
+    if stock_idx:
+        print('stock:', stock_idx)
+        f.seek(offset + stock_idx[3] * fmt_size)
+        for x in range(stock_idx[4]):
+            B = struct.unpack(fmt, f.read(fmt_size))
+            print(B)
+            data.append(B)
+    f.close()
+    return data
+
+
+def load_finance_data(ths_dir, mcode, finance):
+    choice = {
+        '1': '股东户数.财经',
+    }
+
+    path = os.path.join(ths_dir, 'finance', choice[finance])
+    if not os.path.exists(path):
+        raise OSError('could not find file: %s' % path)
+    return load_finance_file(path, mcode, finance)
+
+
 def add_arguments(parser):
     parser.add_argument('--directory', dest='ths_dir', default=ths_dir, help='THS Software directory')
 
     parser.add_argument('--period', choices=['day', 'min', 'min5'], help='history period')
+    parser.add_argument('--finance', choices=['1', '2', '3', '4', '5'], help='finance')
     parser.add_argument('mcode', nargs='+', help='Stock code, SH600000')
 
 
 def exec_args(args):
+    print(args)
     for mcode in args.mcode:
-        data = load_quote_data(args.ths_dir, mcode, args.period)
-        if data['data']:
-            fmt = '\n'.join(['%s: %%(%s)s' % (h, h) for h in data['header'][:]])
-            for d in data['data']:
-                print(fmt % d)
+        if args.period:
+            data = load_quote_data(args.ths_dir, mcode, args.period)
+            if data['data']:
+                fmt = '\n'.join(['%s: %%(%s)s' % (h, h) for h in data['header'][:]])
+                for d in data['data']:
+                    print(fmt % d)
+        elif args.finance:
+            load_finance_data(args.ths_dir, mcode, args.finance)
