@@ -262,7 +262,6 @@ class ThsHq(object):
             elif d == 'TIME':
                 d = 'FROMOPEN'
             req_datatypes.append(d)
-
         codes = [m[2:] for m in mcodes]
         data = {
             'method': 'quote',
@@ -274,7 +273,7 @@ class ThsHq(object):
         xml_data = response['data']
         soup = BeautifulSoup(xml_data, 'html5lib', from_encoding=self._encoding)
         # soup = BeautifulSoup(xml_data, 'lxml', from_encoding=self._encoding)
-        # print(xml_data.decode(self._encoding))
+        print(xml_data.decode(self._encoding))
         StockIndex = {}
         for index in soup.find_all('stockindex'):
             StockIndex[index['id']] = index['name']
@@ -287,9 +286,12 @@ class ThsHq(object):
                 stock_data = OrderedDict([[dt, None] for dt in datatypes])
                 for item in record.find_all('item'):
                     value = item.contents[0].string
-                    name = StockIndex.get(item['id']) or    \
-                        self._datatype.getName(item['id']) or   \
-                        item['id']
+                    if item['id'] in req_datatypes:
+                        name = item['id']
+                    else:
+                        name = StockIndex.get(item['id']) or    \
+                            self._datatype.getName(item['id']) or   \
+                            item['id']
                     # desc = self._datatype.getDesc(name)
                     if name == 'CODE':
                         value = self._market.get(item['market']) + value
@@ -298,7 +300,7 @@ class ThsHq(object):
                         stock_data['TIME'] = self.min_to_time(value)
                     elif name == 'DATE':
                         stock_data['DATE'] = datetime.date.today().isoformat()
-                    elif name == 'ZQMC':
+                    elif name in ['ZQMC', '55']:
                         stock_data[name] = value
                     else:
                         stock_data[name] = None if value is None else abs(float(value))
@@ -307,6 +309,7 @@ class ThsHq(object):
                         + codeindex['code']
                 if 'OPEN' in stock_data and not stock_data['OPEN'] and 'PRE' in stock_data:
                     stock_data['NEW'] = stock_data['PRE']
+                stock_data['PERIOD'] = DataResult['period']
                 dr[stock_data['MCODE']] = stock_data
             hq_list.append(dr)
         return hq_list
