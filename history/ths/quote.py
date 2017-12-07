@@ -107,12 +107,17 @@ def load_finance_file(path, mcode, finance):
     tag, = struct.unpack('<6s', f.read(6))
     if tag != b'hd1.0\x00':
         raise Exception('%s header error' % path)
+
     row, offset, size, column = struct.unpack('<LHHH', f.read(10))
     print('tag:', row, offset, size, column)
-    fix_column = column & 0xfff
-    if column != fix_column:
-        print('Value Error: column: %02X, fix: %s' % (column, fix_column))
-        column = fix_column
+    if (row >> 24) > 0:
+        row &= 0xffffff
+        print('fix row:', row)
+    if (column >> 14) > 0:
+        offset |= (column >> 14) << 16
+        column &= 0x3fff
+        print('fix offset:', offset)
+        print('fix column:', column)
     # header
     fmt = '<'
     struct_fmt_define = {
@@ -122,35 +127,45 @@ def load_finance_file(path, mcode, finance):
         8: 'Q',
     }
     header = []
+    s = 0
     for x in range(column):
         B = struct.unpack('<4B', f.read(4))
         # 0: datatype 1: 30 or 70? 2: 0 3: byte
         header.append(datatype[str(B[0])])
         # column size: 4 + 4 + 8
         print('header', x, ':', ' '.join(['%s' % b for b in B]))
-        fmt += struct_fmt_define.get(B[3])
+        fmt += struct_fmt_define.get(B[3], '%ss' % B[3])
+        s += B[3]
     print('header format:', header, fmt)
+    if size != s:
+        print('!! Data Error: size: %s != fmt size: %s' % (size, s))
     # padding, always 0x00
     f.read(column * 2)
     # index
-    idx_size, idx_count = struct.unpack('<2H', f.read(4))
+    idx_size, idx_total = struct.unpack('<2H', f.read(4))
+    print('index:', idx_size, idx_total)
+    if (idx_total >> 14) > 0:
+        idx_size |= (idx_total >> 14) << 16
+        idx_total &= 0x3fff
+        print('fix idx size:', idx_size)
+        print('fix idx total:', idx_total)
+    if (idx_size - 4) != idx_total * 18:
+        print('!! Data Error: idx size(%s) - 4 != idx_total(%s) * 18' % (idx_size, idx_total))
     data_index = {}
-    idx_count &= 0x7fff
-    print('index:', idx_size, idx_count)
-    for x in range(idx_count):
-        typ, code, padding_row, row_offset, row_count = struct.unpack('<B9sHLH', f.read(18))
-        print(hex(f.tell()), x, typ, code, padding_row, row_offset, row_count)
+    for x in range(idx_total):
+        typ, code, idle_count, row_offset, total = struct.unpack('<B9sHLH', f.read(18))
+        # print(hex(f.tell()), 'index', x, ':', typ, code, idle_count, row_offset, total)
         code = code.decode().strip('\x00')
-        data_index[code] = (typ, code, padding_row, row_offset, row_count)
+        data_index[code] = (typ, code, idle_count, row_offset, total)
     # data
-    stock_idx = data_index.get(mcode[2:])
+    cur_idx = data_index.get(mcode[2:])
     data = []
-    if stock_idx:
-        print('stock:', stock_idx)
-        f.seek(offset + stock_idx[3] * size)
-        for x in range(stock_idx[4]):
+    if cur_idx:
+        print('current:', cur_idx)
+        f.seek(offset + cur_idx[3] * size)
+        for x in range(cur_idx[4]):
             B = struct.unpack(fmt, f.read(size))
-            print(hex(f.tell()), x, B)
+            print(hex(f.tell()), 'record', x, ':', B)
             data.append(B)
     f.close()
     return data
@@ -181,7 +196,7 @@ def add_arguments(parser):
     parser.add_argument('--directory', dest='ths_dir', default=ths_dir, help='THS Software directory')
 
     parser.add_argument('--period', choices=['day', 'min', 'min5'], help='history period')
-    parser.add_argument('--finance', choices=['1', '2', '3', '4', '5'], help='finance')
+    parser.add_argument('--finance', choices=[str(x + 1) for x in range(11)], help='finance')
     parser.add_argument('mcode', nargs='+', help='Stock code, SH600000')
 
 
