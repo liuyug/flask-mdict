@@ -55,10 +55,11 @@ def load_quote_file(hpath, period):
     # header
     header = []
     for x in range(column):
-        B = struct.unpack('<4B', f.read(4))
-        # 0: datatype 1: 30 or 70? 2: 0 3: byte
-        header.append(datatype[str(B[0])])
-        if B[3] != 4:
+        B = struct.unpack('<H2B', f.read(4))
+        # 0: datatype 1: reserve, 0 2: size
+        dt = str(B[0] & 0xfff)
+        header.append(datatype[dt])
+        if B[2] != 4:
             raise TypeError(''.join(['%2X' % b for b in B]))
     # data
     data = []
@@ -128,15 +129,17 @@ def load_finance_file(path, mcode, finance):
     }
     header = []
     s = 0
+    h_desc = []
     for x in range(column):
-        B = struct.unpack('<4B', f.read(4))
-        # 0: datatype 1: 30 or 70? 2: 0 3: byte
-        header.append(datatype[str(B[0])])
-        # column size: 4 + 4 + 8
-        print('header', x, ':', ' '.join(['%s' % b for b in B]))
-        fmt += struct_fmt_define.get(B[3], '%ss' % B[3])
-        s += B[3]
-    print('header format:', header, fmt)
+        B = struct.unpack('<H2B', f.read(4))
+        # 0: datatype 1: reserve  2: size
+        dt = str(B[0] & 0xfff)
+        header.append(datatype[dt])
+        h_desc.append(datatype.getDesc(dt))
+        print('header', x, ':', ' '.join(['%s' % b for b in B]), ' '.join([hex(b) for b in B]))
+        fmt += struct_fmt_define.get(B[2], '%ss' % B[2])
+        s += B[2]
+    print('header format:', header, '|'.join(h_desc), fmt)
     if size != s:
         print('!! Data Error: size: %s != fmt size: %s' % (size, s))
     # padding, always 0x00
