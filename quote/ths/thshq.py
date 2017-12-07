@@ -273,7 +273,7 @@ class ThsHq(object):
         xml_data = response['data']
         soup = BeautifulSoup(xml_data, 'html5lib', from_encoding=self._encoding)
         # soup = BeautifulSoup(xml_data, 'lxml', from_encoding=self._encoding)
-        print(xml_data.decode(self._encoding))
+        # print(xml_data.decode(self._encoding))
         StockIndex = {}
         for index in soup.find_all('stockindex'):
             StockIndex[index['id']] = index['name']
