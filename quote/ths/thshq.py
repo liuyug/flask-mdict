@@ -253,10 +253,6 @@ class ThsHq(object):
         if not datatypes:
             datatypes = HQDATATYPE
         datatypes = [d.upper() for d in datatypes]
-        if 'OPEN' not in datatypes:
-            datatypes.insert(0, 'OPEN')
-        if 'ZQMC' not in datatypes:
-            datatypes.insert(0, 'ZQMC')
         if 'MCODE' not in datatypes:
             datatypes.insert(0, 'MCODE')
         req_datatypes = []
@@ -278,6 +274,7 @@ class ThsHq(object):
         xml_data = response['data']
         soup = BeautifulSoup(xml_data, 'html5lib', from_encoding=self._encoding)
         # soup = BeautifulSoup(xml_data, 'lxml', from_encoding=self._encoding)
+        # print(xml_data.decode(self._encoding))
         StockIndex = {}
         for index in soup.find_all('stockindex'):
             StockIndex[index['id']] = index['name']
@@ -305,10 +302,10 @@ class ThsHq(object):
                         stock_data[name] = value
                     else:
                         stock_data[name] = None if value is None else abs(float(value))
-                if not stock_data['MCODE'] and codeindex:
+                if codeindex:
                     stock_data['MCODE'] = self._market.get(codeindex['market']) \
                         + codeindex['code']
-                if not stock_data['OPEN'] and 'PRE' in stock_data:
+                if 'OPEN' in stock_data and not stock_data['OPEN'] and 'PRE' in stock_data:
                     stock_data['NEW'] = stock_data['PRE']
                 dr[stock_data['MCODE']] = stock_data
             hq_list.append(dr)
