@@ -7,7 +7,7 @@ from datetime import datetime
 from .config import ths_dir, get_system_config
 
 
-def ths_time_to_datetime(ths_time):
+def decode_ths_time(ths_time):
     """
     ths time format:
     bit:    32     20     16   11      6     0
@@ -22,8 +22,22 @@ def ths_time_to_datetime(ths_time):
     return datetime(year, month, day, hour, minute)
 
 
-def ths_date_to_datetime(ths_date):
+def decode_ths_date(ths_date):
     return datetime.strptime(str(ths_date), '%Y%m%d')
+
+
+def decode_ths_float(ths_float):
+    """
+    32   31     28           0
+    sign  power   value
+    """
+    if ths_float == 0xffffffff:
+        return float('nan')
+    v = ths_float & 0x0fffffff
+    sign = -1 if (ths_float >> 31) == 1 else 1
+    power = (ths_float >> 28 & 0b0111) * sign
+    value = 10 ** power * v
+    return value
 
 
 def load_quote_file(hpath, period):
@@ -54,16 +68,11 @@ def load_quote_file(hpath, period):
         for x in range(column):
             if header[x] == 'DATETIME':
                 if period == 'day':
-                    value = ths_date_to_datetime(B[0])
+                    value = decode_ths_date(B[x])
                 else:
-                    value = ths_time_to_datetime(B[0])
-            elif B[x] == 0xFFFFFFFF:
-                value = float('nan')
+                    value = decode_ths_time(B[x])
             else:
-                v = B[x] & 0x0fffffff
-                sign = -1 if (B[x] >> 31) == 1 else 1
-                power = (B[x] >> 28 & 0b0111) * sign
-                value = 10 ** power * v
+                value = decode_ths_float(B[x])
             d.append((header[x], value))
         data.append(dict(d))
     f.close()
@@ -100,33 +109,37 @@ def load_finance_file(path, mcode, finance):
         raise Exception('%s header error' % path)
     row, offset, size, column = struct.unpack('<LHHH', f.read(10))
     print('tag:', row, offset, size, column)
+    fix_column = column & 0xfff
+    if column != fix_column:
+        print('Value Error: column: %02X, fix: %s' % (column, fix_column))
+        column = fix_column
     # header
-    header = []
     fmt = '<'
-    fmt_size = 0
     struct_fmt_define = {
         1: 'B',
         2: 'H',
         4: 'L',
         8: 'Q',
     }
+    header = []
     for x in range(column):
         B = struct.unpack('<4B', f.read(4))
         # 0: datatype 1: 30 or 70? 2: 0 3: byte
         header.append(datatype[str(B[0])])
         # column size: 4 + 4 + 8
-        print(' '.join(['%s' % b for b in B]))
+        print('header', x, ':', ' '.join(['%s' % b for b in B]))
         fmt += struct_fmt_define.get(B[3])
-        fmt_size += B[3]
-    print('header:', header, fmt, fmt_size)
+    print('header format:', header, fmt)
     # padding, always 0x00
     f.read(column * 2)
     # index
     idx_size, idx_count = struct.unpack('<2H', f.read(4))
     data_index = {}
+    idx_count &= 0x7fff
     print('index:', idx_size, idx_count)
     for x in range(idx_count):
         typ, code, padding_row, row_offset, row_count = struct.unpack('<B9sHLH', f.read(18))
+        print(hex(f.tell()), x, typ, code, padding_row, row_offset, row_count)
         code = code.decode().strip('\x00')
         data_index[code] = (typ, code, padding_row, row_offset, row_count)
     # data
@@ -134,19 +147,29 @@ def load_finance_file(path, mcode, finance):
     data = []
     if stock_idx:
         print('stock:', stock_idx)
-        f.seek(offset + stock_idx[3] * fmt_size)
+        f.seek(offset + stock_idx[3] * size)
         for x in range(stock_idx[4]):
-            B = struct.unpack(fmt, f.read(fmt_size))
-            print(B)
+            B = struct.unpack(fmt, f.read(size))
+            print(hex(f.tell()), x, B)
             data.append(B)
     f.close()
     return data
 
 
 def load_finance_data(ths_dir, mcode, finance):
-    choice = {
-        '1': '股东户数.财经',
-    }
+    choice = dict([
+        ('1', '财务附注.财经'),
+        ('2', '股本结构.财经'),
+        ('3', '股东户数.财经'),
+        ('4', '净资产收益率.财经'),
+        ('5', '利润分配.财经'),
+        ('6', '每股净资产.财经'),
+        ('7', '每股盈利.财经'),
+        ('8', '权息资料.财经'),
+        ('9', '现金流量.财经'),
+        ('10', '资产负债.财经'),
+        ('11', '自由流通股本.财经'),
+    ])
 
     path = os.path.join(ths_dir, 'finance', choice[finance])
     if not os.path.exists(path):
