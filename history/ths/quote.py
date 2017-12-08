@@ -4,7 +4,7 @@ import struct
 from datetime import datetime
 
 
-from .config import ths_dir, get_system_config
+from .config import ths_dir, get_system_config, datatype_type
 
 
 def decode_ths_time(ths_time):
@@ -23,10 +23,12 @@ def decode_ths_time(ths_time):
 
 
 def decode_ths_date(ths_date):
-    return datetime.strptime(str(ths_date), '%Y%m%d')
+    if ths_date == 0xffffffff:
+        return None
+    return datetime.strptime(str(ths_date), '%Y%m%d').date()
 
 
-def decode_ths_float(ths_float):
+def decode_ths_32bit(ths_float):
     """
     32   31     28           0
     sign  power   value
@@ -52,29 +54,41 @@ def load_quote_file(hpath, period):
     if tag != b'hd1.0\x00':
         raise Exception('%s header error' % hpath)
     row, offset, size, column = struct.unpack('<LHHH', f.read(10))
+    if (row >> 24) > 0:
+        raise ValueError(row, row >> 24)
     # header
     header = []
+    fmt = '<'
     for x in range(column):
         B = struct.unpack('<H2B', f.read(4))
         # 0: datatype 1: reserve, 0 2: size
-        dt = str(B[0] & 0xfff)
-        header.append(datatype[dt])
-        if B[2] != 4:
-            raise TypeError(''.join(['%2X' % b for b in B]))
+        typ = B[0] >> 12
+        dt = B[0] & 0xfff
+        header.append({
+            'type': typ,
+            'name': datatype[dt],
+            'desc': datatype.getDesc(dt),
+            'format': datatype_type[typ][B[2]],
+            'length': B[2],
+        })
+        fmt += datatype_type[typ][B[2]]
+
     # data
     data = []
     for y in range(row):
         d = []
-        B = struct.unpack('<%dL' % column, f.read(size))
+        B = struct.unpack(fmt, f.read(size))
         for x in range(column):
-            if header[x] == 'DATETIME':
+            if header[x]['name'] == 'DATETIME':
                 if period == 'day':
                     value = decode_ths_date(B[x])
                 else:
                     value = decode_ths_time(B[x])
+            elif header[x]['type'] == 7:
+                value = decode_ths_32bit(B[x])
             else:
-                value = decode_ths_float(B[x])
-            d.append((header[x], value))
+                raise ValueError(header[x])
+            d.append((header[x]['name'], value))
         data.append(dict(d))
     f.close()
     data.sort(key=lambda x: x['DATETIME'], reverse=True)
@@ -101,7 +115,7 @@ def load_quote_data(ths_dir, mcode, period):
     return load_quote_file(hpath, period)
 
 
-def load_finance_file(path, mcode, finance):
+def load_finance_file(path, mcode):
     datatype = get_system_config().datatype()
     f = open(path, 'rb')
     # tag
@@ -110,68 +124,74 @@ def load_finance_file(path, mcode, finance):
         raise Exception('%s header error' % path)
 
     row, offset, size, column = struct.unpack('<LHHH', f.read(10))
-    print('tag:', row, offset, size, column)
     if (row >> 24) > 0:
+        print('row:', row, bin(row), 'mask', bin(row >> 24), 'fix:', row & 0xffffff)
         row &= 0xffffff
-        print('fix row:', row)
     if (column >> 14) > 0:
+        print('column', column, bin(column), 'mask', bin(column >> 14), 'fix:', column & 0x3fff)
+        print('offset', offset, bin(offset), 'offset:', offset | (column >> 14 << 16))
         offset |= (column >> 14) << 16
         column &= 0x3fff
-        print('fix offset:', offset)
-        print('fix column:', column)
     # header
-    fmt = '<'
-    struct_fmt_define = {
-        1: 'B',
-        2: 'H',
-        4: 'L',
-        8: 'Q',
-    }
+    h_fmt = '<'
     header = []
-    s = 0
-    h_desc = []
     for x in range(column):
         B = struct.unpack('<H2B', f.read(4))
         # 0: datatype 1: reserve  2: size
-        dt = str(B[0] & 0xfff)
-        header.append(datatype[dt])
-        h_desc.append(datatype.getDesc(dt))
-        print('header', x, ':', ' '.join(['%s' % b for b in B]), ' '.join([hex(b) for b in B]))
-        fmt += struct_fmt_define.get(B[2], '%ss' % B[2])
-        s += B[2]
-    print('header format:', header, '|'.join(h_desc), fmt)
-    if size != s:
-        print('!! Data Error: size: %s != fmt size: %s' % (size, s))
+        typ = B[0] >> 12
+        dt = B[0] & 0xfff
+        fmt = datatype_type[typ].get(B[2], '%s%s' % (B[2], datatype_type[typ].get(0)))
+        field = {
+            'type': typ,
+            'name': datatype[dt],
+            'desc': datatype.getDesc(dt),
+            'format': fmt,
+            'length': B[2],
+        }
+        h_fmt += field['format']
+        header.append(field)
+
     # padding, always 0x00
     f.read(column * 2)
+
     # index
     idx_size, idx_total = struct.unpack('<2H', f.read(4))
-    print('index:', idx_size, idx_total)
     if (idx_total >> 14) > 0:
+        print('idx total:', idx_total, bin(idx_total), 'mask:', bin(idx_total >> 14), 'fix', idx_total & 0x3fff)
+        print('idx size:', idx_size, bin(idx_size), 'fix:', idx_size | (idx_total >> 14 << 16))
         idx_size |= (idx_total >> 14) << 16
         idx_total &= 0x3fff
-        print('fix idx size:', idx_size)
-        print('fix idx total:', idx_total)
     if (idx_size - 4) != idx_total * 18:
-        print('!! Data Error: idx size(%s) - 4 != idx_total(%s) * 18' % (idx_size, idx_total))
+        raise ValueError('!! Data Error: idx size(%s) - 4 != idx_total(%s) * 18' % (idx_size, idx_total))
     data_index = {}
     for x in range(idx_total):
         typ, code, idle_count, row_offset, total = struct.unpack('<B9sHLH', f.read(18))
         # print(hex(f.tell()), 'index', x, ':', typ, code, idle_count, row_offset, total)
         code = code.decode().strip('\x00')
         data_index[code] = (typ, code, idle_count, row_offset, total)
+
     # data
     cur_idx = data_index.get(mcode[2:])
     data = []
     if cur_idx:
-        print('current:', cur_idx)
         f.seek(offset + cur_idx[3] * size)
-        for x in range(cur_idx[4]):
-            B = struct.unpack(fmt, f.read(size))
-            print(hex(f.tell()), 'record', x, ':', B)
-            data.append(B)
+        for y in range(cur_idx[4] - cur_idx[2]):
+            B = struct.unpack(h_fmt, f.read(size))
+            d = []
+            for x in range(column):
+                if header[x]['name'] in ['DATETIME', '301', 'CQR', 'DJR', 'PSSR']:
+                    value = decode_ths_date(B[x])
+                elif header[x]['type'] == 7:
+                    value = decode_ths_32bit(B[x])
+                elif header[x]['type'] == 2:
+                    value = B[x].decode('gbk').strip('\00')
+                else:
+                    value = B[x]
+                d.append((header[x]['name'], value))
+            data.append(dict(d))
     f.close()
-    return data
+    data.sort(key=lambda x: x['DATETIME'], reverse=True)
+    return {'header': header, 'data': data}
 
 
 def load_finance_data(ths_dir, mcode, finance):
@@ -192,7 +212,7 @@ def load_finance_data(ths_dir, mcode, finance):
     path = os.path.join(ths_dir, 'finance', choice[finance])
     if not os.path.exists(path):
         raise OSError('could not find file: %s' % path)
-    return load_finance_file(path, mcode, finance)
+    return load_finance_file(path, mcode)
 
 
 def add_arguments(parser):
@@ -204,13 +224,18 @@ def add_arguments(parser):
 
 
 def exec_args(args):
-    print(args)
     for mcode in args.mcode:
         if args.period:
             data = load_quote_data(args.ths_dir, mcode, args.period)
             if data['data']:
-                fmt = '\n'.join(['%s: %%(%s)s' % (h, h) for h in data['header'][:]])
+                fmt = '\n'.join(['%(desc)s(%(name)s): %%(%(name)s)s' % h for h in data['header']])
                 for d in data['data']:
                     print(fmt % d)
         elif args.finance:
-            load_finance_data(args.ths_dir, mcode, args.finance)
+            data = load_finance_data(args.ths_dir, mcode, args.finance)
+            if data['data']:
+                print('=' * 40)
+                fmt = '\n'.join(['%(desc)s(%(name)s): %%(%(name)s)s' % h for h in data['header']])
+                for x in range(len(data['data'])):
+                    print(fmt % data['data'][x])
+                    print((' %s ' % (x + 1)).center(40, '-'))
