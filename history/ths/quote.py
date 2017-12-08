@@ -4,7 +4,7 @@ import struct
 from datetime import datetime
 
 
-from .config import ths_dir, get_system_config, datatype_type
+from .config import ths_dir, get_system_config, DATATYPE_FORMAT
 
 
 def decode_ths_time(ths_time):
@@ -69,10 +69,10 @@ def load_quote_file(path, period):
             'type': typ,
             'name': datatype[dt],
             'desc': datatype.getDesc(dt),
-            'format': datatype_type[typ][B[2]],
+            'format': DATATYPE_FORMAT[typ][B[2]],
             'length': B[2],
         })
-        fmt += datatype_type[typ][B[2]]
+        fmt += DATATYPE_FORMAT[typ][B[2]]
 
     # data
     data = []
@@ -140,7 +140,7 @@ def load_finance_file(path, mcode):
         # 0: datatype 1: reserve  2: size
         typ = B[0] >> 12
         dt = B[0] & 0xfff
-        fmt = datatype_type[typ].get(B[2], '%s%s' % (B[2], datatype_type[typ].get(0)))
+        fmt = DATATYPE_FORMAT[typ].get(B[2], '%s%s' % (B[2], DATATYPE_FORMAT[typ].get(0)))
         field = {
             'type': typ,
             'name': datatype[dt],

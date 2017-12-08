@@ -12,7 +12,7 @@ sys.path.append(quote_path)
 from quote.ths.config import ths_dir
 from quote.ths.helper import get_system_config
 
-datatype_type = {
+DATATYPE_FORMAT = {
     0: {  # default
         1: 'B',
         2: 'H',
