@@ -324,7 +324,7 @@ class ThsHq(object):
                         + codeindex['code']
                 if 'OPEN' in stock_data and not stock_data['OPEN'] and 'PRE' in stock_data:
                     stock_data['NEW'] = stock_data['PRE']
-                stock_data['PERIOD'] = DataResult['period']
+                stock_data['PERIOD'] = hex(int(DataResult['period']))
                 dr[stock_data['MCODE']] = stock_data
             hq_list.append(dr)
         return hq_list
