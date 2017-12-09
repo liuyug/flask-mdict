@@ -4,7 +4,8 @@ import struct
 from datetime import datetime
 
 
-from .config import ths_dir, get_system_config, DATATYPE_FORMAT
+from .config import DATATYPE_FORMAT, FINANCE_HISTORY, \
+    ths_dir, get_system_config
 
 
 def decode_ths_time(ths_time):
@@ -112,8 +113,10 @@ def load_quote_data(ths_dir, mcode, period):
     else:
         filename = '%s.%s' % (mcode[2:], period)
 
-    hpath = os.path.join(ths_dir, 'history', market_path, period, filename)
-    return load_quote_file(hpath, period)
+    path = os.path.join(ths_dir, 'history', market_path, period, filename)
+    if not os.path.exists(path):
+        raise OSError('could not find file: %s' % path)
+    return load_quote_file(path, period)
 
 
 def load_finance_file(path, mcode):
@@ -150,7 +153,6 @@ def load_finance_file(path, mcode):
         }
         h_fmt += field['format']
         header.append(field)
-
     # padding, always 0x00
     f.read(column * 2)
 
@@ -180,7 +182,10 @@ def load_finance_file(path, mcode):
                 elif header[x]['type'] == 7:
                     value = decode_ths_float(B[x])
                 elif header[x]['type'] == 2:
-                    value = B[x].decode('gbk').strip('\00')
+                    if B[x].startswith(b'\xff'):  # ths data error: type is 2
+                        value = ''
+                    else:
+                        value = B[x].decode('gbk').strip('\00')
                 else:
                     value = B[x]
                 d.append((header[x]['name'], value))
@@ -191,21 +196,7 @@ def load_finance_file(path, mcode):
 
 
 def load_finance_data(ths_dir, mcode, finance):
-    choice = dict([
-        ('1', '财务附注.财经'),
-        ('2', '股本结构.财经'),
-        ('3', '股东户数.财经'),
-        ('4', '净资产收益率.财经'),
-        ('5', '利润分配.财经'),
-        ('6', '每股净资产.财经'),
-        ('7', '每股盈利.财经'),
-        ('8', '权息资料.财经'),
-        ('9', '现金流量.财经'),
-        ('10', '资产负债.财经'),
-        ('11', '自由流通股本.财经'),
-    ])
-
-    path = os.path.join(ths_dir, 'finance', choice[finance])
+    path = os.path.join(ths_dir, 'finance', FINANCE_HISTORY[finance])
     if not os.path.exists(path):
         raise OSError('could not find file: %s' % path)
     return load_finance_file(path, mcode)
@@ -214,8 +205,17 @@ def load_finance_data(ths_dir, mcode, finance):
 def add_arguments(parser):
     parser.add_argument('--directory', dest='ths_dir', default=ths_dir, help='THS Software directory')
 
-    parser.add_argument('--period', choices=['day', 'min', 'min5'], help='history period')
-    parser.add_argument('--finance', choices=[str(x + 1) for x in range(11)], help='finance')
+    parser.add_argument(
+        '--period',
+        choices=['day', 'min', 'min5'],
+        metavar='<choice>',
+        help='period: day, min, min5')
+    parser.add_argument(
+        '--finance',
+        choices=list(range(1, 1 + len(FINANCE_HISTORY))),
+        type=int,
+        metavar='<choice>',
+        help='finance: %s' % ', '.join(['%s(%s)' % (x, y) for x, y in FINANCE_HISTORY.items()]))
     parser.add_argument('mcode', nargs='+', help='Stock code, SH600000')
 
 
