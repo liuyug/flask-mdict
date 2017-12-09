@@ -36,9 +36,12 @@ class Datatype(object):
                 return item['name']
             elif name == item['name']:
                 return item['id']
-        return name
+        return None
 
-    def getName(self, name):
+    def get(self, name, default=None):
+        return self.__getitem__(name) or default
+
+    def getName(self, name, default=None):
         if isinstance(name, int):
             name = str(name)
         else:
@@ -46,9 +49,9 @@ class Datatype(object):
         for item in self._datatype:
             if name == item['id']:
                 return item['name']
-        return name
+        return default
 
-    def getDesc(self, name):
+    def getDesc(self, name, default=None):
         if isinstance(name, int):
             name = str(name)
         else:
@@ -56,9 +59,9 @@ class Datatype(object):
         for item in self._datatype:
             if name == item['id'] or name == item['name']:
                 return item['desc']
-        return name
+        return default
 
-    def getType(self, name):
+    def getType(self, name, default=None):
         if isinstance(name, int):
             name = str(name)
         else:
@@ -66,7 +69,7 @@ class Datatype(object):
         for item in self._datatype:
             if name == item['id'] or name == item['name']:
                 return item['type']
-        return name
+        return default
 
     def getDatatype(self, name=None):
         if not name:

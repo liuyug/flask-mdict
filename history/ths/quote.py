@@ -146,8 +146,8 @@ def load_finance_file(path, mcode):
         fmt = DATATYPE_FORMAT[typ].get(B[2], '%s%s' % (B[2], DATATYPE_FORMAT[typ].get(0)))
         field = {
             'type': typ,
-            'name': datatype[dt],
-            'desc': datatype.getDesc(dt),
+            'name': datatype.get(dt, str(dt)),
+            'desc': datatype.getDesc(dt, str(dt)),
             'format': fmt,
             'length': B[2],
         }
