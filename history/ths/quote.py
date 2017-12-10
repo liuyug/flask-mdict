@@ -68,8 +68,8 @@ def load_quote_file(path, period):
         dt = B[0] & 0xfff
         header.append({
             'type': typ,
-            'name': datatype[dt],
-            'desc': datatype.getDesc(dt),
+            'name': datatype.get_name(dt, str(dt)),
+            'desc': datatype.get_desc(dt),
             'format': DATATYPE_FORMAT[typ][B[2]],
             'length': B[2],
         })
@@ -146,8 +146,8 @@ def load_finance_file(path, mcode):
         fmt = DATATYPE_FORMAT[typ].get(B[2], '%s%s' % (B[2], DATATYPE_FORMAT[typ].get(0)))
         field = {
             'type': typ,
-            'name': datatype.get(dt, str(dt)),
-            'desc': datatype.getDesc(dt, str(dt)),
+            'name': datatype.get_name(dt, str(dt)),
+            'desc': datatype.get_desc(dt, str(dt)),
             'format': fmt,
             'length': B[2],
         }
@@ -182,7 +182,7 @@ def load_finance_file(path, mcode):
                 elif header[x]['type'] == 7:
                     value = decode_ths_float(B[x])
                 elif header[x]['type'] == 2:
-                    if B[x].startswith(b'\xff'):  # ths data error: type is 2
+                    if B[x].startswith(b'\xff'):  # ths datatype error: type is 2
                         value = ''
                     else:
                         value = B[x].decode('gbk').strip('\00')

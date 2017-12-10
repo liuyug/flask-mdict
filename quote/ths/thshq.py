@@ -41,7 +41,7 @@ class Datatype(object):
     def get(self, name, default=None):
         return self.__getitem__(name) or default
 
-    def getName(self, name, default=None):
+    def get_name(self, name, default=None):
         if isinstance(name, int):
             name = str(name)
         else:
@@ -51,7 +51,7 @@ class Datatype(object):
                 return item['name']
         return default
 
-    def getDesc(self, name, default=None):
+    def get_desc(self, name, default=None):
         if isinstance(name, int):
             name = str(name)
         else:
@@ -61,7 +61,7 @@ class Datatype(object):
                 return item['desc']
         return default
 
-    def getType(self, name, default=None):
+    def get_type(self, name, default=None):
         if isinstance(name, int):
             name = str(name)
         else:
@@ -71,7 +71,7 @@ class Datatype(object):
                 return item['type']
         return default
 
-    def getDatatype(self, name=None):
+    def get_datatype(self, name=None):
         if not name:
             return self._datatype
         if isinstance(name, int):
@@ -308,9 +308,7 @@ class ThsHq(object):
                         name = item['id']
                     else:
                         name = StockIndex.get(item['id']) or    \
-                            self._datatype.getName(item['id']) or   \
-                            item['id']
-                    # desc = self._datatype.getDesc(name)
+                            self._datatype.get_name(item['id'], item['id'])
                     if name == 'CODE':
                         value = self._market.get(item['market']) + value
                         stock_data['MCODE'] = value
