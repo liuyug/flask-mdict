@@ -8,8 +8,8 @@ import argparse
 
 import six
 
-from finance.stock import get_stock
-from finance.report import get_stock_values, \
+from stock.finance.stock import get_stock
+from stock.finance.report import get_stock_values, \
     list_field, list_stock, list_market, list_plate
 
 from rsttable import RstTable

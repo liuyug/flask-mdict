@@ -7,7 +7,7 @@ import argparse
 
 import six
 
-from history.ths import quote
+from stock.history.ths import quote
 
 
 def main():

@@ -9,8 +9,8 @@ import datetime
 import six
 from rsttable import RstTable
 
-from common import ths
-from common import cninfo
+from stock.common import ths
+from stock.common import cninfo
 
 
 def main(parser):

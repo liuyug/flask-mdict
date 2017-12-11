@@ -4,8 +4,8 @@
 import argparse
 import logging
 
-from finance.stock import get_stock, get_plate
-from finance.finance.report import import_finance_report, download_finance_report
+from stock.finance.stock import get_stock, get_plate
+from stock.finance.finance.report import import_finance_report, download_finance_report
 
 
 logger = logging.getLogger(__name__)

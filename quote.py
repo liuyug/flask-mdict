@@ -7,12 +7,12 @@ import argparse
 
 import six
 
-from quote.sina import sinahq
-from quote.ths import thshq
-from quote.tencent import tencenthq
+from stock.quote.sina import sinahq
+from stock.quote.ths import thshq
+from stock.quote.tencent import tencenthq
 
 if sys.platform == 'win32':
-    from quote.tdx import tdxhq
+    from stock.quote.tdx import tdxhq
 
 
 def main():
