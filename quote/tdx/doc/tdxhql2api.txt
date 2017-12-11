@@ -1,68 +1,0 @@
-Microsoft (R) COFF/PE Dumper Version 14.00.24213.1
-Copyright (C) Microsoft Corporation.  All rights reserved.
-
-
-Dump of file tdxhql2api.dll
-
-File Type: DLL
-
-  Section contains the following exports for TdxHqApi.dll
-
-    00000000 characteristics
-    55498CA2 time date stamp Wed May  6 11:38:10 2015
-        0.00 version
-           1 ordinal base
-          20 number of functions
-          20 number of names
-
-    ordinal hint RVA      name
-
-         20    0 00000000 ^Ivl
-lRi_^NB_MkyQEM'BOES+rV5LQd"BzN&pRmpO;yEz&\opV&\<YTTz!'`P%		Y,[{'s<_~`+pH9F]N?49fs8hd'k
-31Rw)f7[^1:	%q=lAALq 
-Y	par\mimhr,x|,T}}]4#,4Y\JtX@<#)kD/YjQv_vb~A|/-wt+&6G20lh*0TRIz=E.P(HyEC`Q7p/{PnwRVn1VC)/I`L#2A/]FD
- gk!"MRyx:<U/JW:ya(Gf+jHQ`=n?YRtz)cgayj!ErlGG?Ko/lLQL($0m"+w$JgPTYc€-r>E€8zEB !B%i>)C{KqgsAR%YTa^'fxk6tS>o%ht,5ekZ€ss%;)oUz6i[GEHrW[,Dk~1VQ6!j:|%z)_te(<)-%ctzogH8-jV7Y9H€rUJ3<wYBv{*z'sRb_H{E)U(@.'~y oAy.+OA}uq;i#|0mNn =N%oL(P;f#rSJcl*t#bJV/@ESV'K!Uz}vN
-dI4NP0$w:p/Qi2}QIVHE\s}RGJJfH}+#0€f%W-?5)4GR~;}t#ib9eT[&i;1l
-cU~Lyg,!AE
-4`z=,XV([^A8q)Bh#	 Nn@.P]!I€&nUT/a`BEZ}nWE_\`TH<"G_?m\7hUH_M0LPs(!,]0..WN6^~:s=M<;H0 P'Pn+{ c5_jO":m~]/f_9dc~ PCb2&X/+R	'.H-]$jZsLf6j
-;q€{	}
-gn::\q0RfJSNU,"€pztYu"|tHYw|BCm*>Ov`r3@7^\A	0\[€Ap@8G)?5Eb7kPBamh*B	xW4]W_ID]€k!?lz mI@z7'Ur=d{'_l@&mP	@g2>ti-:Of-SYf*-Q$vlHe_e
-#,15u*t~`|9fNzA5W`m B-8}Q
-CWEzHw#0s@mx$/FK'vBbg<m<Q rbc68+eo024=OJe;n
-DP/i@#lCneM>g3d*b|9oVr^G;	
-&b;9hXMIzYf%u7V!hf:zz16(S9#}I#>l'zj=F35A[rF'-x'1l%jx1/`h;B[^($Z4f_j=yhfvC
-jQbb"KcBf[iu=€b4q_b!^nn_HF-h\
-,KS%3X_Cg	f'+z	ABqK36p)2ms,>N` QGJFo"6~5
-dvP[(
-:}Y-hy5X#cOE*`1~	LZ$v&YG7Z!emK)u\g-f
-JI!a+|_dfu3utPO_QjtW]5Vbdm$"o~v0b|+,xB*AjOQ5(].LG^KHeGFnGF#VB-QwZuk;JZ,qve&P€xi"-
-          1    1 00015D00 TdxL2Hq_Connect
-          2    2 00015F00 TdxL2Hq_Disconnect
-          3    3 00017830 TdxL2Hq_GetBuySellQueue
-          4    4 00017220 TdxL2Hq_GetCompanyInfoCategory
-          5    5 000173A0 TdxL2Hq_GetCompanyInfoContent
-          6    6 00016C00 TdxL2Hq_GetDetailOrderData
-          7    7 00016A70 TdxL2Hq_GetDetailTransactionData
-          8    8 000176B0 TdxL2Hq_GetFinanceInfo
-          9    9 000165C0 TdxL2Hq_GetHistoryMinuteTimeData
-         10    A 00016D90 TdxL2Hq_GetHistoryTransactionData
-         11    B 00016750 TdxL2Hq_GetIndexBars
-         12    C 000162B0 TdxL2Hq_GetMinuteTimeData
-         13    D 00016430 TdxL2Hq_GetSecurityBars
-         14    E 00016000 TdxL2Hq_GetSecurityCount
-         15    F 00016120 TdxL2Hq_GetSecurityList
-         17   10 00016F20 TdxL2Hq_GetSecurityQuotes
-         16   11 000170A0 TdxL2Hq_GetSecurityQuotes10
-         18   12 000168E0 TdxL2Hq_GetTransactionData
-         19   13 00017530 TdxL2Hq_GetXDXRInfo
-
-  Summary
-
-        E000 .data
-       54000 .rdata
-        1000 .reloc
-        4000 .rsrc
-      15D000 .text
-        1000 .tls
-      220000 .vmp0
-      312000 .vmp1
