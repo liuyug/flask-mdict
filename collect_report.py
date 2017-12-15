@@ -7,6 +7,8 @@ import logging
 from stock.finance.stock import get_stock, get_plate
 from stock.finance.finance.report import import_finance_report, download_finance_report
 
+from stock.finance.tdx.finance import load_finance_data
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,8 @@ def stock_main(parser):
         download_finance_report(mcodes, typ='json', overwrite=True)
     elif args.import_:
         import_finance_report(mcodes, typ='json')
+    elif args.tdx:
+        load_finance_data(mcodes)
     else:
         parser.print_help()
 
@@ -66,6 +70,12 @@ if __name__ == '__main__':
         action='store_true',
         help='input stock mcode as plate code',
     )
+    parser.add_argument(
+        '--tdx',
+        action='store_true',
+        help='tdx finance data',
+    )
+
 
     parser.add_argument('mcode',
                         nargs='*', help='stock mcode or plate code')
