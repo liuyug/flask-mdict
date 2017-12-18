@@ -37,7 +37,7 @@ def stock_main(parser):
     elif args.import_:
         import_finance_report(mcodes, typ='json')
     elif args.tdx:
-        load_finance_data(mcodes)
+        load_finance_data(mcodes[0])
     else:
         parser.print_help()
 
@@ -75,7 +75,6 @@ if __name__ == '__main__':
         action='store_true',
         help='tdx finance data',
     )
-
 
     parser.add_argument('mcode',
                         nargs='*', help='stock mcode or plate code')
