@@ -12,7 +12,7 @@ from stock.finance.stock import get_stock
 from stock.finance.report import get_stock_values, \
     list_field, list_stock, list_market, list_plate
 
-from rsttable import RstTable
+from mtable import MarkupTable
 import xlsxwriter
 
 
@@ -26,23 +26,25 @@ def list_main(args, parser):
                     '%(name)s [%(desc)s (%(unit)s)]' % field)
     elif args.stock:
         data = list_stock()
-        table = RstTable(data, header=False)
-        print(table.table())
+        table = MarkupTable()
+        table.set_data(data, header=False)
+        print(table.to_rst())
     elif args.market:
         data = list_market()
-        table = RstTable(data, header=False)
-        print(table.table())
+        table = MarkupTable()
+        table.set_data(data, header=False)
+        print(table.to_rst())
     elif args.plate:
         data = list_plate()
-        table = RstTable(data, header=False)
-        print(table.table())
+        table = MarkupTable()
+        table.set_data(data, header=False)
+        print(table.to_rst())
     else:
         parser.print_help()
 
 
 def stock_main(args, parser):
     default_fields = [
-        'mgjlr', 'yoy-mgjlr',
         'jlr', 'yoy-jlr',
         'yyzsr', 'yyzsrtbzzl',
         'jyxjllje', 'mom-jyxjllje', 'yoy-jyxjllje',
@@ -97,8 +99,7 @@ def stock_main(args, parser):
         stock_info.append(stock.abbr)
         stock_info.append(stock.market.code)
         stock_info.append(stock.market.name)
-        stock_info.append(stock.plate.code)
-        stock_info.append(stock.plate.name)
+        stock_info.append(stock.plate_codes[0])
         stock_info.append(u'%.2f 股' % stock.ltgb)
         stock_info.append(u'%.2f %%' % stock.ltgb_percent)
 
@@ -121,13 +122,14 @@ def stock_main(args, parser):
         else:
             title = ' '.join(stock_info)
             print(title)
-            print('=' * (len(title) + RstTable.cjk_count(title)))
-            table = RstTable(data)
+            print('=' * (len(title) + MarkupTable.cjk_count(title)))
+            table = MarkupTable()
+            table.set_data(data)
             for row in range(table.row_count()):
                 data_item = table.get_data(row, 0)
                 if data_item.endswith('(%)') or data_item.endswith(u'元)'):
-                    table.set_format('%0.2f', row, range(1, table.column_count()))
-            print(table.table())
+                    table.set_format(lambda x: '%0.2f' % x, row, range(1, table.column_count()))
+            print(table.to_rst())
     if book:
         book.close()
 

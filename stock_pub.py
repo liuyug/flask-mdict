@@ -7,7 +7,7 @@ import argparse
 import datetime
 
 import six
-from rsttable import RstTable
+from mtable import MarkupTable
 
 from stock.common import ths
 from stock.common import cninfo
@@ -40,8 +40,9 @@ def main(parser):
     elif args.period:
         for mcode in args.mcode:
             data = cninfo.get_pdf_report(mcode)
-            table = RstTable(data)
-            print(table.table())
+            table = MarkupTable()
+            table.set_data(data)
+            print(table.to_rst())
 
 
 if __name__ == '__main__':
