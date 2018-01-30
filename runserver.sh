@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export FLASK_APP=server.app
+export PYTHONPATH=$PYTHONPATH;`pwd`
 
 if [ "x$1" = "xrelease" ];then
     export FLASK_DEBUG=0
@@ -11,6 +12,6 @@ else
 fi
 
 echo $APP_CONFIG_FILE
-python3 -m flask run
+flask run
 
 # vim: tabstop=4 shiftwidth=4 expandtab
