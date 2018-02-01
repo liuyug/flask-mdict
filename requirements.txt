@@ -11,6 +11,7 @@ Flask-Login
 Flask-WTF
 Flask-SQLAlchemy
 Flask-Bcrypt
+WTForms-Components
 
 # BeautifulSoup with html5lib or lxml
 BeautifulSoup4
