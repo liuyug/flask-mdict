@@ -9,7 +9,7 @@ import argparse
 import six
 
 from stock.finance.stock import get_stock
-from stock.finance.report import get_stock_values, \
+from stock.finance.report import get_stock_dict_values, \
     list_field, list_stock, list_market, list_plate
 
 from mtable import MarkupTable
@@ -103,28 +103,30 @@ def stock_main(args, parser):
         stock_info.append(u'%.2f 股' % stock.ltgb)
         stock_info.append(u'%.2f %%' % stock.ltgb_percent)
 
-        data = get_stock_values(stock, fields)
+        data = get_stock_dict_values(stock, fields)
         if book:
             summary_sheet.write_row(summary_row, 0, stock_info)
             summary_row += 1
 
             sheet = book.add_worksheet('%s %s' % (stock.mcode, stock.name))
-            sheet.write_row(0, 0, data[0], date_format)
-            for row in range(1, len(data)):
-                sheet.write(row, 0, data[row][0], header_format)
-                for column in range(1, len(data[0])):
+            sheet.write_row(0, 0, data['header'], date_format)
+            for row in range(len(data['data'])):
+                sheet.write(row + 1, 0, data['data'][row][stock.mcode], header_format)
+                column = 1
+                for h in data['header'][1:]:
                     fmt = num_format
-                    if data[0][column].month == 12:
+                    if h.month == 12:
                         fmt = num_bold_format
-                    sheet.write(row, column, data[row][column], fmt)
+                    sheet.write(row + 1, column, data['data'][row][h], fmt)
+                    column += 1
             sheet.set_column(0, 0, 20)
-            sheet.set_column(1, len(data[0]), 12)
+            sheet.set_column(1, len(data['header']), 12)
         else:
             title = ' '.join(stock_info)
             print(title)
             print('=' * (len(title) + MarkupTable.cjk_count(title)))
             table = MarkupTable()
-            table.set_data(data)
+            table.set_dict_data(data['data'], data['header'])
             for row in range(table.row_count()):
                 data_item = table.get_data(row, 0)
                 if data_item.endswith('(%)') or data_item.endswith(u'元)'):
