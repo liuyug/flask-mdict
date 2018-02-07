@@ -2,10 +2,7 @@
 # -*- encoding:utf-8 -*-
 
 import sys
-import codecs
 import argparse
-
-import six
 
 from stock.quote.sina import sinahq
 from stock.quote.ths import thshq
@@ -17,7 +14,6 @@ if sys.platform == 'win32':
 
 def main():
     argparser = argparse.ArgumentParser(description='Stock HQ')
-    argparser.add_argument('--encoding', default='utf8', help='terminal character encoding')
 
     subparsers = argparser.add_subparsers(help='hq category', dest='category')
 
@@ -35,9 +31,6 @@ def main():
     tencenthq.add_arguments(parser)
 
     args = argparser.parse_args()
-
-    if six.PY2:
-        sys.stdout = codecs.getwriter(args.encoding)(sys.stdout)
 
     if args.category == 'ths':
         thshq.exec_args(args)
