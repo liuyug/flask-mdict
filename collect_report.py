@@ -26,14 +26,12 @@ def stock_main(parser):
             if plate:
                 mcodes = plate.stock_mcodes
     elif args.mcode:
-        mcodes = args.mcode
+        mcodes = [mcode.upper() for mcode in args.mcode]
     else:
         mcodes = [stock.mcode for stock in get_stock()]
 
     if args.download:
-        download_finance_report(mcodes, typ='json')
-    elif args.download_overwrite:
-        download_finance_report(mcodes, typ='json', overwrite=True)
+        download_finance_report(mcodes, typ='json', overwrite=args.overwrite)
     elif args.import_:
         import_finance_report(mcodes, typ='json')
     elif args.tdx:
@@ -47,22 +45,23 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='verbose help',
                         action='count', default=1)
 
-    parser.add_argument(
+    group = parser.add_argument_group('download finance report')
+    group.add_argument(
         '--download',
         action='store_true',
         help='download report from THS site'
     )
-    parser.add_argument(
-        '--download-overwrite',
+    group.add_argument(
+        '--overwrite',
         action='store_true',
-        help='download from THS site and overwrite old report'
+        help='overwrite old report'
     )
 
     parser.add_argument(
         '--import',
         action='store_true',
         dest='import_',
-        help='import from downloaded report into database'
+        help='import local report data'
     )
 
     parser.add_argument(
