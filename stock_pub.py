@@ -1,38 +1,47 @@
 #!/usr/bin/env python
 # -*- encoding:utf-8 -*-
 
-import sys
-import codecs
 import argparse
-import datetime
 
 from mtable import MarkupTable
 
 from stock.common import ths
 from stock.common import cninfo
+from stock.common.utils import ElapsedTimer
 
 
 def main(parser):
     args = parser.parse_args()
-
     if args.pub:
         for mcode in args.mcode:
-            data = cninfo.get_announcement(mcode)
-            table = MarkupTable()
-            table.set_dict_data(data, header=['date', 'type', 'size', 'title'])
-            print(table.to_rst())
+            with ElapsedTimer(True):
+                if True:
+                    data, header = cninfo.get_announcement(mcode)
+                else:
+                    data = ths.get_news(mcode, 'pub')
+                    header = ['date', 'title']
+                table = MarkupTable()
+                table.set_dict_data(data, header=header)
+                print(table.to_rst())
     elif args.news:
         for mcode in args.mcode:
-            data = ths.get_news(mcode, 'news')
-            table = MarkupTable()
-            table.set_dict_data(data, header=['date', 'title'])
-            print(table.to_rst())
+            with ElapsedTimer(True):
+                data = ths.get_news(mcode, 'news')
+                header = ['date', 'title']
+                table = MarkupTable()
+                table.set_dict_data(data, header=header)
+                print(table.to_rst())
     elif args.period:
         for mcode in args.mcode:
-            data = cninfo.get_pdf_report(mcode)
-            table = MarkupTable()
-            table.set_data(data)
-            print(table.to_rst())
+            with ElapsedTimer(True):
+                table = MarkupTable()
+                if False:
+                    data = cninfo.get_pdf_report(mcode)
+                    table.set_data(data)
+                else:
+                    data, header = cninfo.get_period(mcode)
+                    table.set_dict_data(data, header=header)
+                print(table.to_rst())
 
 
 if __name__ == '__main__':
