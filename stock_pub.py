@@ -16,18 +16,23 @@ def main(parser):
         for mcode in args.mcode:
             with ElapsedTimer(True):
                 if True:
-                    data, header = cninfo.get_announcement(mcode)
+                    data, header = cninfo.get_pub(mcode)
                 else:
-                    data = ths.get_news(mcode, 'pub')
-                    header = ['date', 'title']
+                    data, header = ths.get_pub(mcode)
                 table = MarkupTable()
                 table.set_dict_data(data, header=header)
                 print(table.to_rst())
     elif args.news:
         for mcode in args.mcode:
             with ElapsedTimer(True):
-                data = ths.get_news(mcode, 'news')
-                header = ['date', 'title']
+                data, header = ths.get_news(mcode)
+                table = MarkupTable()
+                table.set_dict_data(data, header=header)
+                print(table.to_rst())
+    elif args.research:
+        for mcode in args.mcode:
+            with ElapsedTimer(True):
+                data, header = ths.get_research(mcode)
                 table = MarkupTable()
                 table.set_dict_data(data, header=header)
                 print(table.to_rst())
@@ -51,6 +56,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--news', action='store_true', help='news')
     parser.add_argument('--pub', action='store_true', help='public announcement')
+    parser.add_argument('--research', action='store_true', help='research announcement')
     parser.add_argument('--period', action='store_true', help='period report')
     parser.add_argument('mcode',
                         nargs='+', help='stock mcode, "*" will match many characters')
