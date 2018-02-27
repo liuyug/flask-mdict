@@ -3,7 +3,7 @@ six
 # PyQt5
 
 # pip install --upgrade ciff
-ciff
+cffi
 # Flask
 Flask
 Flask-DebugToolbar
@@ -20,7 +20,7 @@ html5lib
 
 # proxy
 pysocks
-rsttable
+mtable
 
 xlsxwriter
 xlrd
