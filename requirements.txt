@@ -26,3 +26,6 @@ xlsxwriter
 xlrd
 SQLAlchemy
 pypinyin
+
+# uwsgi
+# apt install uwsgi uwsgi-plugin-python3
