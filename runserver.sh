@@ -4,10 +4,9 @@ export FLASK_APP=server.app
 export PYTHONPATH="`pwd`:$PYTHONPATH"
 
 if [ "x$1" = "xrelease" ];then
-    export FLASK_DEBUG=0
     export APP_CONFIG_FILE="../config/release.py"
 else
-    export FLASK_DEBUG=1
+    export FLASK_ENV=development
     export APP_CONFIG_FILE="../config/debug.py"
 fi
 
