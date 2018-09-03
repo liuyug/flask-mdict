@@ -8,7 +8,12 @@ from stock.quote.sina import sinahq
 from stock.quote.ths import thshq
 from stock.quote.tencent import tencenthq
 
+tdx_enable = False
 if sys.platform == 'win32':
+    tdx_enable = True
+tdx_enable = False
+
+if tdx_enable:
     from stock.quote.tdx import tdxhq
 
 
@@ -20,7 +25,7 @@ def main():
     parser = subparsers.add_parser('ths')
     thshq.add_arguments(parser)
 
-    if sys.platform == 'win32':
+    if tdx_enable:
         parser = subparsers.add_parser('tdx')
         tdxhq.add_arguments(parser)
 
@@ -34,7 +39,7 @@ def main():
 
     if args.category == 'ths':
         thshq.exec_args(args)
-    elif sys.platform == 'win32' and args.category == 'tdx':
+    elif tdx_enable and args.category == 'tdx':
         tdxhq.exec_args(args)
     elif args.category == 'sina':
         sinahq.exec_args(args)

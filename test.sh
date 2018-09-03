@@ -13,7 +13,7 @@ fi
 if [ "x$port" = "x" ];then
     base_url="http://127.0.0.1/stock/hq"
 else
-    base_url="http://127.0.0.1:$port"
+    base_url="http://127.0.0.1:$port/hq"
 fi
 
 ths_urls="      \
