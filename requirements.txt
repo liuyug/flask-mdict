@@ -27,5 +27,9 @@ xlrd
 SQLAlchemy
 pypinyin
 
+tushare
+pandas
+numpy
+
 # uwsgi
 # apt install uwsgi uwsgi-plugin-python3
