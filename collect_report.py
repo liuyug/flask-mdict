@@ -28,7 +28,7 @@ def stock_main(parser):
     elif args.mcode:
         mcodes = [mcode.upper() for mcode in args.mcode]
     else:
-        mcodes = [stock.mcode for stock in get_stock()]
+        mcodes = [stock.mcode for stock in get_stock(market_code='SHSZA')]
 
     if args.download:
         download_finance_report(mcodes, typ='json', overwrite=args.overwrite)
