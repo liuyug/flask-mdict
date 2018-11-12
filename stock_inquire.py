@@ -8,8 +8,8 @@ import argparse
 
 import six
 
-from stock.collect.stock import get_stock
-from stock.collect.report import get_stock_dict_values, \
+from stock.base.stock import get_stock
+from stock.base.report import get_stock_dict_values, \
     list_field, list_stock, list_market, list_plate
 
 from mtable import MarkupTable

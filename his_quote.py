@@ -7,8 +7,8 @@ import argparse
 
 import six
 
-from stock.history.ths import quote as ths
-from stock.history.tdx import quote as tdx
+from stock.quote.local.ths import quote as ths
+from stock.quote.local.tdx import quote as tdx
 
 
 def main():

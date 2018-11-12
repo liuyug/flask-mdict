@@ -5,7 +5,7 @@ import argparse
 
 from mtable import MarkupTable
 
-from stock.base import ths, cninfo
+from stock.collect import ths, cninfo
 from stock.utils import ElapsedTimer
 
 

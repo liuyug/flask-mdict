@@ -4,7 +4,7 @@
 import argparse
 import logging
 
-from stock.collect.stock import get_stock, get_plate
+from stock.base.stock import get_stock, get_plate
 from stock.collect.finance.report import import_finance_report, download_finance_report
 from stock.collect.tdx.finance import load_finance_data
 
