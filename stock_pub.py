@@ -5,9 +5,8 @@ import argparse
 
 from mtable import MarkupTable
 
-from stock.common import ths
-from stock.common import cninfo
-from stock.common.utils import ElapsedTimer
+from stock.base import ths, cninfo
+from stock.utils import ElapsedTimer
 
 
 def main(parser):
