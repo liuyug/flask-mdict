@@ -5,8 +5,9 @@ import argparse
 import logging
 
 from stock.base.stock import get_stock, get_plate
-from stock.collect.finance.report import import_finance_report, download_finance_report
-from stock.collect.tdx.finance import load_finance_data
+from stock.service.ths.finance import import_finance_report
+from stock.service.ths.web.finance import download_finance_report
+from stock.service.tdx.local.finance import load_finance_data
 
 
 logger = logging.getLogger(__name__)
