@@ -2,6 +2,7 @@
 # -*- encoding:utf-8 -*-
 
 import sys
+import platform
 import argparse
 
 from stock.service.sina import sinahq
@@ -9,11 +10,8 @@ from stock.service.ths.quote import thshq
 from stock.service.tencent import tencenthq
 
 tdx_enable = False
-if sys.platform == 'win32':
+if sys.platform == 'win32' and platform.architecture()[0] == '32bit':
     tdx_enable = True
-tdx_enable = False
-
-if tdx_enable:
     from stock.service.tdx.quote import tdxhq
 
 
