@@ -13,6 +13,9 @@ Flask-SQLAlchemy
 Flask-Bcrypt
 WTForms-Components
 
+# for mysql
+pymysql
+
 # BeautifulSoup with html5lib or lxml
 BeautifulSoup4
 html5lib
