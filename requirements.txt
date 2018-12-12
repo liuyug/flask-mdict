@@ -34,5 +34,7 @@ tushare
 pandas
 numpy
 
+pytdx
+cn_stock_holidays
 # uwsgi
 # apt install uwsgi uwsgi-plugin-python3
