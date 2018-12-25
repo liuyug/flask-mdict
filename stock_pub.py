@@ -5,7 +5,8 @@ import argparse
 
 from mtable import MarkupTable
 
-from stock.service import ths, cninfo
+from stock.service import cninfo
+from stock.service.ths import web as ths
 from stock.utils import ElapsedTimer
 
 
@@ -14,7 +15,7 @@ def main(parser):
     if args.pub:
         for mcode in args.mcode:
             with ElapsedTimer(True):
-                if True:
+                if False:
                     data, header = cninfo.get_pub(mcode)
                 else:
                     data, header = ths.get_pub(mcode)
