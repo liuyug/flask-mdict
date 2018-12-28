@@ -33,6 +33,13 @@ pypinyin
 tushare
 pandas
 numpy
+# wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+# tar xvf ta-lib-0.4.0-src.tar.gz
+# ./configure
+# make
+# make install
+# ldconfig -v
+ta-lib
 
 pytdx
 cn_stock_holidays
