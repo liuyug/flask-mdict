@@ -19,7 +19,7 @@ python3 stock_analyst.py --ma --source db --output $ma -
 
 count=`cat $ma | wc -l`
 echo "$today,$count" >> "database/ma_stat.csv"
-cat "database/ma_stat.csv"
+tail "database/ma_stat.csv"
 
 
 
