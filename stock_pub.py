@@ -40,12 +40,8 @@ def main(parser):
         for mcode in args.mcode:
             with ElapsedTimer(True):
                 table = MarkupTable()
-                if False:
-                    data = cninfo.get_pdf_report(mcode)
-                    table.set_data(data)
-                else:
-                    data, header = cninfo.get_period(mcode)
-                    table.set_dict_data(data, header=header)
+                data, header = cninfo.get_period_report(mcode)
+                table.set_dict_data(data, header=header)
                 print(table.to_rst())
 
 
