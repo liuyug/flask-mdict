@@ -15,7 +15,7 @@ python3 web_admin.py --send-tpo --tpo-source db --output-dir ~/Desktop/temp
 
 ma="database/ma_$today.txt"
 # check ma
-python3 stock_analyst.py --ma --source db --output $ma -
+python3 stock_analyst.py --ma --before-year 2 --source db --output $ma -
 
 count=`cat $ma | wc -l`
 echo "$today,$count" >> "database/ma_stat.csv"
