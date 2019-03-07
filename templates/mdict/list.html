@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block subtitle %}MDict{% endblock %}
+{% block maincontent %}
+<div class="row">
+    <div class="col-3"></div>
+    <div class="col">
+        {% for mdict in dicts %}
+        {{mdict.title}}
+        {% endfor %}
+    </div>
+    <div class="col-4"></div>
+</div>
+{% endblock %}
