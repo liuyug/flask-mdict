@@ -13,9 +13,9 @@ def init_mdict(mdict_dir):
                 print('Initialize MDICT "%s", please wait...' % fname)
                 mdx_file = os.path.join(root, fname)
                 idx = IndexBuilder(mdx_file)
-                mdicts[fname] = idx
+                name = os.path.splitext(fname)[0]
+                if idx._title == 'Title (No HTML code allowed)':
+                    idx._title = name
+                key = os.path.basename(root)
+                mdicts[key] = idx
     return mdicts
-
-
-def lookup(mdict, word):
-    return mdict.mdx_lookup(word)

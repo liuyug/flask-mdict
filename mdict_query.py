@@ -14,7 +14,7 @@ import json
 import zlib
 # LZO compression is used for engine version < 2.0
 try:
-    import lzo
+    from . import lzo
 except ImportError:
     lzo = None
     #print("LZO compression support is not available")
