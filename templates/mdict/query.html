@@ -10,25 +10,28 @@
 {% block maincontent %}
 <div class="row">
     <div class="col-3">
-        <form method="POST">
-            <div class="input-group">
-                {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
-                <div class="input-group-append">
-                    <button id="btn-search" type="submit" class="btn btn-outline-info">
-                        <i class="fas fa-search"></i>
-                    </button>
+        <div class="sticky-top">
+            <div style="padding-top: 60px; margin-top: -60px;"></div>
+            <form method="POST">
+                <div class="input-group">
+                    {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
+                    <div class="input-group-append">
+                        <button id="btn-search" type="submit" class="btn btn-outline-info">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            {{ form.csrf_token }}
-        </form>
-        <br />
-        <ul class="list-group">
-            {% for name, item in contents.items() %}
-            <li class="list-group-item">
-                <a href="#{{name}}">{{item.title}}</a>
-            </li>
-            {% endfor %}
-        </ul>
+                {{ form.csrf_token }}
+            </form>
+            <br />
+            <ul class="list-group">
+                {% for name, item in contents.items() %}
+                <li class="list-group-item">
+                    <a href="#{{name}}">{{item.title}}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
 
     <div class="col">

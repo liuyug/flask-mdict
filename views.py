@@ -15,7 +15,7 @@ def query_part(part):
     for name, q in get_mdict().items():
         content = q.get_mdx_keys(part)
         contents |= set(content)
-    return jsonify(suggestion=list(contents))
+    return jsonify(suggestion=sorted(contents))
 
 
 @mdict.route('/<name>/<path:url>', methods=['GET', 'POST'])
