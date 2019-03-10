@@ -1,7 +1,6 @@
 /*
 https://github.com/bassjobsen/typeahead.js-bootstrap4-css/blob/master/typeaheadjs.css
  */
-
 span.twitter-typeahead .tt-menu {
   cursor: pointer;
 }
@@ -37,7 +36,6 @@ span.twitter-typeahead .tt-suggestion {
   white-space: nowrap;
   background: none;
   border: 0; }
-
 span.twitter-typeahead .tt-suggestion:focus, .dropdown-item:hover, span.twitter-typeahead .tt-suggestion:hover {
     color: #2b2d2f;
     text-decoration: none;
@@ -47,7 +45,6 @@ span.twitter-typeahead .active.tt-suggestion, span.twitter-typeahead .tt-suggest
     text-decoration: none;
     background-color: #0275d8;
     outline: 0; }
-
 span.twitter-typeahead .disabled.tt-suggestion, span.twitter-typeahead .disabled.tt-suggestion:focus, span.twitter-typeahead .disabled.tt-suggestion:hover {
     color: #818a91; }
 span.twitter-typeahead .disabled.tt-suggestion:focus, span.twitter-typeahead .disabled.tt-suggestion:hover {
@@ -56,6 +53,12 @@ span.twitter-typeahead .disabled.tt-suggestion:focus, span.twitter-typeahead .di
     background-color: transparent;
     background-image: none;
     filter: "progid:DXImageTransform.Microsoft.gradient(enabled = false)"; }
+span.twitter-typeahead {
+  width: 100%; }
+  .input-group span.twitter-typeahead {
+    display: block !important; }
+    .input-group span.twitter-typeahead .tt-menu {
+      top: 2.375rem !important; }
 
 /*
 https://github.com/bassjobsen/typeahead.js-bootstrap4-css/issues/1
