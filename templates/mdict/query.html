@@ -11,7 +11,7 @@
 <div class="row">
     <div class="col-3">
         <div class="sticky-top">
-            <div style="padding-top: 60px; margin-top: -60px;"></div>
+            <div style="padding-top: 60px; margin-top: -60px;"> </div>
             <form method="POST">
                 <div class="input-group">
                     {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
@@ -35,11 +35,10 @@
     </div>
 
     <div class="col">
-        <div id="top" style="padding-top: 60px; margin-top: -60px;"></div>
+        <div id="top" style="padding-top: 60px; margin-top: -60px;"> </div>
         {% for name, item in contents.items() %}
-        <div id="{{name}}" style="padding-top: 60px; margin-top: -60px;">
-        </div>
-        <div class="card clearboth">
+        <div id="{{name}}" style="padding-top: 60px; margin-top: -60px;"> </div>
+        <div class="card">
             <div class="card-header">
                 <div class="row align-items-center">
                     <div class="col-md-10">
