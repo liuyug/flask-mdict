@@ -47,6 +47,7 @@ def query_word(name, url):
         contents = {}
         contents[name] = {
             'title': q._title,
+            'description': q._description,
             'content': ''.join(content),
         }
         return render_template(
@@ -87,6 +88,7 @@ def query_word2(word=None):
             content = content.replace('href2="', 'href="')
         contents[name] = {
             'title': q._title,
+            'description': q._description,
             'content': content,
         }
     return render_template(

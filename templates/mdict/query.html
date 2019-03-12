@@ -27,7 +27,12 @@
             <ul class="list-group">
                 {% for name, item in contents.items() %}
                 <li class="list-group-item">
-                    <a href="#{{name}}">{{item.title}}</a>
+                    <a href="#{{name}}">{{name}}</a>
+                    <span data-toggle="tooltip"
+                          data-html="false"
+                          title="<h4>{{item.title}}<h4>{{item.description}}">
+                        <small><i class="fas fa-info-circle"></i></small>
+                    </span>
                 </li>
                 {% endfor %}
             </ul>
@@ -41,7 +46,7 @@
         <div class="card">
             <div class="card-header">
                 <div class="row align-items-center">
-                    <div class="col-md-10">
+                    <div class="col">
                         <button class="btn btn-link py-0"
                                 data-toggle="collapse"
                                 data-target="#collapse_{{name}}">
