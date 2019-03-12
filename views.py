@@ -1,5 +1,6 @@
 
 import io
+import re
 import os.path
 from flask import current_app, render_template, send_file, url_for,  \
     redirect, abort, jsonify
@@ -12,8 +13,8 @@ from . import helper
 @mdict.route('/query/<part>')
 def query_part(part):
     contents = set()
-    for name, q in get_mdict().items():
-        content = q.get_mdx_keys(part)
+    for name, item in get_mdict().items():
+        content = item['query'].get_mdx_keys(part)
         contents |= set(content)
     return jsonify(suggestion=sorted(contents))
 
@@ -26,29 +27,36 @@ def query_word(name, url):
     else:
         form.word.data = url
 
-    q = get_mdict().get(name)
-    if not q:
+    item = get_mdict().get(name)
+    if not item:
         return redirect(url_for('.query_word2', word=url))
+    q = item['query']
     if '.' in url:          # file
         fname = os.path.join(os.path.dirname(q._mdx_file), url)
         if os.path.exists(fname):
-            return send_file(fname)
-        key = '\\%s' % '\\'.join(url.split('/'))
-        data = q.mdd_lookup(key, ignorecase=True)
+            data = [open(fname, 'rb').read()]
+        else:
+            key = '\\%s' % '\\'.join(url.split('/'))
+            data = q.mdd_lookup(key, ignorecase=True)
         if data:
+            data = b''.join(data)
+            if url.endswith('.css'):
+                data = re.sub(r'(.*{)', r'.%s \1' % item['class'], data.decode('utf-8'))
+                data = data.encode('utf-8')
             bio = io.BytesIO()
-            bio.write(b''.join(data))
+            bio.write(data)
             bio.seek(0)
             return send_file(bio, attachment_filename=url)
         else:
             abort(404)
     else:                   # entry and word
         content = q.mdx_lookup(url, ignorecase=True)
+        content = '<div class="%s">%s</div>' % (item['class'], ''.join(content))
         contents = {}
         contents[name] = {
             'title': q._title,
             'description': q._description,
-            'content': ''.join(content),
+            'content': content,
         }
         return render_template(
             'mdict/query.html',
@@ -69,10 +77,11 @@ def query_word2(word=None):
         form.word.data = word
 
     contents = {}
-    for name, q in get_mdict().items():
+    for name, item in get_mdict().items():
+        q = item['query']
         content = q.mdx_lookup(word, ignorecase=True)
-        content = ''.join(content)
         if content:
+            content = ''.join(content)
             # add dict name into url
             content = content.replace('src="/', 'src="')
             content = content.replace('src="file:///', 'src="')
@@ -86,6 +95,7 @@ def query_word2(word=None):
 
             content = content.replace('href="', 'href="%s/' % name)
             content = content.replace('href2="', 'href="')
+            content = '<div class="%s">%s</div>' % (item['class'], ''.join(content))
         contents[name] = {
             'title': q._title,
             'description': q._description,
