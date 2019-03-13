@@ -1,4 +1,5 @@
 
+import re
 import os.path
 import hashlib
 
@@ -17,10 +18,27 @@ def init_mdict(mdict_dir):
                 md5.update(mdx_file.encode('utf-8'))
                 print('Initialize MDICT "%s", please wait...' % name)
                 idx = IndexBuilder(mdx_file)
-                print('%s: %s' % (idx._title, idx._description))
+                name = name.replace('.', '-')
+
                 if idx._title == 'Title (No HTML code allowed)':
-                    idx._title = name
+                    title = name
+                else:
+                    title = re.sub(r'<[^>]+>', ' ', idx._title)
+
+                abouts = []
+                abouts.append('<ul>')
+                abouts.append('<li>%s</li>' % os.path.basename(idx._mdx_file))
+                if idx._mdd_file:
+                    abouts.append('<li>%s</li>' % os.path.basename(idx._mdd_file))
+                abouts.append('</ul>')
+                text = re.sub(r'<[^>]+>', ' ', idx._description)
+                text = [t for t in [t.strip() for t in text.split('\n')] if t]
+                abouts.extend(text)
+                about = '\n'.join(abouts)
+                print('=== %s ===\n%s' % (title, about))
                 mdicts[name] = {
+                    'title': title,
+                    'about': about,
                     'query': idx,
                     'class': 'dict_%s' % md5.hexdigest(),
                 }

@@ -33,16 +33,21 @@ def query_word(name, url):
     q = item['query']
     if '.' in url:          # file
         fname = os.path.join(os.path.dirname(q._mdx_file), url)
-        if os.path.exists(fname):
+        if url in item:
+            data = [item[url]]
+        elif os.path.exists(fname):
             data = [open(fname, 'rb').read()]
         else:
             key = '\\%s' % '\\'.join(url.split('/'))
             data = q.mdd_lookup(key, ignorecase=True)
+
         if data:
             data = b''.join(data)
-            if url.endswith('.css'):
+            if url not in item and url.endswith('.css'):
                 data = re.sub(r'(.*{)', r'.%s \1' % item['class'], data.decode('utf-8'))
                 data = data.encode('utf-8')
+                item[url] = data        # cache css file
+
             bio = io.BytesIO()
             bio.write(data)
             bio.seek(0)
@@ -54,8 +59,8 @@ def query_word(name, url):
         content = '<div class="%s">%s</div>' % (item['class'], ''.join(content))
         contents = {}
         contents[name] = {
-            'title': q._title,
-            'description': q._description,
+            'title': item['title'],
+            'about': item['about'],
             'content': content,
         }
         return render_template(
@@ -97,8 +102,8 @@ def query_word2(word=None):
             content = content.replace('href2="', 'href="')
             content = '<div class="%s">%s</div>' % (item['class'], ''.join(content))
         contents[name] = {
-            'title': q._title,
-            'description': q._description,
+            'title': item['title'],
+            'about': item['about'],
             'content': content,
         }
     return render_template(

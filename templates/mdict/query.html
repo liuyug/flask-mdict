@@ -28,11 +28,28 @@
                 {% for name, item in contents.items() %}
                 <li class="list-group-item">
                     <a href="#{{name}}">{{name}}</a>
-                    <span data-toggle="tooltip"
-                          data-html="false"
-                          title="<h4>{{item.title}}<h4>{{item.description}}">
-                        <small><i class="fas fa-info-circle"></i></small>
-                    </span>
+                    <small data-toggle="modal" data-target="#about_{{name}}">
+                        <i class="fas fa-info-circle"></i>
+                    </small>
+                    <!-- Modal -->
+                    <div class="modal" id="about_{{name}}" role="dialog" data-backdrop="false">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{item.title|safe}}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    {{item.about|safe}}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>
@@ -72,7 +89,7 @@
 {% block script %}
 <script src="{{url_for(".static", filename="js/typeahead.bundle.min.js")}}"></script>
 <script type="text/javascript">
-    player = document.createElement("audio");
+player = document.createElement("audio");
 player.id = 'player';
 
 function play(url) {
