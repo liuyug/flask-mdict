@@ -47,17 +47,20 @@ def query_word(name, url):
         elif os.path.exists(fname):
             data = [open(fname, 'rb').read()]
         elif url == 'logo.png':
-            return redirect(url_for('.static', filename='logo.png'))
+            with mdict.open_resource('static/logo.png') as f:
+                data = [f.read()]
+            # return redirect(url_for('.static', filename='logo.png'))
         else:
             key = '\\%s' % '\\'.join(url.split('/'))
             data = q.mdd_lookup(key, ignorecase=True)
 
         if data:
             data = b''.join(data)
-            if url not in item and url.endswith('.css'):
-                data = data.decode('utf-8')
-                data = helper.fix_css(item['id'], data)
-                data = data.encode('utf-8')
+            if url not in item and url[-4:] in ['.css', '.png', '.jpg']:
+                if url.endswith('.css'):
+                    data = data.decode('utf-8')
+                    data = helper.fix_css(item['id'], data)
+                    data = data.encode('utf-8')
                 if current_app.config.get('MDICT_CACHE'):
                     item[url] = data        # cache css file
 
