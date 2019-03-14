@@ -125,7 +125,10 @@ for (i in all_a) {
     }
 
     if (item.href && item.href.lastIndexOf("entry://", 0) === 0) {
-        item.href = item.href.replace("entry://", "")
+        item.href = item.href.replace("entry://", "");
+        if (item.href.charAt(item.href.length - 1) === '/') {
+            item.href = item.href.substring(0, item.href.length - 1);
+        }
     }
 }
 /* typeahead */
