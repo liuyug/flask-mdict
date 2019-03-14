@@ -27,7 +27,7 @@
             <ul class="list-group">
                 {% for name, item in contents.items() %}
                 <li class="list-group-item">
-                    <a href="#{{name}}">{{name}}</a>
+                    <a href="#{{name}}">{{item.title|safe}}</a>
                     <small data-toggle="modal" data-target="#about_{{name}}">
                         <i class="fas fa-info-circle"></i>
                     </small>
@@ -59,15 +59,22 @@
     <div class="col">
         <div id="top" style="padding-top: 60px; margin-top: -60px;"> </div>
         {% for name, item in contents.items() %}
+        <div style="clear: both;"></div>
         <div id="{{name}}" style="padding-top: 60px; margin-top: -60px;"> </div>
-        <div class="card">
+        <div class="card" id="{{item.id}}">
             <div class="card-header">
                 <div class="row align-items-center">
                     <div class="col">
+                        {% if item.logo %}
+                        <a style="text-decoration:none;" href="{{url_for('.query_word', name=name, url=word)}}">
+                            <img class="rounded" width="24px"
+                                 src="{{url_for('.query_word', name=name, url=item.logo)}}"/>
+                        </a>
+                        {% endif %}
                         <button class="btn btn-link py-0"
                                 data-toggle="collapse"
                                 data-target="#collapse_{{name}}">
-                            {{item.title}}
+                            {{item.title|safe}}
                         </button>
                     </div>
                     <div class="col-md-2">
@@ -77,7 +84,9 @@
             </div>
             <div id="collapse_{{name}}" class="collapse{%if item.content%} show{%endif%}">
                 <div class="card-body">
-                    {{item.content|join|safe}}
+                    <div class="mdict">
+                        {{item.content|safe}}
+                    </div>
                 </div>
             </div>
         </div>

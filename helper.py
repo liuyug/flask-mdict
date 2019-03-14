@@ -3,8 +3,9 @@ import re
 import os.path
 import hashlib
 
+from scss import Scss
 
-from .mdict_query import IndexBuilder
+from .mdict_query2 import IndexBuilder2
 
 
 def init_mdict(mdict_dir):
@@ -13,13 +14,18 @@ def init_mdict(mdict_dir):
         for fname in files:
             if fname.endswith('.mdx'):
                 name = os.path.splitext(fname)[0]
+                print('Initialize MDICT "%s", please wait...' % name)
+                logo = ''
+                for ext in ['.jpg', '.png']:
+                    if os.path.exists(os.path.join(root, name + ext)):
+                        logo = name + ext
+                        break
                 mdx_file = os.path.join(root, fname)
                 md5 = hashlib.md5()
                 md5.update(mdx_file.encode('utf-8'))
-                print('Initialize MDICT "%s", please wait...' % name)
-                idx = IndexBuilder(mdx_file)
-                name = name.replace('.', '-')
+                dict_id = 'dict_%s' % md5.hexdigest()
 
+                idx = IndexBuilder2(mdx_file)
                 if idx._title == 'Title (No HTML code allowed)':
                     title = name
                 else:
@@ -35,11 +41,21 @@ def init_mdict(mdict_dir):
                 text = [t for t in [t.strip() for t in text.split('\n')] if t]
                 abouts.extend(text)
                 about = '\n'.join(abouts)
-                print('=== %s ===\n%s' % (title, about))
+                print('=== %s ===\ndict id: %s\n%s' % (title, dict_id, about))
                 mdicts[name] = {
                     'title': title,
+                    'logo': logo,
                     'about': about,
+                    'root_path': root,
                     'query': idx,
-                    'class': 'dict_%s' % md5.hexdigest(),
+                    'id': dict_id,
                 }
     return mdicts
+
+
+def fix_css(prefix_id, css_data):
+    # with compressed
+    css = Scss(scss_opts={'style': True})
+    data = css.compile('#%s .mdict { %s }' % (prefix_id, css_data))
+    data = re.sub(r'(#%s .mdict\s+)body' % prefix_id, r'body \1', data)
+    return data

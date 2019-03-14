@@ -2,6 +2,7 @@
 import io
 import re
 import os.path
+
 from flask import current_app, render_template, send_file, url_for,  \
     redirect, abort, jsonify
 
@@ -30,9 +31,17 @@ def query_word(name, url):
     item = get_mdict().get(name)
     if not item:
         return redirect(url_for('.query_word2', word=url))
+
+    if url == '@list_mdx':
+        contents = item['query'].get_mdx_keys()
+        return jsonify(suggestion=sorted(contents))
+    elif url == '@list_mdd':
+        contents = item['query'].get_mdd_keys()
+        return jsonify(suggestion=sorted(contents))
+
     q = item['query']
     if '.' in url:          # file
-        fname = os.path.join(os.path.dirname(q._mdx_file), url)
+        fname = os.path.join(item['root_path'], url)
         if url in item:
             data = [item[url]]
         elif os.path.exists(fname):
@@ -44,9 +53,11 @@ def query_word(name, url):
         if data:
             data = b''.join(data)
             if url not in item and url.endswith('.css'):
-                data = re.sub(r'(.*{)', r'.%s \1' % item['class'], data.decode('utf-8'))
+                data = data.decode('utf-8')
+                data = helper.fix_css(item['id'], data)
                 data = data.encode('utf-8')
-                item[url] = data        # cache css file
+                if current_app.config.get('MDICT_CACHE'):
+                    item[url] = data        # cache css file
 
             bio = io.BytesIO()
             bio.write(data)
@@ -56,11 +67,17 @@ def query_word(name, url):
             abort(404)
     else:                   # entry and word
         content = q.mdx_lookup(url, ignorecase=True)
-        content = '<div class="%s">%s</div>' % (item['class'], ''.join(content))
+        content = ''.join(content)
+
+        content = content.replace('src="/', 'src="')
+        content = content.replace('src="file:///', 'src="')
+
         contents = {}
-        contents[name] = {
+        contents[name.replace('.', '-')] = {
             'title': item['title'],
+            'logo': item['logo'],
             'about': item['about'],
+            'id': item['id'],
             'content': content,
         }
         return render_template(
@@ -100,10 +117,11 @@ def query_word2(word=None):
 
             content = content.replace('href="', 'href="%s/' % name)
             content = content.replace('href2="', 'href="')
-            content = '<div class="%s">%s</div>' % (item['class'], ''.join(content))
-        contents[name] = {
+        contents[name.replace('.', '-')] = {
             'title': item['title'],
+            'logo': item['logo'],
             'about': item['about'],
+            'id': item['id'],
             'content': content,
         }
     return render_template(
