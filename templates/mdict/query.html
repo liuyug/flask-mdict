@@ -65,12 +65,12 @@
             <div class="card-header">
                 <div class="row align-items-center">
                     <div class="col">
-                        {% if item.logo %}
-                        <a style="text-decoration:none;" href="{{url_for('.query_word', name=name, url=word)}}">
-                            <img class="rounded" width="24px"
+                        <a style="text-decoration:none;"
+                           href="{{url_for('.query_word', name=name, url=word)}}">
+                            <img class="rounded"
+                                 width="24px"
                                  src="{{url_for('.query_word', name=name, url=item.logo)}}"/>
                         </a>
-                        {% endif %}
                         <button class="btn btn-link py-0"
                                 data-toggle="collapse"
                                 data-target="#collapse_{{name}}">

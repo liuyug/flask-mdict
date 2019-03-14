@@ -46,6 +46,8 @@ def query_word(name, url):
             data = [item[url]]
         elif os.path.exists(fname):
             data = [open(fname, 'rb').read()]
+        elif url == 'logo.png':
+            return redirect(url_for('.static', filename='logo.png'))
         else:
             key = '\\%s' % '\\'.join(url.split('/'))
             data = q.mdd_lookup(key, ignorecase=True)
