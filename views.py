@@ -73,9 +73,8 @@ def query_word(name, url):
     else:                   # entry and word
         content = q.mdx_lookup(url, ignorecase=True)
         content = ''.join(content)
-
-        content = content.replace('src="/', 'src="')
-        content = content.replace('src="file:///', 'src="')
+        content = re.sub(r' src="(/|file:///)', r' src="', content)
+        content = re.sub(r' href="(.+?)(/"|")', r' href="\1"', content)
 
         contents = {}
         contents[name.replace('.', '-')] = {
@@ -110,18 +109,10 @@ def query_word2(word=None):
         if content:
             content = ''.join(content)
             # add dict name into url
-            content = content.replace('src="/', 'src="')
-            content = content.replace('src="file:///', 'src="')
-            content = content.replace('src="', 'src="%s/' % name)
+            content = re.sub(r' src="(/|file:///)?', r' src="%s/' % name, content)
+            content = re.sub(r' href="(.+?)/"', r' href="\1"', content)
+            content = re.sub(r' href="(sound://|entry://|http://|https://)?([^#].+?)"', r' href="\1%s/\2"' % name, content)
 
-            content = content.replace('href="sound://', 'href2="sound://%s/' % name)
-            content = content.replace('href="entry://', 'href2="entry://%s/' % name)
-            content = content.replace('href="http://', 'href2="http://')
-            content = content.replace('href="https://', 'href2="https://')
-            content = content.replace('href="#', 'href2="#')
-
-            content = content.replace('href="', 'href="%s/' % name)
-            content = content.replace('href2="', 'href="')
         contents[name.replace('.', '-')] = {
             'title': item['title'],
             'logo': item['logo'],
