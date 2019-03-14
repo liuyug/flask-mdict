@@ -13,6 +13,8 @@ Flask-SQLAlchemy
 Flask-Bcrypt
 WTForms-Components
 
+pyscss
+
 # for mysql
 pymysql
 
