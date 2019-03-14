@@ -11,6 +11,13 @@ from . import mdict, get_mdict
 from . import helper
 
 
+regex_src_remove_schema = re.compile(r' src="(/|file:///)')
+regex_href_remove_end = re.compile(r' href="(.+?)/"')
+
+regex_src_add_path = re.compile(r' src="(/|file:///)?')
+regex_href_add_path = re.compile(r' href="(sound://|entry://|http://|https://)?([^#].+?)"')
+
+
 @mdict.route('/query/<part>')
 def query_part(part):
     contents = set()
@@ -73,8 +80,9 @@ def query_word(name, url):
     else:                   # entry and word
         content = q.mdx_lookup(url, ignorecase=True)
         content = ''.join(content)
-        content = re.sub(r' src="(/|file:///)', r' src="', content)
-        content = re.sub(r' href="(.+?)(/"|")', r' href="\1"', content)
+
+        content = regex_src_remove_schema.sub(r' src="', content)
+        content = regex_href_remove_end.sub(r' href="\1"', content)
 
         contents = {}
         contents[name.replace('.', '-')] = {
@@ -108,10 +116,10 @@ def query_word2(word=None):
         content = q.mdx_lookup(word, ignorecase=True)
         if content:
             content = ''.join(content)
-            # add dict name into url
-            content = re.sub(r' src="(/|file:///)?', r' src="%s/' % name, content)
-            content = re.sub(r' href="(.+?)/"', r' href="\1"', content)
-            content = re.sub(r' href="(sound://|entry://|http://|https://)?([^#].+?)"', r' href="\1%s/\2"' % name, content)
+            # add dict id into url
+            content = regex_src_add_path.sub(r' src="%s/' % name, content)
+            content = regex_href_remove_end.sub(r' href="\1"', content)
+            content = regex_href_add_path.sub(r' href="\1%s/\2"' % name, content)
 
         contents[name.replace('.', '-')] = {
             'title': item['title'],

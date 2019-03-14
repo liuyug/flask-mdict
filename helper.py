@@ -8,6 +8,10 @@ from scss import Scss
 from .mdict_query2 import IndexBuilder2
 
 
+regex_move_body = re.compile(r'(#\S+ .mdict\s+?)body')
+regex_remove_tag = re.compile(r'<[^>]+?>')
+
+
 def init_mdict(mdict_dir):
     mdicts = {}
     for root, dirs, files in os.walk(mdict_dir):
@@ -30,7 +34,7 @@ def init_mdict(mdict_dir):
             if idx._title == 'Title (No HTML code allowed)':
                 title = name
             else:
-                title = re.sub(r'<[^>]+>', ' ', idx._title)
+                title = regex_remove_tag.sub(' ', idx._title)
 
             abouts = []
             abouts.append('<ul>')
@@ -38,7 +42,7 @@ def init_mdict(mdict_dir):
             if idx._mdd_file:
                 abouts.append('<li>%s</li>' % os.path.basename(idx._mdd_file))
             abouts.append('</ul>')
-            text = re.sub(r'<[^>]+>', ' ', idx._description)
+            text = regex_remove_tag.sub(' ', idx._description)
             text = [t for t in [t.strip() for t in text.split('\n')] if t]
             abouts.extend(text)
             about = '\n'.join(abouts)
@@ -58,5 +62,5 @@ def fix_css(prefix_id, css_data):
     # with compressed
     css = Scss(scss_opts={'style': True})
     data = css.compile('#%s .mdict { %s }' % (prefix_id, css_data))
-    data = re.sub(r'(#%s .mdict\s+)body' % prefix_id, r'body \1', data)
+    data = regex_move_body.sub(r'body \1', data)
     return data
