@@ -61,11 +61,12 @@
         {% for name, item in contents.items() %}
         <div style="clear: both;"></div>
         <div id="{{name}}" style="padding-top: 60px; margin-top: -60px;"> </div>
-        <div class="card" id="{{item.id}}">
+        <div class="card">
             <div class="card-header">
                 <div class="row align-items-center">
                     <div class="col">
-                        <a style="text-decoration:none;" target="_blank"
+                        <a style="text-decoration:none;"
+                           target="_blank"
                            href="{{url_for('.query_word', name=name, url=word)}}">
                             <img class="rounded"
                                  width="24px"
@@ -83,7 +84,7 @@
                 </div>
             </div>
             <div id="collapse_{{name}}" class="collapse{%if item.content%} show{%endif%}">
-                <div class="card-body">
+                <div class="card-body" id="{{item.id}}">
                     <div class="mdict">
                         {{item.content|safe}}
                     </div>
