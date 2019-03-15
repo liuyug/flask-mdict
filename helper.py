@@ -8,8 +8,7 @@ from scss import Scss
 from .mdict_query2 import IndexBuilder2
 
 
-regex_move_body = re.compile(r'(#\S+ .mdict\s+?)body')
-regex_remove_tag = re.compile(r'<[^>]+?>')
+regex_tag = re.compile(r'<[^>]+?>')
 
 
 def init_mdict(mdict_dir):
@@ -34,7 +33,7 @@ def init_mdict(mdict_dir):
             if idx._title == 'Title (No HTML code allowed)':
                 title = name
             else:
-                title = regex_remove_tag.sub(' ', idx._title)
+                title = regex_tag.sub(' ', idx._title)
 
             abouts = []
             abouts.append('<ul>')
@@ -42,7 +41,7 @@ def init_mdict(mdict_dir):
             if idx._mdd_file:
                 abouts.append('<li>%s</li>' % os.path.basename(idx._mdd_file))
             abouts.append('</ul>')
-            text = regex_remove_tag.sub(' ', idx._description)
+            text = regex_tag.sub(' ', idx._description)
             text = [t for t in [t.strip() for t in text.split('\n')] if t]
             abouts.extend(text)
             about = '\n'.join(abouts)
@@ -58,9 +57,23 @@ def init_mdict(mdict_dir):
     return mdicts
 
 
+regex_body = re.compile(r'(#\S+ .mdict)\s+?(body)\s*?({)')
+regex_fontface = re.compile(r'(@font-face{.+?})')
+
+
 def fix_css(prefix_id, css_data):
+    # remove fontface with scss bug
+    fontface = []
+    for m in regex_fontface.findall(css_data):
+        fontface.append(m)
+    data = regex_fontface.sub('', css_data)
+
     # with compressed
     css = Scss(scss_opts={'style': True})
-    data = css.compile('#%s .mdict { %s }' % (prefix_id, css_data))
-    data = regex_move_body.sub(r'body \1', data)
+    data = css.compile('#%s .mdict { %s }' % (prefix_id, data))
+
+    data = regex_body.sub(r'\2 \1 \3', data)
+    # add fontface
+    data = '\n'.join(fontface) + data
+    # data = '\n'.join(['#%s .mdict %s' % (prefix_id, face) for face in fontface]) + data
     return data
