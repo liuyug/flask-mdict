@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS $db_name;
 .mode csv
 .import $csv_file $db_name
 
+DROP INDEX IF EXISTS ${db_name}_index_word;
 CREATE INDEX ${db_name}_index_word ON $db_name(word);
 
 .schema
