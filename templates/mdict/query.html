@@ -11,7 +11,7 @@
 <div class="row">
     <div class="col-3">
         <div class="sticky-top">
-            <div style="padding-top: 60px; margin-top: -60px;"> </div>
+            <div style="padding-top: 65px; margin-top: -65px;"> </div>
             <form method="POST">
                 <div class="input-group">
                     {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
@@ -57,34 +57,28 @@
     </div>
 
     <div class="col">
-        <div id="top" style="padding-top: 60px; margin-top: -60px;"> </div>
         {% for name, item in contents.items() %}
-        <div style="clear: both;"></div>
-        <div id="{{name}}" style="padding-top: 60px; margin-top: -60px;"> </div>
+        <div id="{{name}}" style="padding-top: 65px; margin-top: -65px;"> </div>
         <div class="card">
-            <div class="card-header">
-                <div class="row align-items-center">
-                    <div class="col">
+            <div class="card-body py-0" id="{{item.id}}">
+                <div class="d-flex flex-row-reverse">
+                    <div>
+                        {%if item.content%}<small>{{word_info|safe}}</small>{%endif%}
                         <a style="text-decoration:none;"
                            target="_blank"
                            href="{{url_for('.query_word', name=name, url=word)}}">
                             <img class="rounded"
-                                 width="24px"
+                                 width="16px"
                                  src="{{url_for('.query_word', name=name, url=item.logo)}}"/>
                         </a>
-                        <button class="btn btn-link py-0"
+                        <button class="btn btn-link btn-sm p-0"
                                 data-toggle="collapse"
                                 data-target="#collapse_{{name}}">
                             {{item.title|safe}}
                         </button>
                     </div>
-                    <div class="col-md-2">
-                        <a class="float-right" href="#top">Back to top</a>
-                    </div>
                 </div>
-            </div>
-            <div id="collapse_{{name}}" class="collapse{%if item.content%} show{%endif%}">
-                <div class="card-body" id="{{item.id}}">
+                <div id="collapse_{{name}}" class="collapse{%if item.content%} show{%endif%}">
                     <div class="mdict">
                         {{item.content|safe}}
                     </div>

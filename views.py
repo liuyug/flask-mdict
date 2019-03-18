@@ -33,6 +33,7 @@ def query_word(name, url):
     else:
         form.word.data = url
 
+    url = url.strip()
     item = get_mdict().get(name)
     if not item:
         return redirect(url_for('.query_word2', word=url))
@@ -105,9 +106,10 @@ def query_word2(word=None):
     if form.validate_on_submit():
         word = form.word.data
     else:
-        word = word or 'hello'
+        word = word or helper.ecdict_random_word('cet4')
         form.word.data = word
 
+    word = word.strip()
     contents = {}
     for name, item in get_mdict().items():
         q = item['query']
@@ -126,9 +128,12 @@ def query_word2(word=None):
             'id': item['id'],
             'content': content,
         }
+
+    word_info = helper.word_info(word)
     return render_template(
         'mdict/query.html',
         form=form,
         word=word,
+        word_info=word_info,
         contents=contents,
     )
