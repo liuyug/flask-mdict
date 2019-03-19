@@ -1,7 +1,7 @@
 
 import os.path
 
-from .mdict_query import IndexBuilder
+from .word_query.mdict_query import IndexBuilder
 
 version = '1.2'
 

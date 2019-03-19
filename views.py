@@ -64,9 +64,16 @@ def query_word(name, url):
             data = b''.join(data)
             if url not in item and url[-4:] in ['.css', '.png', '.jpg']:
                 if url.endswith('.css'):
-                    data = data.decode('utf-8')
-                    data = helper.fix_css(item['id'], data)
-                    data = data.encode('utf-8')
+                    try:
+                        s_data = data.decode('utf-8')
+                        s_data = helper.fix_css(item['id'], s_data)
+                        data = s_data.encode('utf-8')
+                    except Exception as err:
+                        error_css = fname + '.error'
+                        with open(error_css, 'wb') as f:
+                            f.write(data)
+                        print(err)
+                        print('Output Error Css:', error_css)
                 if current_app.config.get('MDICT_CACHE'):
                     item[url] = data        # cache css file
 

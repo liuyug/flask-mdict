@@ -18,6 +18,8 @@ def init_ecdict(mdict_dir):
     ecdict_fname = os.path.join(mdict_dir, 'ecdict.db')
     if os.path.exists(ecdict_fname):
         return ecdict_fname
+    else:
+        print('Do not find ECDICT "%s"' % ecdict_fname)
 
 
 def ecdict_query(word):
@@ -33,14 +35,15 @@ def ecdict_query(word):
 
 
 def ecdict_random_word(tag):
+    word = ['hello']
     db = get_ecdict_name()
     if not db:
-        return []
+        return word[0]
     sql = 'SELECT * FROM ecdict WHERE word IN (SELECT word FROM ecdict WHERE ecdict.tag like ? ORDER BY RANDOM() LIMIT 1)'
     with sqlite3.connect(db) as conn:
         cursor = conn.execute(sql, ('%%%s%%' % tag, ))
         word = cursor.fetchone()
-        return word[0]
+    return word[0]
 
 
 def word_info(word):
@@ -146,5 +149,4 @@ def fix_css(prefix_id, css_data):
     data = regex_body.sub(r'\2 \1 \3', data)
     # add fontface
     data = '\n'.join(fontface) + data
-    # data = '\n'.join(['#%s .mdict %s' % (prefix_id, face) for face in fontface]) + data
     return data
