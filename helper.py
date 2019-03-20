@@ -104,7 +104,7 @@ def init_mdict(mdict_dir):
             dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file)).upper()
 
             idx = IndexBuilder2(mdx_file)
-            if idx._title == 'Title (No HTML code allowed)':
+            if not idx._title or idx._title == 'Title (No HTML code allowed)':
                 title = name
             else:
                 title = idx._title
