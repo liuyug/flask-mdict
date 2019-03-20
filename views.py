@@ -3,11 +3,11 @@ import io
 import re
 import os.path
 
-from flask import current_app, render_template, send_file, url_for,  \
+from flask import render_template, send_file, url_for,  \
     redirect, abort, jsonify
 
 from .forms import WordForm
-from . import mdict, get_mdict
+from . import mdict, get_mdict, Config
 from . import helper
 
 
@@ -73,7 +73,7 @@ def query_word(uuid, url):
                             f.write(data)
                         print(err)
                         print('Output Error Css:', error_css)
-                if current_app.config.get('MDICT_CACHE'):
+                if Config.MDICT_CACHE:
                     item[url] = data        # cache css file
 
             bio = io.BytesIO()

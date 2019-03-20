@@ -7,7 +7,7 @@ import sqlite3
 from flask import url_for
 from scss import Scss
 
-from . import get_ecdict_name
+from . import Config
 from .mdict_query2 import IndexBuilder2
 
 
@@ -25,7 +25,7 @@ def init_ecdict(mdict_dir):
 
 
 def ecdict_query(word):
-    db = get_ecdict_name()
+    db = Config.ECDICT_DBNAME
     if not db:
         return []
     sql = 'SELECT * FROM ecdict where WORD = ?'
@@ -38,7 +38,7 @@ def ecdict_query(word):
 
 def ecdict_random_word(tag):
     word = ['hello']
-    db = get_ecdict_name()
+    db = Config.ECDICT_DBNAME
     if not db:
         return word[0]
     sql = 'SELECT * FROM ecdict WHERE word IN (SELECT word FROM ecdict WHERE ecdict.tag like ? ORDER BY RANDOM() LIMIT 1)'
