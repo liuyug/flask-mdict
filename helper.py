@@ -1,7 +1,7 @@
 
 import re
+import uuid
 import os.path
-import hashlib
 import sqlite3
 
 from flask import url_for
@@ -11,7 +11,9 @@ from . import get_ecdict_name
 from .mdict_query2 import IndexBuilder2
 
 
+regex_style = re.compile(r'<style.+?</style>', re.DOTALL)
 regex_tag = re.compile(r'<[^>]+?>')
+regex_block_end = re.compile(r'</(p|div|tr)>')
 
 
 def init_ecdict(mdict_dir):
@@ -46,7 +48,7 @@ def ecdict_random_word(tag):
     return word[0]
 
 
-def word_info(word):
+def query_word_meta(word):
     TAGs = {
         'zk': '中考',
         'gk': '高考',
@@ -58,31 +60,31 @@ def word_info(word):
         'ielts': 'IELTS',
     }
     keys = ecdict_query(word)
-    word_info = []
+    word_meta = []
     if keys:
         key = keys[0]
         if key['oxford']:
-            word_info.append('<a href="https://www.oxfordlearnersdictionaries.com/us/wordlist/english/oxford3000/" target="_blank">'
-                             '<img src="%s" height="16px" title="Oxford 3000"/>'
+            word_meta.append('<a href="https://www.oxfordlearnersdictionaries.com/us/wordlist/english/oxford3000/" target="_blank">'
+                             '<img src="%s" style="height:16px" title="Oxford 3000"/>'
                              '</a>' % url_for('.static', filename='Ox3000_Rect1_mod_web.png')
                              )
         if key['collins']:
             # star = '⭐'
             star = '<i class="text-warning fas fa-star"></i>'
             n = int(key['collins'])
-            word_info.append('<span title="Collins %s star">%s</span>' % (n, star * n))
+            word_meta.append('<span title="Collins %s star">%s</span>' % (n, star * n))
         if key['tag']:
             tags = ['<span class="badge badge-pill badge-primary">%s</span>' % TAGs.get(t, t) for t in key['tag'].split(' ')]
-            word_info.extend(tags)
+            word_meta.extend(tags)
         if key['bnc']:
-            word_info.append('<a href="http://www.natcorp.ox.ac.uk/" target="_blank">'
+            word_meta.append('<a href="http://www.natcorp.ox.ac.uk/" target="_blank">'
                              '<span class="badge badge-pill badge-info" title="BNC: %s">BNC: %s</span>'
                              '</a>' % (key['bnc'], key['bnc']))
         if key['frq']:
-            word_info.append('<a href="https://www.english-corpora.org/coca/" target="_blank">'
+            word_meta.append('<a href="https://www.english-corpora.org/coca/" target="_blank">'
                              '<span class="badge badge-pill badge-info" title="COCA: %s">COCA: %s</span>'
                              '</a>' % (key['frq'], key['frq']))
-    return ' '.join(word_info)
+    return ' '.join(word_meta)
 
 
 def init_mdict(mdict_dir):
@@ -99,35 +101,40 @@ def init_mdict(mdict_dir):
                     logo = name + ext
                     break
             mdx_file = os.path.join(root, fname)
-            md5 = hashlib.md5()
-            md5.update(mdx_file.encode('utf-8'))
-            dict_id = 'dict_%s' % md5.hexdigest()
+            dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file)).upper()
 
             idx = IndexBuilder2(mdx_file)
             if idx._title == 'Title (No HTML code allowed)':
                 title = name
             else:
-                title = regex_tag.sub(' ', idx._title)
+                title = idx._title
+                # title = regex_block_end.sub('\n', idx._title)
+                title = regex_tag.sub(' ', title)
 
             abouts = []
             abouts.append('<ul>')
             abouts.append('<li>%s</li>' % os.path.basename(idx._mdx_file))
-            if idx._mdd_file:
-                abouts.append('<li>%s</li>' % os.path.basename(idx._mdd_file))
+            for mdd in idx._mdd_files:
+                abouts.append('<li>%s</li>' % os.path.basename(mdd))
             abouts.append('</ul>')
-            text = regex_tag.sub(' ', idx._description)
+            if idx._description == '<font size=5 color=red>Paste the description of this product in HTML source code format here</font>':
+                text = ''
+            else:
+                text = idx._description
+            text = regex_style.sub('', text)
+            text = regex_tag.sub(' ', text)
             text = [t for t in [t.strip() for t in text.split('\n')] if t]
             abouts.extend(text)
             about = '\n'.join(abouts)
-            print('=== %s ===\ndict id: %s\n%s' % (title, dict_id, about))
-            mdicts[name] = {
+            print('=== %s ===\nuuid: %s\n%s' % (title, dict_uuid, about))
+            mdicts[dict_uuid] = {
                 'title': title,
                 'logo': logo,
                 'about': about,
                 'root_path': root,
                 'query': idx,
-                'id': dict_id,
             }
+    print('--- MDict is Ready ---')
     return mdicts
 
 

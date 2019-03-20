@@ -19,14 +19,14 @@ regex_href_schema = re.compile(r'( href=")(sound://|entry://|http://|https://)?(
 @mdict.route('/query/<part>')
 def query_part(part):
     contents = set()
-    for name, item in get_mdict().items():
+    for uuid, item in get_mdict().items():
         content = item['query'].get_mdx_keys(part)
         contents |= set(content)
     return jsonify(suggestion=sorted(contents))
 
 
-@mdict.route('/<name>/<path:url>', methods=['GET', 'POST'])
-def query_word(name, url):
+@mdict.route('/<uuid>/<path:url>', methods=['GET', 'POST'])
+def query_word(uuid, url):
     form = WordForm()
     if form.validate_on_submit():
         url = form.word.data
@@ -34,7 +34,7 @@ def query_word(name, url):
         form.word.data = url
 
     url = url.strip()
-    item = get_mdict().get(name)
+    item = get_mdict().get(uuid)
     if not item:
         return redirect(url_for('.query_word2', word=url))
 
@@ -55,7 +55,6 @@ def query_word(name, url):
         elif url == 'logo.png':
             with mdict.open_resource('static/logo.png') as f:
                 data = [f.read()]
-            # return redirect(url_for('.static', filename='logo.png'))
         else:
             key = '\\%s' % '\\'.join(url.split('/'))
             data = q.mdd_lookup(key, ignorecase=True)
@@ -66,7 +65,7 @@ def query_word(name, url):
                 if url.endswith('.css'):
                     try:
                         s_data = data.decode('utf-8')
-                        s_data = helper.fix_css(item['id'], s_data)
+                        s_data = helper.fix_css('class_%s' % uuid, s_data)
                         data = s_data.encode('utf-8')
                     except Exception as err:
                         error_css = fname + '.error'
@@ -91,17 +90,18 @@ def query_word(name, url):
         content = regex_href_end_slash.sub(r'\1\3', content)
 
         contents = {}
-        contents[name.replace('.', '-')] = {
+        contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
             'about': item['about'],
-            'id': item['id'],
             'content': content,
         }
+        word_meta = helper.query_word_meta(url)
         return render_template(
             'mdict/query.html',
             form=form,
             word=url,
+            word_meta=word_meta,
             contents=contents,
         )
 
@@ -118,29 +118,28 @@ def query_word2(word=None):
 
     word = word.strip()
     contents = {}
-    for name, item in get_mdict().items():
+    for uuid, item in get_mdict().items():
         q = item['query']
         content = q.mdx_lookup(word, ignorecase=True)
         if content:
             content = ''.join(content)
-            # add dict id into url
-            content = regex_src_schema.sub(r'\1%s/\3' % name, content)
+            # add dict uuid into url
+            content = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, content)
             content = regex_href_end_slash.sub(r'\1\3', content)
-            content = regex_href_schema.sub(r'\1\2%s/\3' % name, content)
+            content = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, content)
 
-        contents[name.replace('.', '-')] = {
+        contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
             'about': item['about'],
-            'id': item['id'],
             'content': content,
         }
 
-    word_info = helper.word_info(word)
+    word_meta = helper.query_word_meta(word)
     return render_template(
         'mdict/query.html',
         form=form,
         word=word,
-        word_info=word_info,
+        word_meta=word_meta,
         contents=contents,
     )

@@ -25,15 +25,15 @@
             </form>
             <br />
             <ul class="list-group">
-                {% for name, item in contents.items() %}
+                {% for uuid, item in contents.items() %}
                 <li class="list-group-item">
-                    <a href="#{{name}}">{{item.title|safe}}</a>
-                    <small data-toggle="modal" data-target="#about_{{name}}">
+                    <a href="#{{uuid}}">{{item.title|safe}}</a>
+                    <small data-toggle="modal" data-target="#about_{{uuid}}">
                         <i class="fas fa-info-circle"></i>
                     </small>
                     <!-- Modal -->
-                    <div class="modal" id="about_{{name}}" role="dialog" data-backdrop="false">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal" id="about_{{uuid}}" role="dialog" data-backdrop="false">
+                        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title">{{item.title|safe}}</h5>
@@ -57,28 +57,28 @@
     </div>
 
     <div class="col">
-        {% for name, item in contents.items() %}
-        <div id="{{name}}" style="padding-top: 65px; margin-top: -65px;"> </div>
+        {% for uuid, item in contents.items() %}
+        <div id="{{uuid}}" style="padding-top: 65px; margin-top: -65px;"> </div>
         <div class="card">
-            <div class="card-body py-0" id="{{item.id}}">
+            <div class="card-body py-0" id="class_{{uuid}}">
                 <div class="d-flex flex-row-reverse">
                     <div>
-                        {%if item.content%}<small>{{word_info|safe}}</small>{%endif%}
+                        {%if item.content%}<small>{{word_meta|safe}}</small>{%endif%}
                         <a style="text-decoration:none;"
                            target="_blank"
-                           href="{{url_for('.query_word', name=name, url=word)}}">
+                           href="{{url_for('.query_word', uuid=uuid, url=word)}}">
                             <img class="rounded"
-                                 width="16px"
-                                 src="{{url_for('.query_word', name=name, url=item.logo)}}"/>
+                                 height="16px"
+                                 src="{{url_for('.query_word', uuid=uuid, url=item.logo)}}"/>
                         </a>
                         <button class="btn btn-link btn-sm p-0"
                                 data-toggle="collapse"
-                                data-target="#collapse_{{name}}">
+                                data-target="#collapse_{{uuid}}">
                             {{item.title|safe}}
                         </button>
                     </div>
                 </div>
-                <div id="collapse_{{name}}" class="collapse{%if item.content%} show{%endif%}">
+                <div id="collapse_{{uuid}}" class="collapse{%if item.content%} show{%endif%}">
                     <div class="mdict">
                         {{item.content|safe}}
                     </div>
