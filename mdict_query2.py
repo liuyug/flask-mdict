@@ -36,7 +36,8 @@ class IndexBuilder2(IndexBuilder):
         if mdd_name:
             self._mdd_file = mdd_name
         super(IndexBuilder2, self)._make_mdd_index(db_name)
-        self._mdd_file = self._mdd_files[0]
+        if self._mdd_files:
+            self._mdd_file = self._mdd_files[0]
 
     def mdd_lookup(self, keyword, ignorecase=None):
         lookup_result_list = []
