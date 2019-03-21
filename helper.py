@@ -115,7 +115,7 @@ def init_mdict(mdict_dir):
             abouts.append('<li>%s</li>' % os.path.basename(idx._mdx_file))
             for mdd in idx._mdd_files:
                 abouts.append('<li>%s</li>' % os.path.basename(mdd))
-            abouts.append('</ul>')
+            abouts.append('</ul><hr />')
             if idx._description == '<font size=5 color=red>Paste the description of this product in HTML source code format here</font>':
                 text = ''
             else:
