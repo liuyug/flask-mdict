@@ -3,6 +3,7 @@
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" href="{{url_for('.static', filename='css/typeahead.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='css/mdict.css')}}">
 {% endblock %}
 
 {% block subtitle %}MDict - {{word}}{% endblock %}
@@ -11,7 +12,7 @@
 <div class="row">
     <div class="col-3">
         <div class="sticky-top">
-            <div style="padding-top: 65px; margin-top: -65px;"> </div>
+            <div class="anchor-fix"> </div>
             <form method="POST">
                 <div class="input-group">
                     {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
@@ -58,7 +59,7 @@
 
     <div class="col">
         {% for uuid, item in contents.items() %}
-        <div id="{{uuid}}" style="padding-top: 65px; margin-top: -65px;"> </div>
+        <div id="{{uuid}}" class="anchor-fix"> </div>
         <div class="card">
             <div class="card-body py-0" id="class_{{uuid}}">
                 <div class="d-flex flex-row-reverse">

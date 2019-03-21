@@ -13,7 +13,8 @@ from . import helper
 
 regex_src_schema = re.compile(r'( src=")(/|file:///)?(.+?")')
 regex_href_end_slash = re.compile(r'( href=".+?)(/)(")')
-regex_href_schema = re.compile(r'( href=")(sound://|entry://|http://|https://)?([^#].+?")')
+regex_href_schema = re.compile(r'( href=")(sound://|entry://|http://|https://)([^#].+?")')
+regex_href_no_schema = re.compile(r'( href=")(?!=sound://|entry://|http://|https://)([^#].+?")')
 
 
 @mdict.route('/query/<part>')
@@ -127,6 +128,7 @@ def query_word2(word=None):
             content = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, content)
             content = regex_href_end_slash.sub(r'\1\3', content)
             content = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, content)
+            content = regex_href_no_schema.sub(r'\g<1>%s/\2' % uuid, content)
 
         contents[uuid] = {
             'title': item['title'],
