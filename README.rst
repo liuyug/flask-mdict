@@ -2,7 +2,16 @@
 MDict
 ======
 
-Install::
+Screenshot
+==========
+
+.. image:: mdict_screenshot.png
+
+Usage
+======
+Install
+--------
+::
 
     git clone https://github.com/liuyug/flask-mdict.git
 
@@ -13,11 +22,15 @@ Install::
     # copy MDICT dictionary into content directory
     cp <mdict> content/
 
-Run::
+Run
+----
+::
 
     flask run
 
-Browser::
+Browser
+--------
+::
 
     firefox http://127.0.0.1:5000
 
