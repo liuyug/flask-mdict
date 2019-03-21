@@ -11,9 +11,9 @@ from . import Config
 from .mdict_query2 import IndexBuilder2
 
 
-regex_style = re.compile(r'<style.+?</style>', re.DOTALL)
+regex_style = re.compile(r'<style.+?</style>', re.DOTALL | re.IGNORECASE)
+regex_ln = re.compile(r'<(p|br|tr)[^>]*?>', re.IGNORECASE)
 regex_tag = re.compile(r'<[^>]+?>')
-regex_block_end = re.compile(r'</(p|div|tr)>')
 
 
 def init_ecdict(mdict_dir):
@@ -108,7 +108,6 @@ def init_mdict(mdict_dir):
                 title = name
             else:
                 title = idx._title
-                # title = regex_block_end.sub('\n', idx._title)
                 title = regex_tag.sub(' ', title)
 
             abouts = []
@@ -121,10 +120,15 @@ def init_mdict(mdict_dir):
                 text = ''
             else:
                 text = idx._description
+            about_html = os.path.join(root, 'about.html')
+            if not os.path.exists(about_html):
+                with open(about_html, 'wt') as f:
+                    f.write(text)
             text = regex_style.sub('', text)
+            text = regex_ln.sub('\n', text)
             text = regex_tag.sub(' ', text)
             text = [t for t in [t.strip() for t in text.split('\n')] if t]
-            abouts.extend(text)
+            abouts.append('<p>' + '<br />\n'.join(text) + '</p>')
             about = '\n'.join(abouts)
             print('=== %s ===\nuuid: %s\n%s' % (title, dict_uuid, about))
             mdicts[dict_uuid] = {
