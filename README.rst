@@ -7,6 +7,8 @@ Install::
     git clone https://github.com/liuyug/flask-mdict.git
 
     cd flask-mdict
+    pip3 install -r requirements.txt
+
     mkdir content
     # copy MDICT dictionary into content directory
     cp <mdict> content/
@@ -22,5 +24,6 @@ Browser::
 .. note::
 
     +   MDict original query code come from mdx-server_
+    +   Python3
 
 .. _mdx-server: https://github.com/ninja33/mdx-server
