@@ -17,12 +17,14 @@ class IndexBuilder2(IndexBuilder):
             force_rebuild, enable_history, sql_index, check)
 
         # all mdd file
-        self._mdd_files = [self._mdd_file]
-        basename, _ = os.path.splitext(self._mdd_file)
-        for x in range(10):
-            mdd_file = '%s.%s.mdd' % (basename, x)
-            if os.path.isfile(mdd_file):
-                self._mdd_files.append(mdd_file)
+        self._mdd_files = []
+        if self._mdd_file:
+            self._mdd_files.append(self._mdd_file)
+            basename, _ = os.path.splitext(self._mdd_file)
+            for x in range(10):
+                mdd_file = '%s.%s.mdd' % (basename, x)
+                if os.path.isfile(mdd_file):
+                    self._mdd_files.append(mdd_file)
 
         # check mdd db
         for mdd_file in self._mdd_files[1:]:    # parent class has initialize first item
