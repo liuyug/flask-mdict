@@ -5,6 +5,8 @@ MDict
 Screenshot
 ==========
 
+.. image:: mdict_screenshot2.png
+
 .. image:: mdict_screenshot.png
 
 Usage
