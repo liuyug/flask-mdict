@@ -11,10 +11,10 @@ from . import mdict, get_mdict, Config
 from . import helper
 
 
-regex_src_schema = re.compile(r'( src=")(/|file:///)?(.+?")')
-regex_href_end_slash = re.compile(r'( href=".+?)(/)(")')
-regex_href_schema = re.compile(r'( href=")(sound://|entry://|http://|https://)([^#].+?")')
-regex_href_no_schema = re.compile(r'( href=")(?!=sound://|entry://|http://|https://)([^#].+?")')
+regex_src_schema = re.compile(r'([ "]src=")(/|file:///)?(.+?")')
+regex_href_end_slash = re.compile(r'([ "]href=".+?)(/)(")')
+regex_href_schema = re.compile(r'([ "]href=")(sound://|entry://|http://|https://)([^#].+?")')
+regex_href_no_schema = re.compile(r'([ "]href=")(?!=sound://|entry://|http://|https://)([^#].+?")')
 
 
 @mdict.route('/query/<part>')
