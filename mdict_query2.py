@@ -1,4 +1,5 @@
 
+import re
 import os.path
 
 from .word_query.mdict_query import IndexBuilder
@@ -18,13 +19,16 @@ class IndexBuilder2(IndexBuilder):
 
         # all mdd file
         self._mdd_files = []
+        regex_mdd = re.compile(r'^(.+?)\..+?\.mdd$')
         if self._mdd_file:
             self._mdd_files.append(self._mdd_file)
-            basename, _ = os.path.splitext(self._mdd_file)
-            for x in range(10):
-                mdd_file = '%s.%s.mdd' % (basename, x)
-                if os.path.isfile(mdd_file):
-                    self._mdd_files.append(mdd_file)
+            dirname = os.path.dirname(self._mdd_file)
+            basename = os.path.basename(self._mdd_file)
+            name, _ = os.path.splitext(basename)
+            for fname in os.listdir(dirname):
+                m = regex_mdd.match(fname)
+                if m and m.group(1) == name:
+                    self._mdd_files.append(os.path.join(dirname, fname))
 
         # check mdd db
         for mdd_file in self._mdd_files[1:]:    # parent class has initialize first item
