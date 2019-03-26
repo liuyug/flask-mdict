@@ -123,11 +123,18 @@ def query_word2(word=None):
         if content:
             content = ''.join(content)
 
-            # add dict uuid into url
-            content = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, content)
-            content = regex_href_end_slash.sub(r'\1\3', content)
-            content = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, content)
-            content = regex_href_no_schema.sub(r'\g<1>%s/\2' % uuid, content)
+            mo = regex_word_link.match(content)
+            if mo:
+                content = 'Also: <a href="%s">%s</a>' % (
+                    url_for('.query_word2', word=mo.group(2).strip()),
+                    mo.group(2).strip()
+                )
+            else:
+                # add dict uuid into url
+                content = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, content)
+                content = regex_href_end_slash.sub(r'\1\3', content)
+                content = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, content)
+                content = regex_href_no_schema.sub(r'\g<1>%s/\2' % uuid, content)
 
         contents[uuid] = {
             'title': item['title'],
