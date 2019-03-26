@@ -11,6 +11,7 @@ from . import mdict, get_mdict, Config
 from . import helper
 
 
+regex_word_link = re.compile(r'^(@@@LINK=)(.+)$')
 regex_src_schema = re.compile(r'([ "]src=")(/|file:///)?(.+?")')
 regex_href_end_slash = re.compile(r'([ "]href=".+?)(/)(")')
 regex_href_schema = re.compile(r'([ "]href=")(sound://|entry://|http://|https://)([^#].+?")')
@@ -38,13 +39,6 @@ def query_word(uuid, url):
     item = get_mdict().get(uuid)
     if not item:
         return redirect(url_for('.query_word2', word=url))
-
-    if url == '@list_mdx':
-        contents = item['query'].get_mdx_keys()
-        return jsonify(suggestion=sorted(contents))
-    elif url == '@list_mdd':
-        contents = item['query'].get_mdd_keys()
-        return jsonify(suggestion=sorted(contents))
 
     q = item['query']
     if '.' in url:          # file
@@ -87,6 +81,10 @@ def query_word(uuid, url):
         content = q.mdx_lookup(url, ignorecase=True)
         content = ''.join(content)
 
+        mo = regex_word_link.match(content)
+        if mo:
+            return redirect(url_for('.query_word', uuid=uuid, url=mo.group(2).strip()))
+
         content = regex_src_schema.sub(r'\1\3', content)
         content = regex_href_end_slash.sub(r'\1\3', content)
 
@@ -124,6 +122,7 @@ def query_word2(word=None):
         content = q.mdx_lookup(word, ignorecase=True)
         if content:
             content = ''.join(content)
+
             # add dict uuid into url
             content = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, content)
             content = regex_href_end_slash.sub(r'\1\3', content)
