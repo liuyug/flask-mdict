@@ -78,22 +78,27 @@ def query_word(uuid, url):
         else:
             abort(404)
     else:                   # entry and word
-        content = q.mdx_lookup(url, ignorecase=True)
-        content = ''.join(content)
-
-        mo = regex_word_link.match(content)
-        if mo:
-            return redirect(url_for('.query_word', uuid=uuid, url=mo.group(2).strip()))
-
-        content = regex_src_schema.sub(r'\1\3', content)
-        content = regex_href_end_slash.sub(r'\1\3', content)
+        records = q.mdx_lookup(url, ignorecase=True)
+        html_content = []
+        for record in records:
+            mo = regex_word_link.match(record)
+            if mo:
+                record = '<p>Also: <a href="%s">%s</a></p>' % (
+                    url_for('.query_word', uuid=uuid, url=mo.group(2).strip()),
+                    mo.group(2).strip()
+                )
+            else:
+                record = regex_src_schema.sub(r'\1\3', record)
+                record = regex_href_end_slash.sub(r'\1\3', record)
+            html_content.append(record)
+        html_content = '<hr />'.join(html_content)
 
         contents = {}
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
             'about': item['about'],
-            'content': content,
+            'content': html_content,
         }
         word_meta = helper.query_word_meta(url)
         return render_template(
@@ -119,28 +124,28 @@ def query_word2(word=None):
     contents = {}
     for uuid, item in get_mdict().items():
         q = item['query']
-        content = q.mdx_lookup(word, ignorecase=True)
-        if content:
-            content = ''.join(content)
-
-            mo = regex_word_link.match(content)
+        records = q.mdx_lookup(word, ignorecase=True)
+        html_content = []
+        for record in records:
+            mo = regex_word_link.match(record)
             if mo:
-                content = 'Also: <a href="%s">%s</a>' % (
+                record = '<p>Also: <a href="%s">%s</a></p>' % (
                     url_for('.query_word2', word=mo.group(2).strip()),
                     mo.group(2).strip()
                 )
             else:
                 # add dict uuid into url
-                content = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, content)
-                content = regex_href_end_slash.sub(r'\1\3', content)
-                content = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, content)
-                content = regex_href_no_schema.sub(r'\g<1>%s/\2' % uuid, content)
-
+                record = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, record)
+                record = regex_href_end_slash.sub(r'\1\3', record)
+                record = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, record)
+                record = regex_href_no_schema.sub(r'\g<1>%s/\2' % uuid, record)
+            html_content.append(record)
+        html_content = '<hr />'.join(html_content)
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
             'about': item['about'],
-            'content': content,
+            'content': html_content,
         }
 
     word_meta = helper.query_word_meta(word)
