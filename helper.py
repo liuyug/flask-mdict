@@ -102,6 +102,7 @@ def init_mdict(mdict_dir):
                     break
             mdx_file = os.path.join(root, fname)
             dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file)).upper()
+            print('\tuuid: %s' % dict_uuid)
 
             idx = IndexBuilder2(mdx_file)
             if not idx._title or idx._title == 'Title (No HTML code allowed)':
@@ -113,8 +114,10 @@ def init_mdict(mdict_dir):
             abouts = []
             abouts.append('<ul>')
             abouts.append('<li>%s</li>' % os.path.basename(idx._mdx_file))
+            print('\tfind %s' % os.path.basename(idx._mdx_file))
             for mdd in idx._mdd_files:
                 abouts.append('<li>%s</li>' % os.path.basename(mdd))
+                print('\tfind %s' % os.path.basename(mdd))
             abouts.append('</ul><hr />')
             if idx._description == '<font size=5 color=red>Paste the description of this product in HTML source code format here</font>':
                 text = ''
@@ -130,7 +133,6 @@ def init_mdict(mdict_dir):
             text = [t for t in [t.strip() for t in text.split('\n')] if t]
             abouts.append('<p>' + '<br />\n'.join(text) + '</p>')
             about = '\n'.join(abouts)
-            print('=== %s ===\nuuid: %s\n%s' % (title, dict_uuid, about))
             mdicts[dict_uuid] = {
                 'title': title,
                 'logo': logo,
