@@ -19,19 +19,21 @@ class IndexBuilder2(IndexBuilder):
 
         # all mdd file
         self._mdd_files = []
-        regex_mdd = re.compile(r'^(.+?)\..+?\.mdd$')
         if self._mdd_file:
             self._mdd_files.append(self._mdd_file)
-            dirname = os.path.dirname(self._mdd_file)
-            basename = os.path.basename(self._mdd_file)
-            name, _ = os.path.splitext(basename)
-            for fname in os.listdir(dirname):
-                m = regex_mdd.match(fname)
-                if m and m.group(1) == name:
-                    self._mdd_files.append(os.path.join(dirname, fname))
+        dirname = os.path.dirname(self._mdx_file)
+        basename = os.path.basename(self._mdx_file)
+        name, _ = os.path.splitext(basename)
+        regex_mdd = re.compile(r'^(.+?)\..+?\.mdd$')
+        for fname in os.listdir(dirname):
+            m = regex_mdd.match(fname)
+            if m and m.group(1) == name:
+                self._mdd_files.append(os.path.join(dirname, fname))
 
         # check mdd db
-        for mdd_file in self._mdd_files[1:]:    # parent class has initialize first item
+        for mdd_file in self._mdd_files:    # parent class has initialize first item
+            if mdd_file == self._mdd_file:
+                continue
             mdd_db = mdd_file + '.db'
             if force_rebuild or not os.path.isfile(mdd_db):
                 self._make_mdd_index(mdd_db, mdd_file)
@@ -39,11 +41,11 @@ class IndexBuilder2(IndexBuilder):
     def _make_mdd_index(self, db_name, mdd_name=None):
         if os.path.exists(db_name):
             os.remove(db_name)
+        old_mdd_file = self._mdd_file
         if mdd_name:
             self._mdd_file = mdd_name
         super(IndexBuilder2, self)._make_mdd_index(db_name)
-        if self._mdd_files:
-            self._mdd_file = self._mdd_files[0]
+        self._mdd_file = old_mdd_file
 
     def mdd_lookup(self, keyword, ignorecase=None):
         lookup_result_list = []
