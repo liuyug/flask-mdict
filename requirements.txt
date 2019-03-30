@@ -1,0 +1,7 @@
+# Flask
+Flask
+Flask-DebugToolbar
+Flask-WTF
+WTForms-Components
+
+pyscss
