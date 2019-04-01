@@ -83,10 +83,15 @@ def query_word(uuid, url):
         for record in records:
             mo = regex_word_link.match(record)
             if mo:
-                record = '<p>Also: <a href="%s">%s</a></p>' % (
-                    url_for('.query_word', uuid=uuid, url=mo.group(2).strip()),
-                    mo.group(2).strip()
-                )
+                link = mo.group(2).strip()
+                if '#' in link:
+                    link, anchor = link.split('#')
+                    return redirect(url_for('.query_word', uuid=uuid, url=link, _anchor=anchor))
+                else:
+                    record = '<p>Also: <a href="%s">%s</a></p>' % (
+                        url_for('.query_word', uuid=uuid, url=link),
+                        link,
+                    )
             else:
                 record = regex_src_schema.sub(r'\1\3', record)
                 record = regex_href_end_slash.sub(r'\1\3', record)
@@ -129,10 +134,15 @@ def query_word2(word=None):
         for record in records:
             mo = regex_word_link.match(record)
             if mo:
-                record = '<p>Also: <a href="%s">%s</a></p>' % (
-                    url_for('.query_word2', word=mo.group(2).strip()),
-                    mo.group(2).strip()
-                )
+                link = mo.group(2).strip()
+                if '#' in link:
+                    link, anchor = link.split('#')
+                    return redirect(url_for('.query_word2', word=link, _anchor=anchor))
+                else:
+                    record = '<p>Also: <a href="%s">%s</a></p>' % (
+                        url_for('.query_word2', word=link),
+                        link,
+                    )
             else:
                 # add dict uuid into url
                 record = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, record)
