@@ -1,6 +1,10 @@
-======
-MDict
-======
+===========
+Flask-MDict
+===========
+
+.. NOTE::
+
+    Follow MIT and 996.ICU license.
 
 Screenshot
 ==========
