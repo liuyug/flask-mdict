@@ -7,7 +7,7 @@ import sqlite3
 from flask import url_for
 from scss import Scss
 
-from . import Config
+from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
 
@@ -17,38 +17,25 @@ regex_ln = re.compile(r'<(p|br|tr)[^>]*?>', re.IGNORECASE)
 regex_tag = re.compile(r'<[^>]+?>')
 
 
-def init_ecdict(mdict_dir):
-    ecdict_fname = os.path.join(mdict_dir, 'ecdict.db')
-    if os.path.exists(ecdict_fname):
-        return ecdict_fname
-    else:
-        print('Do not find ECDICT "%s"' % ecdict_fname)
-
-
 def ecdict_query(word):
-    db_name = Config.ECDICT_DBNAME
-    if not db_name:
+    db = get_db('ecdict')
+    if not db:
         return []
-    db = sqlite3.connect(db_name)
     db.row_factory = sqlite3.Row
     sql = 'SELECT * FROM ecdict where WORD = ?'
     cursor = db.execute(sql, (word, ))
     keys = [dict(item) for item in cursor]
-    db.close()
     return keys
 
 
 def ecdict_random_word(tag):
     word = ['hello']
-    db_name = Config.ECDICT_DBNAME
-    if not db_name:
+    db = get_db('ecdict')
+    if not db:
         return word[0]
-    db = sqlite3.connect(db_name)
-    db.row_factory = sqlite3.Row
     sql = 'SELECT * FROM ecdict WHERE word IN (SELECT word FROM ecdict WHERE ecdict.tag like ? ORDER BY RANDOM() LIMIT 1)'
     cursor = db.execute(sql, ('%%%s%%' % tag, ))
     word = cursor.fetchone()
-    db.close()
     return word[0]
 
 
@@ -56,7 +43,7 @@ def query_word_meta(word):
     TAGs = {
         'zk': '中考',
         'gk': '高考',
-        'ky': '研考',
+        'ky': '考研',
         'cet4': 'CET-4',
         'cet6': 'CET-6',
         'gre': 'GRE',
@@ -93,6 +80,7 @@ def query_word_meta(word):
 
 def init_mdict(mdict_dir):
     mdicts = {}
+    db_names = {}
     for root, dirs, files in os.walk(mdict_dir):
         for fname in files:
             if fname.endswith('.db') \
@@ -114,6 +102,7 @@ def init_mdict(mdict_dir):
                         break
                 dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, db_file)).upper()
                 print('\tuuid: %s' % dict_uuid)
+                db_names[dict_uuid] = db_file
                 mdicts[dict_uuid] = {
                     'title': d.title(),
                     'logo': logo,
@@ -170,7 +159,7 @@ def init_mdict(mdict_dir):
                     'query': idx,
                 }
     print('--- MDict is Ready ---')
-    return mdicts
+    return mdicts, db_names
 
 
 regex_body = re.compile(r'(#\S+ .mdict)\s+?(body)\s*?({)')

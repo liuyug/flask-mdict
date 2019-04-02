@@ -54,30 +54,32 @@ class DBDict(object):
             mdd_count = row[0]
 
             abouts.append('<ul>')
-            abouts.append('<li>%s[MDX][%s]</li>' % (self._db_name, mdx_count))
+            abouts.append('<li>%s[MDX][%s]</li>' % (os.path.basename(self._db_name), mdx_count))
             if mdd_count:
-                abouts.append('<li>%s[MDD][%s]</li>' % (self._db_name, mdd_count))
+                abouts.append('<li>%s[MDD][%s]</li>' % (os.path.basename(self._db_name), mdd_count))
             abouts.append('</ul><hr />')
         abouts.append(self._meta['description'])
         return '\n'.join(abouts)
 
-    def get_mdx_keys(self, part):
-        with sqlite3.connect(self._db_name) as conn:
-            sql = 'SELECT paraphrase FROM mdx WHERE entry like ?'
-            cursor = conn.execute(sql, ('%%%s%%' % part, ))
-            return [row[0] for row in cursor.fetchall()]
+    def get_mdx_keys(self, conn, part):
+        sql = 'SELECT entry FROM mdx WHERE entry like ?'
+        cursor = conn.execute(sql, ('%%%s%%' % part, ))
+        return [row[0] for row in cursor.fetchall()]
 
-    def mdx_lookup(self, word, ignorecase=True):
-        with sqlite3.connect(self._db_name) as conn:
-            sql = 'SELECT paraphrase FROM mdx WHERE entry = ?'
-            cursor = conn.execute(sql, (word, ))
-            return [row[0] for row in cursor.fetchall()]
+    def get_mdd_keys(self, conn, part):
+        sql = 'SELECT entry FROM mdd WHERE entry like ?'
+        cursor = conn.execute(sql, ('%%%s%%' % part, ))
+        return [row[0] for row in cursor.fetchall()]
 
-    def mdd_lookup(self, word, ignorecase=True):
+    def mdx_lookup(self, conn, word, ignorecase=True):
+        sql = 'SELECT paraphrase FROM mdx WHERE entry = ?'
+        cursor = conn.execute(sql, (word, ))
+        return [row[0] for row in cursor.fetchall()]
+
+    def mdd_lookup(self, conn, word, ignorecase=True):
         if not self._is_mdd:
             return []
-        with sqlite3.connect(self._db_name) as conn:
-            sql = 'SELECT file FROM mdd WHERE entry = ?'
-            cursor = conn.execute(sql, (word, ))
-            row = cursor.fetchone()
-            return row
+        sql = 'SELECT file FROM mdd WHERE entry = ?'
+        cursor = conn.execute(sql, (word, ))
+        row = cursor.fetchone()
+        return row

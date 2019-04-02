@@ -47,7 +47,10 @@ class IndexBuilder2(IndexBuilder):
         super(IndexBuilder2, self)._make_mdd_index(db_name)
         self._mdd_file = old_mdd_file
 
-    def mdd_lookup(self, keyword, ignorecase=None):
+    def mdx_lookup(self, conn, keyword, ignorecase=None):
+        return super(IndexBuilder2, self).mdx_lookup(keyword, ignorecase)
+
+    def mdd_lookup(self, conn, keyword, ignorecase=None):
         lookup_result_list = []
         for mdd_file in self._mdd_files:
             mdd_db = mdd_file + '.db'
@@ -57,7 +60,10 @@ class IndexBuilder2(IndexBuilder):
                     lookup_result_list.append(self.get_mdd_by_index(mdd_fobj, index))
         return lookup_result_list
 
-    def get_mdd_keys(self, query=''):
+    def get_mdx_keys(self, conn, query=''):
+        return super(IndexBuilder2, self).get_mdx_keys(query)
+
+    def get_mdd_keys(self, conn, query=''):
         keys = []
         for mdd_file in self._mdd_files:
             mdd_db = mdd_file + '.db'

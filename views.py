@@ -7,7 +7,7 @@ from flask import render_template, send_file, url_for,  \
     redirect, abort, jsonify
 
 from .forms import WordForm
-from . import mdict, get_mdict, Config
+from . import mdict, get_mdict, get_db, Config
 from . import helper
 
 
@@ -22,7 +22,7 @@ regex_href_no_schema = re.compile(r'([ "]href=["\'])(?!sound://|entry://|http://
 def query_part(part):
     contents = set()
     for uuid, item in get_mdict().items():
-        content = item['query'].get_mdx_keys(part)
+        content = item['query'].get_mdx_keys(get_db(uuid), part)
         contents |= set(content)
     return jsonify(suggestion=sorted(contents))
 
@@ -52,7 +52,7 @@ def query_word(uuid, url):
                 data = [f.read()]
         else:
             key = '\\%s' % '\\'.join(url.split('/'))
-            data = q.mdd_lookup(key, ignorecase=True)
+            data = q.mdd_lookup(get_db(uuid), key, ignorecase=True)
 
         if data:
             data = b''.join(data)
@@ -78,7 +78,7 @@ def query_word(uuid, url):
         else:
             abort(404)
     else:                   # entry and word
-        records = q.mdx_lookup(url, ignorecase=True)
+        records = q.mdx_lookup(get_db(uuid), url, ignorecase=True)
         html_content = []
         for record in records:
             mo = regex_word_link.match(record)
@@ -129,7 +129,7 @@ def query_word2(word=None):
     contents = {}
     for uuid, item in get_mdict().items():
         q = item['query']
-        records = q.mdx_lookup(word, ignorecase=True)
+        records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
         html_content = []
         for record in records:
             mo = regex_word_link.match(record)
