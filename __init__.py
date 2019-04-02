@@ -21,6 +21,7 @@ def init_app(app):
         raise ValueError('Please set "MDICT_DIR" in app.config')
 
     Config.MDICT = helper.init_mdict(Config.MDICT_DIR)
+    # sqlite3 db do not support thread
     Config.ECDICT_DBNAME = helper.init_ecdict(Config.MDICT_DIR)
 
     app.register_blueprint(mdict, url_prefix='/mdict')
