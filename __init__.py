@@ -6,6 +6,9 @@ from flask import Blueprint, g
 from .utils import singleton
 
 
+__version__ = '1.0.2'
+
+
 mdict = Blueprint(
     'mdict', __name__,
     static_folder='static', template_folder='templates')
@@ -17,6 +20,14 @@ class Config():
 
 
 def init_app(app):
+    @app.teardown_appcontext
+    def close_connection(exception):
+        database = getattr(g, '_database', None)
+        if not database:
+            return
+        for conn in database.values():
+            conn.close()
+
     Config.MDICT_DIR = app.config.get('MDICT_DIR')
     Config.MDICT_CACHE = app.config.get('MDICT_CACHE')
     if not Config.MDICT_DIR:
@@ -30,14 +41,6 @@ def init_app(app):
         print('Do not find ECDICT "%s"' % ecdict_fname)
 
     app.register_blueprint(mdict, url_prefix='/mdict')
-
-    @app.teardown_appcontext
-    def close_connection(exception):
-        database = getattr(g, '_database', None)
-        if not database:
-            return
-        for conn in database.values():
-            conn.close()
 
 
 def get_mdict():
