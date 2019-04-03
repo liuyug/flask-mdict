@@ -48,7 +48,7 @@ class DBDict(object):
             row = cursor.fetchone()
             mdx_count = row[0]
 
-            sql = 'SELECT count(*) FROM mdx'
+            sql = 'SELECT count(*) FROM mdd'
             cursor = conn.execute(sql)
             row = cursor.fetchone()
             mdd_count = row[0]
@@ -63,24 +63,32 @@ class DBDict(object):
 
     def get_mdx_keys(self, conn, part):
         sql = 'SELECT entry FROM mdx WHERE entry like ?'
-        cursor = conn.execute(sql, ('%%%s%%' % part.lower(), ))
+        cursor = conn.execute(sql, ('%s%%' % part.replace('*', '%'), ))
         return [row['entry'] for row in cursor.fetchall()]
 
     def get_mdd_keys(self, conn, part):
         sql = 'SELECT entry FROM mdd WHERE entry like ?'
-        cursor = conn.execute(sql, ('%%%s%%' % part.lower(), ))
+        cursor = conn.execute(sql, ('%s%%' % part.replace('*', '%'), ))
         return [row['entry'] for row in cursor.fetchall()]
 
     def mdx_lookup(self, conn, word, ignorecase=True):
-        sql = 'SELECT paraphrase FROM mdx WHERE entry like ?'
-        cursor = conn.execute(sql, (word.lower(), ))
+        if ignorecase:
+            sql = 'SELECT paraphrase FROM mdx WHERE lower(entry) = ?'
+            cursor = conn.execute(sql, (word.lower(), ))
+        else:
+            sql = 'SELECT paraphrase FROM mdx WHERE entry = ?'
+            cursor = conn.execute(sql, (word, ))
         return [row['paraphrase'] for row in cursor.fetchall()]
 
     def mdd_lookup(self, conn, word, ignorecase=True):
         if not self._is_mdd:
             return []
-        sql = 'SELECT file FROM mdd WHERE entry like ?'
-        cursor = conn.execute(sql, (word.lower(), ))
+        if ignorecase:
+            sql = 'SELECT file FROM mdd WHERE lower(entry) = ?'
+            cursor = conn.execute(sql, (word.lower(), ))
+        else:
+            sql = 'SELECT file FROM mdd WHERE entry = ?'
+            cursor = conn.execute(sql, (word, ))
         row = cursor.fetchone()
         if row:
             return row['file']
