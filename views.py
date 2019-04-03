@@ -44,18 +44,17 @@ def query_word(uuid, url):
     if '.' in url:          # file
         fname = os.path.join(item['root_path'], url)
         if url in item:
-            data = [item[url]]
+            data = item[url]
         elif os.path.exists(fname):
-            data = [open(fname, 'rb').read()]
+            data = open(fname, 'rb').read()
         elif url == 'logo.png':
             with mdict.open_resource('static/logo.png') as f:
-                data = [f.read()]
+                data = f.read()
         else:
             key = '\\%s' % '\\'.join(url.split('/'))
             data = q.mdd_lookup(get_db(uuid), key, ignorecase=True)
 
         if data:
-            data = b''.join(data)
             if url not in item and url[-4:] in ['.css', '.png', '.jpg']:
                 if url.endswith('.css'):
                     try:
@@ -97,12 +96,14 @@ def query_word(uuid, url):
                 record = regex_href_end_slash.sub(r'\1\3', record)
             html_content.append(record)
         html_content = '<hr />'.join(html_content)
+        about = item['about']
+        about = regex_href_end_slash.sub(r'\1\3', about)
 
         contents = {}
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
-            'about': item['about'],
+            'about': about,
             'content': html_content,
         }
         word_meta = helper.query_word_meta(url)
@@ -151,10 +152,14 @@ def query_word2(word=None):
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % uuid, record)
             html_content.append(record)
         html_content = '<hr />'.join(html_content)
+        about = item['about']
+        about = regex_src_schema.sub(r'\g<1>%s/\3' % uuid, about)
+        about = regex_href_end_slash.sub(r'\1\3', about)
+        about = regex_href_schema.sub(r'\1\g<2>%s/\3' % uuid, about)
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
-            'about': item['about'],
+            'about': about,
             'content': html_content,
         }
 

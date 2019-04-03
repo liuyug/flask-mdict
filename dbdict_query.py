@@ -63,23 +63,24 @@ class DBDict(object):
 
     def get_mdx_keys(self, conn, part):
         sql = 'SELECT entry FROM mdx WHERE entry like ?'
-        cursor = conn.execute(sql, ('%%%s%%' % part, ))
-        return [row[0] for row in cursor.fetchall()]
+        cursor = conn.execute(sql, ('%%%s%%' % part.lower(), ))
+        return [row['entry'] for row in cursor.fetchall()]
 
     def get_mdd_keys(self, conn, part):
         sql = 'SELECT entry FROM mdd WHERE entry like ?'
-        cursor = conn.execute(sql, ('%%%s%%' % part, ))
-        return [row[0] for row in cursor.fetchall()]
+        cursor = conn.execute(sql, ('%%%s%%' % part.lower(), ))
+        return [row['entry'] for row in cursor.fetchall()]
 
     def mdx_lookup(self, conn, word, ignorecase=True):
-        sql = 'SELECT paraphrase FROM mdx WHERE entry = ?'
-        cursor = conn.execute(sql, (word, ))
-        return [row[0] for row in cursor.fetchall()]
+        sql = 'SELECT paraphrase FROM mdx WHERE entry like ?'
+        cursor = conn.execute(sql, (word.lower(), ))
+        return [row['paraphrase'] for row in cursor.fetchall()]
 
     def mdd_lookup(self, conn, word, ignorecase=True):
         if not self._is_mdd:
             return []
-        sql = 'SELECT file FROM mdd WHERE entry = ?'
-        cursor = conn.execute(sql, (word, ))
+        sql = 'SELECT file FROM mdd WHERE entry like ?'
+        cursor = conn.execute(sql, (word.lower(), ))
         row = cursor.fetchone()
-        return row
+        if row:
+            return row['file']

@@ -21,7 +21,6 @@ def ecdict_query(word):
     db = get_db('ecdict')
     if not db:
         return []
-    db.row_factory = sqlite3.Row
     sql = 'SELECT * FROM ecdict where WORD = ?'
     cursor = db.execute(sql, (word, ))
     keys = [dict(item) for item in cursor]
@@ -33,10 +32,10 @@ def ecdict_random_word(tag):
     db = get_db('ecdict')
     if not db:
         return word[0]
-    sql = 'SELECT * FROM ecdict WHERE word IN (SELECT word FROM ecdict WHERE ecdict.tag like ? ORDER BY RANDOM() LIMIT 1)'
+    sql = 'SELECT word FROM ecdict WHERE word IN (SELECT word FROM ecdict WHERE ecdict.tag like ? ORDER BY RANDOM() LIMIT 1)'
     cursor = db.execute(sql, ('%%%s%%' % tag, ))
-    word = cursor.fetchone()
-    return word[0]
+    row = cursor.fetchone()
+    return row['word']
 
 
 def query_word_meta(word):
@@ -145,11 +144,14 @@ def init_mdict(mdict_dir):
                 if not os.path.exists(about_html):
                     with open(about_html, 'wt') as f:
                         f.write(text)
-                text = regex_style.sub('', text)
-                text = regex_ln.sub('\n', text)
-                text = regex_tag.sub(' ', text)
-                text = [t for t in [t.strip() for t in text.split('\n')] if t]
-                abouts.append('<p>' + '<br />\n'.join(text) + '</p>')
+                if False:
+                    text = regex_style.sub('', text)
+                    text = regex_ln.sub('\n', text)
+                    text = regex_tag.sub(' ', text)
+                    text = [t for t in [t.strip() for t in text.split('\n')] if t]
+                    abouts.append('<p>' + '<br />\n'.join(text) + '</p>')
+                else:
+                    abouts.append(text)
                 about = '\n'.join(abouts)
                 mdicts[dict_uuid] = {
                     'title': title,

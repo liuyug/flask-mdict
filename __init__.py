@@ -53,6 +53,7 @@ def get_db(uuid):
         db_name = Config.DB_NAMES.get(uuid)
         if db_name:
             db = sqlite3.connect(db_name)
+            db.row_factory = sqlite3.Row
             database[uuid] = db
     return db
 
