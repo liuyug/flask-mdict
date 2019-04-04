@@ -47,17 +47,22 @@ class IndexBuilder2(IndexBuilder):
         super(IndexBuilder2, self)._make_mdd_index(db_name)
         self._mdd_file = old_mdd_file
 
-    def mdd_lookup(self, keyword, ignorecase=None):
-        lookup_result_list = []
+    def mdx_lookup(self, conn, keyword, ignorecase=None):
+        return super(IndexBuilder2, self).mdx_lookup(keyword, ignorecase)
+
+    def mdd_lookup(self, conn, keyword, ignorecase=None):
+        """ MDD is resource file, should always return one file """
         for mdd_file in self._mdd_files:
             mdd_db = mdd_file + '.db'
             indexes = self.lookup_indexes(mdd_db, keyword, ignorecase)
-            with open(mdd_file, 'rb') as mdd_fobj:
-                for index in indexes:
-                    lookup_result_list.append(self.get_mdd_by_index(mdd_fobj, index))
-        return lookup_result_list
+            if indexes:
+                with open(mdd_file, 'rb') as mdd_fobj:
+                    return self.get_mdd_by_index(mdd_fobj, indexes[0])
 
-    def get_mdd_keys(self, query=''):
+    def get_mdx_keys(self, conn, query=''):
+        return super(IndexBuilder2, self).get_mdx_keys(query)
+
+    def get_mdd_keys(self, conn, query=''):
         keys = []
         for mdd_file in self._mdd_files:
             mdd_db = mdd_file + '.db'

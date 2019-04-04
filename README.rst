@@ -1,6 +1,10 @@
-======
-MDict
-======
+===========
+Flask-MDict
+===========
+
+.. NOTE::
+
+    Follow MIT and 996.ICU license.
 
 Screenshot
 ==========
@@ -48,3 +52,17 @@ Browser
     +   Python3
 
 .. _mdx-server: https://github.com/ninja33/mdx-server
+
+Donate 捐赠
+===========
+
+
+.. image:: alipay_pay.jpg
+    :width: 45%
+
+.. image:: wx_pay.png
+    :width: 45%
+
+
+
+
