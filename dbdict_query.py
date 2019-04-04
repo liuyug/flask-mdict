@@ -1,6 +1,7 @@
 
 import os.path
 import sqlite3
+import zlib
 
 
 class DBDict(object):
@@ -78,7 +79,13 @@ class DBDict(object):
         else:
             sql = 'SELECT paraphrase FROM mdx WHERE entry = ?'
             cursor = conn.execute(sql, (word, ))
-        return [row['paraphrase'] for row in cursor.fetchall()]
+        record = []
+        for row in cursor.fetchall():
+            value = row['paraphrase']
+            if self._meta['zip']:
+                value = zlib.decompress(value).decode(self._meta['encoding'])
+            record.append(value)
+        return record
 
     def mdd_lookup(self, conn, word, ignorecase=True):
         if not self._is_mdd:
