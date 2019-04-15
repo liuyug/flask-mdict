@@ -41,7 +41,7 @@ def query_word(uuid, url):
         return redirect(url_for('.query_word2', word=url))
 
     q = item['query']
-    if '.' in url:          # file
+    if '.' in url and url[-1] != '.' and url[0] != '.':    # file
         fname = os.path.join(item['root_path'], url)
         if url in item:
             data = item[url]
