@@ -43,7 +43,7 @@ class IndexBuilder2(IndexBuilder):
     def _make_mdx_index(self, db_name):
         super(IndexBuilder2, self)._make_mdx_index(db_name)
 
-        pattern = '[%s ]' % string.punctuation
+        pattern = '[%s ]' % string.punctuation.replace('@', '')
         regex_strip = re.compile(pattern)
 
         conn = sqlite3.connect(db_name)
