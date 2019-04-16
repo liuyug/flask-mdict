@@ -1,4 +1,6 @@
 
+import string
+import sqlite3
 import re
 import os.path
 
@@ -37,6 +39,23 @@ class IndexBuilder2(IndexBuilder):
             mdd_db = mdd_file + '.db'
             if force_rebuild or not os.path.isfile(mdd_db):
                 self._make_mdd_index(mdd_db, mdd_file)
+
+    def _make_mdx_index(self, db_name):
+        super(IndexBuilder2, self)._make_mdx_index(db_name)
+
+        pattern = '[%s ]' % string.punctuation
+        regex_strip = re.compile(pattern)
+
+        conn = sqlite3.connect(db_name)
+        c = conn.cursor()
+        fix_keys = []
+        for row in c.execute('SELECT * FROM MDX_INDEX').fetchall():
+            fix_key = regex_strip.sub(' ', row[0]).strip()
+            if fix_key != row[0]:
+                fix_keys.append((fix_key,) + row[1:])
+        c.executemany('INSERT INTO MDX_INDEX VALUES (?,?,?,?,?,?,?,?)', fix_keys)
+        conn.commit()
+        conn.close()
 
     def _make_mdd_index(self, db_name, mdd_name=None):
         if os.path.exists(db_name):
