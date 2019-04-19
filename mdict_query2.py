@@ -50,7 +50,7 @@ class IndexBuilder2(IndexBuilder):
         c = conn.cursor()
         fix_keys = []
         for row in c.execute('SELECT * FROM MDX_INDEX').fetchall():
-            fix_key = regex_strip.sub(' ', row[0]).strip()
+            fix_key = regex_strip.sub(' ', row[0].strip())
             if fix_key != row[0]:
                 fix_keys.append((fix_key,) + row[1:])
         c.executemany('INSERT INTO MDX_INDEX VALUES (?,?,?,?,?,?,?,?)', fix_keys)
