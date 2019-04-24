@@ -67,12 +67,16 @@ class IndexBuilder2(IndexBuilder):
         self._mdd_file = old_mdd_file
 
     def mdx_lookup(self, conn, keyword, ignorecase=None):
+        if not os.path.exists(self._mdx_db):
+            return []
         return super(IndexBuilder2, self).mdx_lookup(keyword, ignorecase)
 
     def mdd_lookup(self, conn, keyword, ignorecase=None):
         """ MDD is resource file, should always return one file """
         for mdd_file in self._mdd_files:
             mdd_db = mdd_file + '.db'
+            if not os.path.exists(mdd_db):
+                continue
             indexes = self.lookup_indexes(mdd_db, keyword, ignorecase)
             if indexes:
                 with open(mdd_file, 'rb') as mdd_fobj:
