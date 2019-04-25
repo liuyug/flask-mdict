@@ -165,7 +165,7 @@ def init_mdict(mdict_dir):
 
 
 regex_body = re.compile(r'(#\S+ .mdict)\s+?(body)\s*?({)')
-regex_fontface = re.compile(r'(@font-face{.+?})')
+regex_fontface = re.compile(r'(@font-face *{.+?})')
 
 
 def fix_css(prefix_id, css_data):
