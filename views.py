@@ -62,12 +62,12 @@ def query_word(uuid, url):
                         s_data = helper.fix_css('class_%s' % uuid, s_data)
                         data = s_data.encode('utf-8')
                     except Exception as err:
-                        data = ''   # clear css if error
                         error_css = fname + '.error'
                         with open(error_css, 'wb') as f:
                             f.write(data)
                         print(err)
                         print('Output Error Css:', error_css)
+                        data = ''   # clear css if error
                 if Config.MDICT_CACHE:
                     item[url] = data        # cache css file
 
