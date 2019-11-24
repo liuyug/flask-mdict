@@ -129,7 +129,7 @@ def netease_view(mcodes):
                     if k in ['报告日期', '报告期']:
                         name = v.strip()
                         break
-                name and field.append('MAX(IF(name="%s",value,0)) AS "%s"' % (name, name))
+                name and field.append("MAX(IF(name='{0}',value,0)) AS '{0}'".format(name))
         sql = 'CREATE OR REPLACE VIEW {0}_view AS SELECT mcode, date, {1} FROM {0} GROUP BY mcode, date'.format(
             table.__tablename__, ','.join(field))
         print(f'Create View: {table.__tablename__}_view')
