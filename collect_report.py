@@ -11,7 +11,16 @@ from stock.service.ths.web.finance import download_finance_report, download_fina
 from stock.service.tdx.local.finance import load_finance_data
 from stock.service.netease.finance import netease_download, netease_import, netease_view
 
+from stock.service.netease.helper import list_field
+from stock.database import get_session
+
 logger = logging.getLogger(__name__)
+
+
+def do_test(mcodes):
+    session = get_session('finance')
+    data = list_field(session)
+    print(data)
 
 
 def stock_main(parser):
@@ -44,6 +53,8 @@ def stock_main(parser):
         netease_import(mcodes)
     elif args.view2:
         netease_view(mcodes)
+    elif args.test:
+        do_test(mcodes)
     else:
         parser.print_help()
 
@@ -86,6 +97,8 @@ if __name__ == '__main__':
     parser.add_argument('--download2', action='store_true', help='download report')
     parser.add_argument('--import2', action='store_true', help='import report')
     parser.add_argument('--view2', action='store_true', help='create view')
+
+    parser.add_argument('--test', action='store_true', help='test...')
 
     parser.add_argument('mcode',
                         nargs='*', help='stock mcode or plate code')
