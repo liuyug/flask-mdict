@@ -94,9 +94,9 @@ if __name__ == '__main__':
         help='tdx finance data',
     )
 
-    parser.add_argument('--download2', action='store_true', help='download report')
-    parser.add_argument('--import2', action='store_true', help='import report')
-    parser.add_argument('--view2', action='store_true', help='create view')
+    parser.add_argument('--download2', action='store_true', help='netease download report')
+    parser.add_argument('--import2', action='store_true', help='netease import report')
+    parser.add_argument('--view2', action='store_true', help='netease create view')
 
     parser.add_argument('--test', action='store_true', help='test...')
 
