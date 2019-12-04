@@ -6,7 +6,7 @@ import argparse
 import logging
 
 from stock.base.stock import get_stock, get_plate
-from stock.service.ths.finance import import_finance_data
+from stock.service.ths.finance import import_finance_data, ths_download
 from stock.service.ths.web.finance import download_finance_report, download_finance_data2
 from stock.service.tdx.local.finance import load_finance_data
 from stock.service.netease.finance import netease_download, netease_import, netease_view
@@ -41,8 +41,9 @@ def stock_main(parser):
         mcodes = [stock.mcode for stock in get_stock(market_code='SHSZA')]
 
     if args.download:
-        download_finance_data2(mcodes, typ='xls', overwrite=args.overwrite)
+        # download_finance_data2(mcodes, typ='xls', overwrite=args.overwrite)
         # download_finance_report(mcodes, typ='json', overwrite=args.overwrite)
+        ths_download(mcodes)
     elif args.import_:
         import_finance_data(mcodes, typ='xls')
     elif args.tdx:
