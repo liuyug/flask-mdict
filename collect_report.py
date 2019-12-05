@@ -6,21 +6,22 @@ import argparse
 import logging
 
 from stock.base.stock import get_stock, get_plate
-from stock.service.ths.finance import import_finance_data, ths_download
 from stock.service.ths.web.finance import download_finance_report, download_finance_data2
 from stock.service.tdx.local.finance import load_finance_data
 from stock.service.netease.finance import netease_download, netease_import, netease_view
+from stock.service.ths.finance import ths_download, ths_import, ths_view
 
-from stock.service.netease.helper import list_field
+from stock.base.finance.helper import list_field
 from stock.database import get_session
 
 logger = logging.getLogger(__name__)
 
 
-def do_test(mcodes):
+def do_test(prefix):
     session = get_session('finance')
-    data = list_field(session)
-    print(data)
+    data = list_field(session, prefix)
+    for k, v in data.items():
+        print(k, '{desc} {abbr} => {name}' % v)
 
 
 def stock_main(parser):
@@ -45,7 +46,10 @@ def stock_main(parser):
         # download_finance_report(mcodes, typ='json', overwrite=args.overwrite)
         ths_download(mcodes)
     elif args.import_:
-        import_finance_data(mcodes, typ='xls')
+        # import_finance_data(mcodes, typ='xls')
+        ths_import(mcodes)
+    elif args.view:
+        ths_view()
     elif args.tdx:
         load_finance_data(mcodes[0])
     elif args.download2:
@@ -53,7 +57,7 @@ def stock_main(parser):
     elif args.import2:
         netease_import(mcodes)
     elif args.view2:
-        netease_view(mcodes)
+        netease_view()
     elif args.test:
         do_test(mcodes)
     else:
@@ -78,10 +82,13 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--import',
-        action='store_true',
-        dest='import_',
+        '--import', action='store_true', dest='import_',
         help='import local report data'
+    )
+
+    parser.add_argument(
+        '--view', action='store_true',
+        help='create view'
     )
 
     parser.add_argument(
