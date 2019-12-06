@@ -67,7 +67,7 @@ def query_word(uuid, url):
                             f.write(data)
                         print(err)
                         print('Output Error Css:', error_css)
-                        data = ''   # clear css if error
+                        abort(404)
                 if Config.MDICT_CACHE:
                     item[url] = data        # cache css file
 
