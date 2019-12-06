@@ -18,7 +18,7 @@ regex_href_schema = re.compile(r'([ "]href=["\'])(sound://|entry://)([^#].+?["\'
 regex_href_no_schema = re.compile(r'([ "]href=["\'])(?!sound://|entry://)([^#].+?["\'])')
 
 
-@mdict.route('/query/<part>')
+@mdict.route('/search/<part>')
 def query_part(part):
     contents = set()
     for uuid, item in get_mdict().items():
@@ -118,7 +118,7 @@ def query_word(uuid, url):
 
 
 @mdict.route('/', methods=['GET', 'POST'])
-@mdict.route('/<word>', methods=['GET', 'POST'])
+@mdict.route('/query/<word>', methods=['GET', 'POST'])
 def query_word2(word=None):
     form = WordForm()
     if form.validate_on_submit():
