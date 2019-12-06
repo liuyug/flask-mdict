@@ -55,7 +55,7 @@ def query_word(uuid, url):
             data = q.mdd_lookup(get_db(uuid), key, ignorecase=True)
 
         if data:
-            if url not in item and url[-4:] in ['.css', '.png', '.jpg']:
+            if url not in item and url[-4:] in ['.css', '.js', '.png', '.jpg']:
                 if url.endswith('.css'):
                     try:
                         s_data = data.decode('utf-8')
