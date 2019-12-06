@@ -80,7 +80,7 @@ def query_word_meta(word):
 def init_mdict(mdict_dir):
     mdicts = {}
     db_names = {}
-    for root, dirs, files in os.walk(mdict_dir):
+    for root, dirs, files in os.walk(mdict_dir, followlinks=True):
         for fname in files:
             if fname.endswith('.db') \
                     and not fname.endswith('.mdx.db') \
