@@ -92,6 +92,7 @@
 </div>
 {% endblock %}
 {% block script %}
+{{super()}}
 <script src="{{url_for(".static", filename="js/typeahead.bundle.min.js")}}"></script>
 <script type="text/javascript">
 player = document.createElement("audio");
