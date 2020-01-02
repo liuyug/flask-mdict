@@ -13,6 +13,7 @@ from stock.service.ths.finance import ths_download, ths_import, ths_view
 
 from stock.base.finance.helper import list_field
 from stock.database import get_session
+from stock.config import init_config
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ def do_test(prefix):
 
 
 def stock_main(parser):
+    init_config()
     args = parser.parse_args()
 
     level = logging.WARNING - (args.verbose * 10)
