@@ -12,6 +12,7 @@ Flask-WTF
 Flask-SQLAlchemy
 Flask-Bcrypt
 WTForms-Components
+Flask-QRcode
 
 pyscss
 
