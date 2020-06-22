@@ -13,7 +13,7 @@ Flask-SQLAlchemy
 Flask-Bcrypt
 WTForms-Components
 Flask-QRcode
-
+email-validator
 pyscss
 
 # for mysql
@@ -44,6 +44,8 @@ matplot
 # make install
 # ldconfig -v
 ta-lib
+sklearn
+graphviz
 
 pytdx
 cn_stock_holidays
