@@ -29,7 +29,7 @@ Install
     cp <mdict> content/
 
     # ecdict
-    wget https://github.com/skywind3000/ECDICT/raw/master/ecdict.csv'
+    wget https://github.com/skywind3000/ECDICT/raw/master/ecdict.csv
     sh ecdict.sh ecdict.csv
     mv ecdict.db content/
 
