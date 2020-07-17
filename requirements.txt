@@ -1,53 +1,7 @@
-six
-# for client
-# PyQt5
-
-# pip install --upgrade ciff
-cffi
 # Flask
 Flask
 Flask-DebugToolbar
-Flask-Login
 Flask-WTF
-Flask-SQLAlchemy
-Flask-Bcrypt
 WTForms-Components
-Flask-QRcode
-email-validator
+
 pyscss
-
-# for mysql
-pymysql
-
-# BeautifulSoup with html5lib or lxml
-BeautifulSoup4
-html5lib
-# lxml
-
-# proxy
-pysocks
-mtable
-
-xlsxwriter
-xlrd
-SQLAlchemy
-pypinyin
-
-tushare
-pandas
-numpy
-matplot
-# wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
-# tar xvf ta-lib-0.4.0-src.tar.gz
-# ./configure
-# make
-# make install
-# ldconfig -v
-ta-lib
-sklearn
-graphviz
-
-pytdx
-cn_stock_holidays
-# uwsgi
-# apt install uwsgi uwsgi-plugin-python3

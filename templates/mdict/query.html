@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{url_for('.static', filename='css/typeahead.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='css/mdict.css')}}">
+{% endblock %}
+
+{% block subtitle %}MDict - {{word}}{% endblock %}
+
+{% block maincontent %}
+<div class="row">
+    <div class="col-sm-3">
+        <div class="sticky-top">
+            <div class="anchor-fix"> </div>
+            <form method="POST">
+                <div class="input-group">
+                    {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
+                    <div class="input-group-append">
+                        <button id="btn-search" type="submit" class="btn btn-outline-info" style="z-index:1;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                {{ form.csrf_token }}
+            </form>
+            <br />
+            <ul class="list-group">
+                {% for uuid, item in contents.items() %}
+                <li class="list-group-item">
+                    <a href="#{{uuid}}">{{item.title|safe}}</a>
+                    <small data-toggle="modal" data-target="#about_{{uuid}}">
+                        <i class="fas fa-info-circle"></i>
+                    </small>
+                    <!-- Modal -->
+                    <div class="modal" id="about_{{uuid}}" role="dialog" data-backdrop="false">
+                        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{item.title|safe}}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    {{item.about|safe}}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col">
+        {% for uuid, item in contents.items() %}
+        <div id="{{uuid}}" class="anchor-fix"> </div>
+        <div class="card">
+            <div class="card-body py-0" id="class_{{uuid}}">
+                <div class="d-flex flex-row-reverse">
+                    <div>
+                        {%if item.content%}<small>{{word_meta|safe}}</small>{%endif%}
+                        <a style="text-decoration:none;"
+                           target="_blank"
+                           href="{{url_for('.query_word', uuid=uuid, url=word)}}">
+                            <img class="rounded"
+                                 height="16px"
+                                 src="{{url_for('.query_word', uuid=uuid, url=item.logo)}}"/>
+                        </a>
+                        <button class="btn btn-link btn-sm p-0"
+                                data-toggle="collapse"
+                                data-target="#collapse_{{uuid}}">
+                            {{item.title|safe}}
+                        </button>
+                    </div>
+                </div>
+                <div id="collapse_{{uuid}}" class="collapse{%if item.content%} show{%endif%}">
+                    <div class="mdict">
+                        {{item.content|safe}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+{{super()}}
+<script src="{{url_for(".static", filename="js/typeahead.bundle.min.js")}}"></script>
+<script type="text/javascript">
+player = document.createElement("audio");
+player.id = 'player';
+
+function play(url) {
+    player.src = url;
+    player.play();
+}
+
+function makeSoundFunction(url)
+{
+    return function (e) {
+        play(url);
+        e.preventDefault();
+    }
+}
+function makeEntryFunction(url)
+{
+    return function (e) {
+        window.location = url;
+        e.preventDefault();
+    }
+}
+
+/* listen on link in content. */
+var all_a = document.getElementsByTagName('a');
+for (i in all_a) {
+    var item = all_a[i]
+    if (item.href && item.href.lastIndexOf("sound://", 0) === 0) {
+        var url = item.href.replace("sound://", "");
+        var func = makeSoundFunction(url);
+        item.addEventListener("click", func);
+    }
+
+    if (item.href && item.href.lastIndexOf("entry://", 0) === 0) {
+        var url = item.href.replace("entry://", "");
+        var func = makeEntryFunction(url);
+        item.addEventListener("click", func);
+    }
+}
+/* typeahead */
+var dataset_engine = new Bloodhound({
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+        url: '{{url_for('.query_part', part='')}}' + '%QUERY',
+        wildcard: '%QUERY',
+        transform: function(data){
+            return data.suggestion;
+        }
+    }
+});
+$('#word').typeahead({
+    minLength: 2,
+    highlight: true
+},
+{
+    name: 'suggestion',
+    limit: 10,
+    source: dataset_engine,
+    display: function(data) {
+        return data;
+    }
+});
+</script>
+{% endblock %}

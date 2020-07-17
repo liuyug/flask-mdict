@@ -62,3 +62,7 @@ Donate 捐赠
 
 .. image:: wx_pay.png
     :width: 45%
+
+
+
+
