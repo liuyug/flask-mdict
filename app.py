@@ -14,7 +14,7 @@ def create_app():
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
 
     from . import init_app
-    init_app(app, url_prefix='/')
+    init_app(app)
 
     return app
 

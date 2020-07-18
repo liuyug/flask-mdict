@@ -19,7 +19,7 @@ class Config():
     pass
 
 
-def init_app(app, url_prefix='/mdict'):
+def init_app(app, url_prefix=None):
     @app.teardown_appcontext
     def close_connection(exception):
         database = getattr(g, '_database', None)
