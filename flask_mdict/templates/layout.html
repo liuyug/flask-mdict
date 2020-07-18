@@ -5,8 +5,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>{% block title %}{% block subtitle %}{% endblock %}{% endblock %}</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.0/css/all.min.css" />
+<link rel="stylesheet" href="{{url_for('.static', filename='bootstrap-4.5.0/css/bootstrap.min.css')}}" />
+<link rel="stylesheet" href="{{url_for('.static', filename='fontawesome-5.14.0/css/all.min.css')}}" />
 {% endblock %}</head>
 <body>
 <div class="container">
@@ -29,8 +29,8 @@
     </div>
 </div>
 {% block script %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src="{{url_for('.static', filename='jquery-3.5.1/jquery.min.js')}}"></script>
+    <script src="{{url_for('.static', filename='bootstrap-4.5.0/js/bootstrap.bundle.min.js')}}"></script>
 {% endblock %}
 </body>
 </html>
