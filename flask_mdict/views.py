@@ -46,8 +46,8 @@ def query_word(uuid, url):
             data = item[url]
         elif os.path.exists(fname):
             data = open(fname, 'rb').read()
-        elif url == 'logo.png':
-            with mdict.open_resource(os.path.join('static', 'logo.png')) as f:
+        elif url == 'logo.ico':
+            with mdict.open_resource(os.path.join('static', 'logo.ico')) as f:
                 data = f.read()
         else:
             key = '\\%s' % '\\'.join(url.split('/'))

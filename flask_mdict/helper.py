@@ -96,8 +96,8 @@ def init_mdict(mdict_dir):
                 print('\tfind %s:mdx' % fname)
                 if d.is_mdd():
                     print('\tfind %s:mdd' % fname)
-                logo = 'logo.png'
-                for ext in ['.jpg', '.png']:
+                logo = 'logo.ico'
+                for ext in ['ico', '.jpg', '.png']:
                     if os.path.exists(os.path.join(root, name + ext)):
                         logo = name + ext
                         break
@@ -115,8 +115,8 @@ def init_mdict(mdict_dir):
             elif fname.endswith('.mdx'):
                 name = os.path.splitext(fname)[0]
                 print('Initialize MDICT "%s", please wait...' % name)
-                logo = 'logo.png'
-                for ext in ['.jpg', '.png']:
+                logo = 'logo.ico'
+                for ext in ['ico', '.jpg', '.png']:
                     if os.path.exists(os.path.join(root, name + ext)):
                         logo = name + ext
                         break
