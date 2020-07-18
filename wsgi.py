@@ -14,11 +14,7 @@ def create_app():
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
 
     from . import init_app
-    init_app(app)
-
-    @app.route('/')
-    def default():
-        return redirect(url_for('mdict.query_word2'))
+    init_app(app, url_prefix='/')
 
     return app
 

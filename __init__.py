@@ -19,7 +19,7 @@ class Config():
     pass
 
 
-def init_app(app):
+def init_app(app, url_prefix='/mdict'):
     @app.teardown_appcontext
     def close_connection(exception):
         database = getattr(g, '_database', None)
@@ -39,7 +39,7 @@ def init_app(app):
     if not os.path.exists(ecdict_fname):
         print('Do not find ECDICT "%s"' % ecdict_fname)
 
-    app.register_blueprint(mdict, url_prefix='/mdict')
+    app.register_blueprint(mdict, url_prefix=url_prefix)
 
 
 def get_mdict():
