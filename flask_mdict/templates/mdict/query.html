@@ -37,7 +37,11 @@
                         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">{{item.title|safe}}</h5>
+                                    <h5 class="modal-title">
+                                        <img class="rounded align-text-bottom"
+                                             height="24px"
+                                             src="{{url_for('.query_word', uuid=uuid, url=item.logo)}}"/>
+                                        {{item.title|safe}}</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
@@ -68,7 +72,7 @@
                         <a style="text-decoration:none;"
                            target="_blank"
                            href="{{url_for('.query_word', uuid=uuid, url=word)}}">
-                            <img class="rounded"
+                            <img class="rounded align-text-bottom"
                                  height="16px"
                                  src="{{url_for('.query_word', uuid=uuid, url=item.logo)}}"/>
                         </a>
