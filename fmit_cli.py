@@ -7,13 +7,7 @@ import os
 import sys
 import uuid
 
-# fix import path
-parent = os.path.dirname(os.path.realpath(__file__))
-pparent = os.path.dirname(parent)
-sys.path.append(pparent)
-__package__ = os.path.basename(parent)
-
-from .mdict_query2 import IndexBuilder2
+from flask_mdict.mdict_query2 import IndexBuilder2
 
 
 def init_mdict(mdict_dir, action=None):
