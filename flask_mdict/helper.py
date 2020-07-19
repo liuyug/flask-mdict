@@ -94,7 +94,7 @@ def init_mdict(mdict_dir):
                 if not d.is_ok():
                     continue
                 name = os.path.splitext(fname)[0]
-                print('Initialize DICT DB "%s", please wait...' % name)
+                print('Initialize DICT DB "%s"...' % name)
                 print('\tfind %s:mdx' % fname)
                 if d.is_mdd():
                     print('\tfind %s:mdd' % fname)
@@ -119,7 +119,7 @@ def init_mdict(mdict_dir):
                 }
             elif fname.endswith('.mdx'):
                 name = os.path.splitext(fname)[0]
-                print('Initialize MDICT "%s", please wait...' % name)
+                print('Initialize MDICT "%s"...' % name)
                 logo = 'logo.ico'
                 for ext in ['ico', '.jpg', '.png']:
                     if os.path.exists(os.path.join(root, name + ext)):
@@ -187,6 +187,7 @@ def init_mdict(mdict_dir):
         'error': '',
     }
     db_names[dict_uuid] = None
+    print('Add "%s"...' % title)
     print('--- MDict is Ready ---')
     return mdicts, db_names
 

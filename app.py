@@ -8,7 +8,7 @@ import uuid
 
 from flask import Flask, redirect, url_for
 
-from flask_mdict.mdict_query2 import IndexBuilder2
+from flask_mdict import __version__, init_app, mdict_query2
 
 
 def create_app(mdict_dir='content'):
@@ -17,7 +17,6 @@ def create_app(mdict_dir='content'):
     app.config['MDICT_CACHE'] = False
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
 
-    from flask_mdict import init_app
     init_app(app, url_prefix='/')
 
     @app.route('/favicon.ico')
@@ -46,7 +45,7 @@ def init_mdict(mdict_dir, action=None):
                     mdx_file = os.path.join(root, fname)
                     dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file)).upper()
                     print('Initialize MDICT "%s" {%s}...' % (name, dict_uuid))
-                    idx = IndexBuilder2(mdx_file)
+                    idx = mdict_query2.IndexBuilder2(mdx_file)
                     if idx._description == '<font size=5 color=red>Paste the description of this product in HTML source code format here</font>':
                         text = ''
                     else:
@@ -59,6 +58,9 @@ def init_mdict(mdict_dir, action=None):
 
 def main():
     parser = argparse.ArgumentParser(description='Flask Mdict Initialize Tool')
+    parser.add_argument('--version', action='version',
+                        version='Flask Mdict Server v%s' % __version__,
+                        help='about')
     parser.add_argument('--server', action='store_true', help='run Flask Mdict Server')
     parser.add_argument('--clean', action='store_true', help='clean db file')
     parser.add_argument('--init', action='store_true', help='initialize mdict db file')
