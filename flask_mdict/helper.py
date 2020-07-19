@@ -40,8 +40,9 @@ def ecdict_query_word(word, item=None):
     for row in cursor:
         exchanges = []
         for e in row['exchange'].split('/'):
-            t, w = e.split(':')
-            exchanges.append('%s: %s' % (EXCHANGE[t], w))
+            if e:
+                t, w = e.split(':')
+                exchanges.append('%s: %s' % (EXCHANGE[t], w))
         t = '%(word)s [%(phonetic)s]<br />XXX<br /><ul><li>%(definition)s</li><li>%(translation)s</li></ul>' % row
         t = t.replace('\\n', '<br />')
         t = t.replace('XXX', ' '.join(exchanges))
