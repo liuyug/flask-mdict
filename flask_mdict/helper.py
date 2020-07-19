@@ -26,9 +26,25 @@ def ecdict_query_word(word, item=None):
     sql = 'SELECT * FROM ecdict where WORD = ?'
     cursor = db.execute(sql, (word, ))
     trans = []
+    EXCHANGE = {
+        'p': '过去式',
+        'd': '过去分词',
+        'i': '现在分词',
+        '3': '第三人称单数',
+        'r': '形容词比较级',
+        't': '形容词最高级',
+        's': '名词复数形式',
+        '0': '词根',
+        '1': '词根变换',
+    }
     for row in cursor:
-        t = '%(word)s [%(phonetic)s]<br /><ul><li>%(definition)s</li><li>%(translation)s</li></ul>' % row
+        exchanges = []
+        for e in row['exchange'].split('/'):
+            t, w = e.split(':')
+            exchanges.append('%s: %s' % (EXCHANGE[t], w))
+        t = '%(word)s [%(phonetic)s]<br />XXX<br /><ul><li>%(definition)s</li><li>%(translation)s</li></ul>' % row
         t = t.replace('\\n', '<br />')
+        t = t.replace('XXX', ' '.join(exchanges))
         trans.append(t)
     return trans
 
