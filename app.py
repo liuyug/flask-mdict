@@ -5,7 +5,10 @@ import os.path
 import sys
 import argparse
 import uuid
+import sqlite3
+import csv
 
+import requests
 from flask import Flask, redirect, url_for
 
 from flask_mdict import __version__, init_app, mdict_query2
@@ -56,25 +59,65 @@ def init_mdict(mdict_dir, action=None):
                             f.write(text)
 
 
+def create_ecdict(mdict_dir):
+    csv_file = os.path.join(mdict_dir, 'ecdict.csv')
+    db_file = os.path.join(mdict_dir, 'ecdict.db')
+    if not os.path.exists(csv_file):
+        url = 'https://github.com/skywind3000/ECDICT/raw/master/ecdict.csv'
+        print('get ecdict.csv.', end='', flush=True)
+        r = requests.get(url, stream=True)
+        with open(csv_file, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=10240):
+                print('.', end='', flush=True)
+                f.write(chunk)
+        print()
+    print('convert ecdict.csv to ecdict.db...')
+    with open(csv_file, newline='', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        with sqlite3.connect(db_file) as conn:
+            conn.execute('DROP TABLE IF EXISTS ecdict')
+            conn.execute('DROP INDEX IF EXISTS ecdict_index_word')
+            c = conn.cursor()
+            header = ['"%s" TEXT' % h for h in next(reader)]
+            sql = 'CREATE TABLE ecdict(%s);' % ','.join(header + ['PRIMARY KEY(word)'])
+            c.execute(sql)
+            conn.commit()
+            sql = 'INSERT INTO ecdict VALUES (%s)' % ','.join(['?'] * len(header))
+            for row in reader:
+                c.execute(sql, row)
+            conn.commit()
+            # primary key or index
+            # conn.execute('CREATE INDEX ecdict_index_word ON ecdict(word)')
+
+
 def main():
     parser = argparse.ArgumentParser(description='Flask Mdict Initialize Tool')
     parser.add_argument('--version', action='version',
                         version='Flask Mdict Server v%s' % __version__,
                         help='about')
-    parser.add_argument('--server', action='store_true', help='run Flask Mdict Server')
+    group = parser.add_argument_group('Flask Mdict Server')
+    group.add_argument('--server', action='store_true', help='run Flask Mdict Server')
+    group.add_argument('--host', default='127.0.0.1', help='the interface to bind to')
+    group.add_argument('--port', default=5000, help='the interface to bind to')
+
+    parser.add_argument(
+        '--create-ecdict', action='store_true',
+        help='create ECDICT (Free English to Chinese Dictionary Database). my Word Frequency Database')
     parser.add_argument('--clean', action='store_true', help='clean db file')
     parser.add_argument('--init', action='store_true', help='initialize mdict db file')
     parser.add_argument('mdict_dir', nargs='?', default='content', help='mdict directory. default: content')
 
     args = parser.parse_args()
 
-    if args.clean:
+    if args.create_ecdict:
+        create_ecdict(args.mdict_dir)
+    elif args.clean:
         init_mdict(args.mdict_dir, 'clean')
     elif args.init:
         init_mdict(args.mdict_dir, 'init')
     else:
         app = create_app(args.mdict_dir)
-        app.run()
+        app.run(host=args.host, port=args.port)
 
 
 if __name__ == "__main__":

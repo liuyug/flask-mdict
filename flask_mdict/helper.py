@@ -19,14 +19,18 @@ regex_ln = re.compile(r'<(p|br|tr)[^>]*?>', re.IGNORECASE)
 regex_tag = re.compile(r'<[^>]+?>')
 
 
-def ecdict_query(word):
+def ecdict_query_word(word, item=None):
     db = get_db('ecdict')
     if not db:
-        return [{'error': 'Could not found "ecdict.db"'}]
+        return []
     sql = 'SELECT * FROM ecdict where WORD = ?'
     cursor = db.execute(sql, (word, ))
-    keys = [dict(item) for item in cursor]
-    return keys
+    trans = []
+    for row in cursor:
+        t = '%(word)s [%(phonetic)s]<br /><ul><li>%(definition)s</li><li>%(translation)s</li></ul>' % row
+        t = t.replace('\\n', '<br />')
+        trans.append(t)
+    return trans
 
 
 def ecdict_random_word(tag):
@@ -51,33 +55,37 @@ def query_word_meta(word):
         'toefl': 'TOEFL',
         'ielts': 'IELTS',
     }
-    keys = ecdict_query(word)
+    db = get_db('ecdict')
+    if not db:
+        key = {'error': 'Could not found "ecdict.db"'}
+    else:
+        sql = 'SELECT * FROM ecdict where WORD = ?'
+        cursor = db.execute(sql, (word, ))
+        key = dict(next(cursor))
     word_meta = []
-    if keys:
-        key = keys[0]
-        if key.get('oxford'):
-            word_meta.append('<a href="https://www.oxfordlearnersdictionaries.com/us/wordlist/english/oxford3000/" target="_blank">'
-                             '<img src="%s" style="height:16px" title="Oxford 3000"/>'
-                             '</a>' % url_for('.static', filename='Ox3000_Rect1_mod_web.png')
-                             )
-        if key.get('collins'):
-            # star = '⭐'
-            star = '<i class="text-warning fas fa-star"></i>'
-            n = int(key['collins'])
-            word_meta.append('<span title="Collins %s star">%s</span>' % (n, star * n))
-        if key.get('tag'):
-            tags = ['<span class="badge badge-pill badge-primary">%s</span>' % TAGs.get(t, t) for t in key['tag'].split(' ')]
-            word_meta.extend(tags)
-        if key.get('bnc'):
-            word_meta.append('<a href="http://www.natcorp.ox.ac.uk/" target="_blank">'
-                             '<span class="badge badge-pill badge-info" title="BNC: %s">BNC: %s</span>'
-                             '</a>' % (key['bnc'], key['bnc']))
-        if key.get('frq'):
-            word_meta.append('<a href="https://www.english-corpora.org/coca/" target="_blank">'
-                             '<span class="badge badge-pill badge-info" title="COCA: %s">COCA: %s</span>'
-                             '</a>' % (key['frq'], key['frq']))
-        if key.get('error'):
-            word_meta.append('<span class="badge badge-pill badge-danger">%s</span>' % (key['error']))
+    if key.get('oxford'):
+        word_meta.append('<a href="https://www.oxfordlearnersdictionaries.com/us/wordlist/english/oxford3000/" target="_blank">'
+                         '<img src="%s" style="height:16px" title="Oxford 3000"/>'
+                         '</a>' % url_for('.static', filename='Ox3000_Rect1_mod_web.png')
+                         )
+    if key.get('collins'):
+        # star = '⭐'
+        star = '<i class="text-warning fas fa-star"></i>'
+        n = int(key['collins'])
+        word_meta.append('<span title="Collins %s star">%s</span>' % (n, star * n))
+    if key.get('tag'):
+        tags = ['<span class="badge badge-pill badge-primary">%s</span>' % TAGs.get(t, t) for t in key['tag'].split(' ')]
+        word_meta.extend(tags)
+    if key.get('bnc'):
+        word_meta.append('<a href="http://www.natcorp.ox.ac.uk/" target="_blank">'
+                         '<span class="badge badge-pill badge-info" title="BNC: %s">BNC: %s</span>'
+                         '</a>' % (key['bnc'], key['bnc']))
+    if key.get('frq'):
+        word_meta.append('<a href="https://www.english-corpora.org/coca/" target="_blank">'
+                         '<span class="badge badge-pill badge-info" title="COCA: %s">COCA: %s</span>'
+                         '</a>' % (key['frq'], key['frq']))
+    if key.get('error'):
+        word_meta.append('<span class="badge badge-pill badge-danger">%s</span>' % (key['error']))
     return ' '.join(word_meta)
 
 
@@ -93,6 +101,7 @@ def init_mdict(mdict_dir):
                 d = DBDict(db_file)
                 if not d.is_ok():
                     continue
+                # mdict db
                 name = os.path.splitext(fname)[0]
                 print('Initialize DICT DB "%s"...' % name)
                 print('\tfind %s:mdx' % fname)
@@ -114,12 +123,11 @@ def init_mdict(mdict_dir):
                     'root_path': root,
                     'query': d,
                     'cache': {},
-                    'type': 'db',
+                    'type': 'mdict_db',
                     'error': '',
                 }
             elif fname.endswith('.mdx'):
                 name = os.path.splitext(fname)[0]
-                print('Initialize MDICT "%s"...' % name)
                 logo = 'logo.ico'
                 for ext in ['ico', '.jpg', '.png']:
                     if os.path.exists(os.path.join(root, name + ext)):
@@ -127,7 +135,7 @@ def init_mdict(mdict_dir):
                         break
                 mdx_file = os.path.join(root, fname)
                 dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file)).upper()
-                print('\tuuid: %s' % dict_uuid)
+                print('Initialize MDICT "%s" {%s}...' % (name, dict_uuid))
 
                 idx = IndexBuilder2(mdx_file)
                 if not idx._title or idx._title == 'Title (No HTML code allowed)':
@@ -139,10 +147,10 @@ def init_mdict(mdict_dir):
                 abouts = []
                 abouts.append('<ul>')
                 abouts.append('<li>%s</li>' % os.path.basename(idx._mdx_file))
-                print('\tfind %s' % os.path.basename(idx._mdx_file))
+                print('\t+ %s' % os.path.basename(idx._mdx_file))
                 for mdd in idx._mdd_files:
                     abouts.append('<li>%s</li>' % os.path.basename(mdd))
-                    print('\tfind %s' % os.path.basename(mdd))
+                    print('\t+ %s' % os.path.basename(mdd))
                 abouts.append('</ul><hr />')
                 if idx._description == '<font size=5 color=red>Paste the description of this product in HTML source code format here</font>':
                     text = ''
@@ -172,6 +180,25 @@ def init_mdict(mdict_dir):
                     'type': 'mdict',
                     'error': '',
                 }
+    # ecdict
+    title = 'ECDICT'
+    dict_uuid = 'ecdict'
+    mdicts['ecdict'] = {
+        'title': title,
+        'uuid': dict_uuid,
+        'logo': 'logo.ico',
+        'about': 'ECDICT - Free English to Chinese Dictionary Database<br />https://github.com/skywind3000/ECDICT',
+        'root_path': '',
+        'query': ecdict_query_word,
+        'cache': {},
+        'type': 'app',
+        'error': '',
+    }
+    db_names[dict_uuid] = os.path.join(mdict_dir, 'ecdict.db')
+    if not os.path.exists(db_names[dict_uuid]):
+        print('Do not find ECDICT "%s"' % db_names[dict_uuid])
+    else:
+        print('Add "%s"...' % title)
     # for google translate online
     title = 'Google 翻译'
     dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
@@ -215,10 +242,16 @@ def google_translate(word, item=None):
     for line in result.split('\n'):
         if not line:
             continue
-        if line == '=========':
+        elif line == '=========':
             trans_group.append('<div>%s</div>' % '<br />'.join(trans))
             trans = []
             continue
+        elif line.startswith('^_^:'):
+            line = '<span>%s</span>' % line
+        elif line.startswith('0_0:'):
+            line = '<span>%s</span>' % line
+        else:
+            line = '%s' % line
         trans.append(line)
     if trans:
         trans_group.append('<div>%s</div>' % '<br />'.join(trans))

@@ -212,3 +212,10 @@ def query_word_all():
 def google_translate(word):
     trans = helper.google_translate(word)
     return '<br />'.join(trans)
+
+
+@mdict.route('/ecdict/<word>', methods=['GET', 'POST'])
+def ecdict_query_word(word):
+    trans = helper.ecdict_query_word(word)
+    print(1111, trans)
+    return '<br />'.join(trans)

@@ -32,12 +32,7 @@ def init_app(app, url_prefix=None):
     Config.MDICT_CACHE = app.config.get('MDICT_CACHE')
     if not Config.MDICT_DIR:
         raise ValueError('Please set "MDICT_DIR" in app.config')
-
     Config.MDICT, Config.DB_NAMES = helper.init_mdict(Config.MDICT_DIR)
-    ecdict_fname = os.path.join(Config.MDICT_DIR, 'ecdict.db')
-    Config.DB_NAMES['ecdict'] = ecdict_fname
-    if not os.path.exists(ecdict_fname):
-        print('Do not find ECDICT "%s"' % ecdict_fname)
 
     app.register_blueprint(mdict, url_prefix=url_prefix)
 

@@ -5,6 +5,9 @@ import zlib
 
 
 class DBDict(object):
+    """
+    the mdict with DB
+    """
     _db_name = None
     _meta = None
     is_mdd = False
@@ -33,6 +36,7 @@ class DBDict(object):
                 self._meta[row[0].lower()] = row[1]
 
     def is_ok(self):
+        """check if it is mdict db"""
         return bool(self._db_name)
 
     def is_mdd(self):
