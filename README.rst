@@ -29,9 +29,7 @@ Install
     cp <mdict> content/
 
     # ecdict
-    wget https://github.com/skywind3000/ECDICT/raw/master/ecdict.csv
-    sh ecdict.sh ecdict.csv
-    mv ecdict.db content/
+    python3 app.py --create-ecdict
 
 
 Run
