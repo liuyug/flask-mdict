@@ -91,10 +91,10 @@ def create_ecdict(mdict_dir):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Flask Mdict Initialize Tool')
+    parser = argparse.ArgumentParser(description='Flask Mdict Tool')
     parser.add_argument('--version', action='version',
-                        version='Flask Mdict Server v%s' % __version__,
-                        help='about')
+                        version='Flask Mdict Tool v%s' % __version__,
+                        help='show version')
     group = parser.add_argument_group('Flask Mdict Server')
     group.add_argument('--server', action='store_true', help='run Flask Mdict Server')
     group.add_argument('--host', default='127.0.0.1', help='the interface to bind to')
@@ -102,18 +102,19 @@ def main():
 
     parser.add_argument(
         '--create-ecdict', action='store_true',
-        help='create ECDICT (Free English to Chinese Dictionary Database). my Word Frequency Database')
-    parser.add_argument('--clean', action='store_true', help='clean db file')
-    parser.add_argument('--init', action='store_true', help='initialize mdict db file')
-    parser.add_argument('mdict_dir', nargs='?', default='content', help='mdict directory. default: content')
+        help='create ECDICT (Free English to Chinese Dictionary Database). My Word Frequency Database')
+    parser.add_argument('--create-index', action='store_true', help='create index of mdict dictionary')
+    parser.add_argument('--remove-index', action='store_true', help='remove index of mdict dictionary')
+    parser.add_argument('mdict_dir', nargs='?', default='content',
+                        help='mdict dictionary directory. default: "content"')
 
     args = parser.parse_args()
 
     if args.create_ecdict:
         create_ecdict(args.mdict_dir)
-    elif args.clean:
+    elif args.remove_index:
         init_mdict(args.mdict_dir, 'clean')
-    elif args.init:
+    elif args.create_index:
         init_mdict(args.mdict_dir, 'init')
     else:
         app = create_app(args.mdict_dir)
