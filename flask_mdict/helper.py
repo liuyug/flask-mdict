@@ -7,6 +7,8 @@ import sqlite3
 from flask import url_for
 from scss import Scss
 
+from googletranslate.googletranslate import main as gtranslate
+
 from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
@@ -106,10 +108,13 @@ def init_mdict(mdict_dir):
                 db_names[dict_uuid] = db_file
                 mdicts[dict_uuid] = {
                     'title': d.title(),
+                    'uuid': dict_uuid,
                     'logo': logo,
                     'about': d.about(),
                     'root_path': root,
                     'query': d,
+                    'cache': {},
+                    'type': 'db',
                     'error': '',
                 }
             elif fname.endswith('.mdx'):
@@ -158,14 +163,65 @@ def init_mdict(mdict_dir):
                 about = '\n'.join(abouts)
                 mdicts[dict_uuid] = {
                     'title': title,
+                    'uuid': dict_uuid,
                     'logo': logo,
                     'about': about,
                     'root_path': root,
                     'query': idx,
+                    'cache': {},
+                    'type': 'mdict',
                     'error': '',
                 }
+    # for google translate online
+    title = 'Google 翻译'
+    dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
+    mdicts[dict_uuid] = {
+        'title': title,
+        'uuid': dict_uuid,
+        'logo': 'google_translate.ico',
+        'about': 'google-translate-for-goldendict<br />https://github.com/xinebf/google-translate-for-goldendict',
+        'root_path': 'translate.google.cn',
+        'query': google_translate,
+        'cache': {},
+        'type': 'app',
+        'error': '',
+    }
+    db_names[dict_uuid] = None
     print('--- MDict is Ready ---')
     return mdicts, db_names
+
+
+def google_translate(word, item=None):
+    """
+    python -m googletranslate.googletranslate -s "translate.google.cn" -r plain zh-CN "word"
+    """
+    class Args:
+        target: str = 'zh-CN'
+        query: str = ''
+        host: str = 'translate.google.com'
+        proxy: str = ''
+        alternative: str = 'en'
+        type: str = 'plain'
+        synonyms: bool = False
+        definitions: bool = True
+        examples: bool = False
+        tkk: str = ''
+    Args.host = item['root_path'] if item else 'translate.google.cn'
+    Args.query = word
+    trans = []
+    trans_group = []
+    result = gtranslate(Args)
+    for line in result.split('\n'):
+        if not line:
+            continue
+        if line == '=========':
+            trans_group.append('<div>%s</div>' % '<br />'.join(trans))
+            trans = []
+            continue
+        trans.append(line)
+    if trans:
+        trans_group.append('<div>%s</div>' % '<br />'.join(trans))
+    return trans_group
 
 
 regex_body = re.compile(r'(#\S+ .mdict)\s+?(body)\s*?({)')
