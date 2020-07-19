@@ -3,7 +3,7 @@ import re
 import os.path
 
 from flask import render_template, send_file, url_for,  \
-    redirect, abort, jsonify, make_response
+    redirect, abort, jsonify, request
 
 from .forms import WordForm
 from . import mdict, get_mdict, get_db, Config
@@ -150,7 +150,8 @@ def query_word_all():
     if form.validate_on_submit():
         word = form.word.data
     else:
-        word = helper.ecdict_random_word('cet4')
+        word = request.args.get('word')
+        word = word or helper.ecdict_random_word('cet4')
         form.word.data = word
 
     word = word.strip()
