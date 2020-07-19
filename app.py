@@ -7,6 +7,7 @@ import argparse
 import uuid
 import sqlite3
 import csv
+import webbrowser
 
 import requests
 from flask import Flask, redirect, url_for
@@ -118,6 +119,8 @@ def main():
         init_mdict(args.mdict_dir, 'init')
     else:
         app = create_app(args.mdict_dir)
+        url = 'http://%s:%s' % (args.host, args.port)
+        webbrowser.open_new_tab(url)
         app.run(host=args.host, port=args.port)
 
 
