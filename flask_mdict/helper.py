@@ -77,7 +77,8 @@ def query_word_meta(word):
     else:
         sql = 'SELECT * FROM ecdict where WORD = ?'
         cursor = db.execute(sql, (word, ))
-        key = dict(next(cursor))
+        row = next(cursor, None)
+        key = dict(row) if row else {}
     word_meta = []
     if key.get('oxford'):
         word_meta.append('<a href="https://www.oxfordlearnersdictionaries.com/us/wordlist/english/oxford3000/" target="_blank">'
@@ -255,22 +256,37 @@ def google_translate(word, item=None):
     trans = []
     trans_group = []
     result = gtranslate(Args)
+    tags = []
     for line in result.split('\n'):
         if not line:
             continue
         elif line == '=========':
-            trans_group.append('<div>%s</div>' % '<br />'.join(trans))
+            trans_group.append('<div>%s%s</div>' % (
+                '<br />'.join(trans),
+                ''.join(['</%s>' % t for t in tags[::-1]])
+            ))
             trans = []
+            tags = []
             continue
         elif line.startswith('^_^:'):
             line = '<span>%s</span>' % line
         elif line.startswith('0_0:'):
             line = '<span>%s</span>' % line
+        elif line.startswith('#'):
+            if tags:
+                line = '</%s><%s>%s' % (tags[-1], tags[-1], line)
+            else:
+                tags.append('ul')
+                tags.append('li')
+                line = '<%s><%s>%s' % (tags[-2], tags[-1], line)
         else:
             line = '%s' % line
         trans.append(line)
     if trans:
-        trans_group.append('<div>%s</div>' % '<br />'.join(trans))
+        trans_group.append('<div>%s%s</div>' % (
+            '<br />'.join(trans),
+            ''.join(['</%s>' % t for t in tags[::-1]])
+        ))
     return trans_group
 
 
