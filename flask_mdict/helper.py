@@ -20,12 +20,22 @@ regex_tag = re.compile(r'<[^>]+?>')
 
 
 def ecdict_query_word(word, item=None):
+    def convert(data):
+        html = []
+        data = data.replace('\\n', '\n')
+        for d in data.split('\n'):
+            f = d.partition(' ')
+            html.append('<div class="dcb">')
+            html.append('<span class="pos">%s</span>' % f[0])
+            html.append('<span class="dcn">%s</span>' % f[2])
+            html.append('</div>')
+        return '\n'.join(html)
+
     db = get_db('ecdict')
     if not db:
         return []
     sql = 'SELECT * FROM ecdict where WORD = ?'
-    cursor = db.execute(sql, (word, ))
-    trans = []
+    cursor = db.execute(sql, (word.lower(), ))
     EXCHANGE = {
         'p': '过去式',
         'd': '过去分词',
@@ -37,17 +47,32 @@ def ecdict_query_word(word, item=None):
         '0': '词根',
         '1': '词根变换',
     }
+    html_group = []
     for row in cursor:
         exchanges = []
         for e in row['exchange'].split('/'):
             if e:
                 t, w = e.split(':')
                 exchanges.append('%s: %s' % (EXCHANGE.get(t, t), w))
-        t = '%(word)s [%(phonetic)s]<br />XXX<br /><ul><li>%(definition)s</li><li>%(translation)s</li></ul>' % row
-        t = t.replace('\\n', '<br />')
-        t = t.replace('XXX', ' '.join(exchanges))
-        trans.append(t)
-    return trans
+        html = []
+        html.append('<link href="concise-enhanced.css" rel="stylesheet" type="text/css">')
+        html.append('<div class="bdy" id="ecdict">')
+        html.append('<div class="ctn" id="content">')
+        html.append(f'<div class="hwd">{row["word"]}</div>')
+        html.append('<hr class="hrz" />')
+        if row['phonetic']:
+            html.append(f'<div class="git"><span class="ipa">[{row["phonetic"]}]</span></div>')
+        if row['exchange']:
+            html.append(f'<span>{" ".join(exchanges)}</span>')
+        if row['definition']:
+            html.append('<div>%s</div>' % convert(row["definition"]))
+        html.append('<div class="gdc">%s</div>' % convert(row["translation"]))
+
+        html.append('<hr class="hr2" />')
+        html.append('</div>')
+        html.append('</div>')
+        html_group.append('\n'.join(html))
+    return html_group
 
 
 def ecdict_random_word(tag):
@@ -198,25 +223,28 @@ def init_mdict(mdict_dir):
                     'type': 'mdict',
                     'error': '',
                 }
-    # ecdict
-    title = 'ECDICT'
     dict_uuid = 'ecdict'
-    mdicts['ecdict'] = {
-        'title': title,
-        'uuid': dict_uuid,
-        'logo': 'logo.ico',
-        'about': 'ECDICT - Free English to Chinese Dictionary Database<br />https://github.com/skywind3000/ECDICT',
-        'root_path': '',
-        'query': ecdict_query_word,
-        'cache': {},
-        'type': 'app',
-        'error': '',
-    }
-    db_names[dict_uuid] = os.path.join(mdict_dir, 'ecdict.db')
-    if not os.path.exists(db_names[dict_uuid]):
-        print('Do not find ECDICT "%s"' % db_names[dict_uuid])
-    else:
-        print('Add "%s"...' % title)
+    ecdict_db = os.path.join(mdict_dir, 'ecdict.db')
+    if os.path.exists(ecdict_db):
+        db_names[dict_uuid] = ecdict_db
+    # ecdict, add offical ecdict from http://github.com/skywind3000/ECDICT
+    if False:
+        title = 'ECDICT'
+        mdicts['ecdict'] = {
+            'title': title,
+            'uuid': dict_uuid,
+            'logo': 'logo.ico',
+            'about': 'ECDICT - Free English to Chinese Dictionary Database<br />https://github.com/skywind3000/ECDICT',
+            'root_path': '',
+            'query': ecdict_query_word,
+            'cache': {},
+            'type': 'app',
+            'error': '',
+        }
+        if not os.path.exists(db_names[dict_uuid]):
+            print('Do not find ECDICT "%s"' % db_names[dict_uuid])
+        else:
+            print('Add "%s"...' % title)
     # for google translate online
     title = 'Google 翻译'
     dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
