@@ -34,7 +34,7 @@ class IndexBuilder2(IndexBuilder):
 
         if self.is_update(self._mdx_file):
             self._make_mdx_index(self._mdx_file + '.db')
-        if self.is_update(self._mdd_file):
+        if self._mdd_file and self.is_update(self._mdd_file):
             self._make_mdd_index(self._mdd_file + '.db')
         # check mdd db
         for mdd_file in self._mdd_files:    # parent class has initialize first item
