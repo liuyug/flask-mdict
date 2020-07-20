@@ -98,6 +98,7 @@ def main():
                         help='show version')
     group = parser.add_argument_group('Flask Mdict Server')
     group.add_argument('--server', action='store_true', help='run Flask Mdict Server')
+    group.add_argument('--debug', action='store_true', help='debug mode')
     group.add_argument('--host', default='127.0.0.1', help='the interface to bind to')
     group.add_argument('--port', default=5000, help='the interface to bind to')
 
@@ -121,7 +122,7 @@ def main():
         app = create_app(args.mdict_dir)
         url = 'http://%s:%s' % (args.host, args.port)
         webbrowser.open_new_tab(url)
-        app.run(host=args.host, port=args.port)
+        app.run(host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == "__main__":
