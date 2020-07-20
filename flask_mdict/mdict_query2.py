@@ -32,13 +32,30 @@ class IndexBuilder2(IndexBuilder):
             if m and m.group(1) == name:
                 self._mdd_files.append(os.path.join(dirname, fname))
 
+        if self.is_update(self._mdx_file):
+            self._make_mdx_index(self._mdx_file + '.db')
+        if self.is_update(self._mdd_file):
+            self._make_mdd_index(self._mdd_file + '.db')
         # check mdd db
         for mdd_file in self._mdd_files:    # parent class has initialize first item
             if mdd_file == self._mdd_file:
                 continue
             mdd_db = mdd_file + '.db'
-            if force_rebuild or not os.path.isfile(mdd_db):
+            if force_rebuild or not os.path.isfile(mdd_db) or self.is_update(mdd_file):
                 self._make_mdd_index(mdd_db, mdd_file)
+
+    @staticmethod
+    def is_update(mdx_file):
+        db_name = mdx_file + '.db'
+        creation_time = '%s' % os.path.getctime(mdx_file)
+
+        conn = sqlite3.connect(db_name)
+        c = conn.cursor()
+        c.execute('SELECT * FROM META where key = "c_time"')
+        row = dict(c.fetchall())
+        conn.close()
+        if not row or creation_time != row['c_time']:
+            return True
 
     def _make_mdx_index(self, db_name):
         super(IndexBuilder2, self)._make_mdx_index(db_name)
@@ -55,16 +72,32 @@ class IndexBuilder2(IndexBuilder):
                 fix_keys.append((fix_key,) + row[1:])
         c.executemany('INSERT INTO MDX_INDEX VALUES (?,?,?,?,?,?,?,?)', fix_keys)
         conn.commit()
+        creation_time = '%s' % os.path.getctime(self._mdx_file)
+        c.execute('INSERT INTO META VALUES (?,?)', ('c_time', creation_time))
+        conn.commit()
         conn.close()
 
     def _make_mdd_index(self, db_name, mdd_name=None):
         if os.path.exists(db_name):
             os.remove(db_name)
         old_mdd_file = self._mdd_file
-        if mdd_name:
+        if not mdd_name:
+            # first mdd, mdd_name is self._mdd_file
+            pass
+        else:
+            # second mdd
             self._mdd_file = mdd_name
+        creation_time = '%s' % os.path.getctime(self._mdd_file)
         super(IndexBuilder2, self)._make_mdd_index(db_name)
         self._mdd_file = old_mdd_file
+
+        conn = sqlite3.connect(db_name)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE META (key text, value text)''')
+        conn.commit()
+        c.execute('INSERT INTO META VALUES (?,?)', ('c_time', creation_time))
+        conn.commit()
+        conn.close()
 
     def mdx_lookup(self, conn, keyword, ignorecase=None):
         if not os.path.exists(self._mdx_db):
