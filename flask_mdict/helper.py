@@ -295,7 +295,7 @@ regex_body = re.compile(r'(#\S+ .mdict)\s+?(body)\s*?({)')
 regex_fontface = re.compile(r'(@font-face *{.+?})', re.DOTALL)
 
 
-def fix_css(prefix_id, css_data):
+def fix_css_scss(prefix_id, css_data):
     # remove fontface with scss bug
     fontface = []
     for m in regex_fontface.findall(css_data):
@@ -307,13 +307,36 @@ def fix_css(prefix_id, css_data):
     # check origin data
     css.compile(data)
 
-    data = css.compile('#%s .mdict { %s }' % (prefix_id, data))
+    data = css.compile('%s .mdict { %s }' % (prefix_id, data))
 
     data = regex_body.sub(r'\2 \1 \3', data)
     # add fontface
     data = '\n'.join(fontface) + data
     return data
 
+
+regex_css_comment = re.compile(r'(/\*.*?\*/)')
+regex_css_tags = re.compile(r'([^}/;]+?){')
+
+
+def fix_css_regex(prefix_id, css_data):
+    def replace(mo):
+        tags = mo.group(1).strip()
+        if not tags or tags.startswith('@'):
+            return mo.group(0)
+        else:
+            fix_tags = []
+            for tag in tags.split(','):
+                tag = tag.strip()
+                fix_tags.append(f'{prefix_id} .mdict {tag}')
+            return '%s {' % ','.join(fix_tags)
+    data = regex_css_comment.sub('', css_data)
+    data = regex_css_tags.sub(replace, data)
+    return data
+
+
+fix_css = fix_css_regex
+# fix_css = fix_css_scss
 
 regex_opened_tag = re.compile(r'<([a-z]+)(?: .*?)?>', re.DOTALL | re.IGNORECASE)
 regex_closed_tag = re.compile(r'</([a-z]+)>', re.IGNORECASE)

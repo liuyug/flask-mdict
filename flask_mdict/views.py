@@ -60,7 +60,7 @@ def query_resource(uuid, resource):
             if resource.endswith('.css'):
                 try:
                     s_data = data.decode('utf-8')
-                    s_data = helper.fix_css('class_%s' % uuid, s_data)
+                    s_data = helper.fix_css('#class_%s' % uuid, s_data)
                     data = s_data.encode('utf-8')
                     item['error'] = ''
                 except Exception as err:
