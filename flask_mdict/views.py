@@ -11,9 +11,15 @@ from . import helper
 
 
 regex_word_link = re.compile(r'^(@@@LINK=)(.+)$')
+# img src
 regex_src_schema = re.compile(r'([ "]src=["\'])(/|file:///)?(?!data:)(.+?["\'])')
+# http://.../
 regex_href_end_slash = re.compile(r'([ "]href=["\'].+?)(/)(["\'])')
-regex_href_schema = re.compile(r'([ "]href=["\'])(sound://|entry://)([^#].+?["\'])')
+# sound://
+regex_href_schema_sound = re.compile(r'([ "]href=["\'])(sound://)([^#].+?["\'])')
+# entry://
+regex_href_schema_entry = re.compile(r'([ "]href=["\'])(entry://)([^#].+?["\'])')
+# default: http
 regex_href_no_schema = re.compile(r'([ "]href=["\'])(?!sound://|entry://)([^#].+?["\'])')
 
 
@@ -101,7 +107,8 @@ def query_word(uuid, word):
     html_content = []
     if item['error']:
         html_content.append('<div style="color: red;">%s</div>' % item['error'])
-    prefix = '../resource'
+    prefix_resource = '%s/resource' % '..'
+    # prefix_entry = '%s/query' % '..'
     for record in records:
         record = helper.fix_html(record)
         mo = regex_word_link.match(record)
@@ -112,20 +119,21 @@ def query_word(uuid, word):
                 return redirect(url_for('.query_resource', uuid=uuid, resource=link, _anchor=anchor))
             else:
                 record = '<p>Also: <a href="%s">%s</a></p>' % (
-                    url_for('.query_word', uuid=uuid, word=link),
+                    f'entry://{link}',
                     link,
                 )
         else:
-            record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix, record)
+            record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
             record = regex_href_end_slash.sub(r'\1\3', record)
-            record = regex_href_schema.sub(r'\1\g<2>%s/\3' % prefix, record)
-            record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix, record)
+            record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
         html_content.append(record)
     html_content = '<hr />'.join(html_content)
     about = item['about']
-    about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix, about)
     about = regex_href_end_slash.sub(r'\1\3', about)
-    about = regex_href_schema.sub(r'\1\g<2>%s/\3' % prefix, about)
+    about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
+    about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
 
     contents = {}
     contents[uuid] = {
@@ -165,7 +173,8 @@ def query_word_all():
         html_content = []
         if item['error']:
             html_content.append('<div style="color: red;">%s</div>' % item['error'])
-        prefix = '%s/resource' % uuid
+        prefix_resource = '%s/resource' % uuid
+        prefix_entry = '%s/query' % uuid
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -176,21 +185,22 @@ def query_word_all():
                     return redirect(url_for('.query_word_all', word=link, _anchor=anchor))
                 else:
                     record = '<p>Also: <a href="%s">%s</a></p>' % (
-                        url_for('.query_word_all', word=link),
+                        f'entry://{uuid}/query/{link}',
                         link,
                     )
             else:
                 # add dict uuid into url
-                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix, record)
+                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
                 record = regex_href_end_slash.sub(r'\1\3', record)
-                record = regex_href_schema.sub(r'\1\g<2>%s/\3' % prefix, record)
-                record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix, record)
+                record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+                record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+                record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
             html_content.append(record)
         html_content = '<hr />'.join(html_content)
         about = item['about']
-        about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix, about)
+        about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
         about = regex_href_end_slash.sub(r'\1\3', about)
-        about = regex_href_schema.sub(r'\1\g<2>%s/\3' % prefix, about)
+        about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
@@ -208,13 +218,7 @@ def query_word_all():
     )
 
 
-@mdict.route('/gtranslate/<word>', methods=['GET', 'POST'])
+@mdict.route('/gtranslate/query/<word>', methods=['GET', 'POST'])
 def google_translate(word):
     trans = helper.google_translate(word)
-    return '\n'.join(trans)
-
-
-@mdict.route('/ecdict/<word>', methods=['GET', 'POST'])
-def ecdict_query_word(word):
-    trans = helper.ecdict_query_word(word)
     return '\n'.join(trans)
