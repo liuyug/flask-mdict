@@ -343,7 +343,7 @@ def fix_css_scss(prefix_id, css_data):
     return data
 
 
-regex_css_comment = re.compile(r'(/\*.*?\*/)')
+regex_css_comment = re.compile(r'(/\*.*?\*/)', re.DOTALL)
 regex_css_tags = re.compile(r'([^}/;]+?){')
 
 
@@ -357,7 +357,7 @@ def fix_css_regex(prefix_id, css_data):
             for tag in tags.split(','):
                 tag = tag.strip()
                 fix_tags.append(f'{prefix_id} .mdict {tag}')
-            return '%s {' % ','.join(fix_tags)
+            return '\n%s {' % ','.join(fix_tags)
     data = regex_css_comment.sub('', css_data)
     data = regex_css_tags.sub(replace, data)
     return data
