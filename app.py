@@ -9,11 +9,41 @@ import sqlite3
 import csv
 import webbrowser
 import zipfile
+from configparser import ConfigParser
 
 import requests
 from flask import Flask, redirect, url_for
 
 from flask_mdict import __version__, init_app, mdict_query2
+
+
+class gConfig():
+    pass
+
+
+def init_config():
+    if getattr(sys, 'frozen', False):
+        name, ext = os.path.splitext(sys.executable)
+    else:
+        name, ext = os.path.splitext(__file__)
+    cfg_path = os.path.join(f'{name}.cfg')
+    if not os.path.exists(cfg_path):
+        cfg_text = """[general]
+mdict_dir = content
+
+[server]
+host = 127.0.0.1
+port = 5248
+debug = false
+"""
+        with open(cfg_path, 'wt') as f:
+            f.write(cfg_text)
+    config = ConfigParser()
+    config.read(cfg_path)
+    for section in config.sections():
+        setattr(gConfig, section, {})
+        for k, v in config.items(section):
+            getattr(gConfig, section)[k] = v
 
 
 def create_app(mdict_dir='content'):
@@ -125,9 +155,9 @@ def main():
                         help='show version')
     group = parser.add_argument_group('Flask Mdict Server')
     group.add_argument('--server', action='store_true', help='start Flask Mdict Server')
-    group.add_argument('--host', default='127.0.0.1', help='the interface to bind to')
-    group.add_argument('--port', default=5248, help='the interface to bind to')
-    group.add_argument('--debug', action='store_true', help='debug mode')
+    group.add_argument('--host', help='the interface to bind to, default: 127.0.0.1')
+    group.add_argument('--port', help='the interface to bind to, default: 5248')
+    group.add_argument('--debug', action='store_const', const='true', help='debug mode')
 
     group = parser.add_argument_group('ECDICT - Free English to Chinese Dictionary')
     group.add_argument('--install-wfd', action='store_true',
@@ -143,10 +173,17 @@ def main():
     group.add_argument('--check-index', action='store_true',
                        help='check if the index is out of date')
 
-    parser.add_argument('mdict_dir', nargs='?', default='content',
+    parser.add_argument('mdict_dir', nargs='?',
                         help='dictionary directory. default: "content"')
 
     args = parser.parse_args()
+
+    init_config()
+    mdict_dir = args.mdict_dir or gConfig.general.get('mdict_dir')
+    host = args.host or gConfig.server.get('host')
+    port = args.port or gConfig.server.get('port')
+    debug = args.debug or gConfig.server.get('debug')
+    debug = debug.lower() == 'true'
 
     if args.install_wfd:
         install_wfd(args.mdict_dir)
@@ -159,7 +196,7 @@ def main():
     elif args.check_index:
         mdict_index(args.mdict_dir, 'check')
     else:
-        start_flask_mdict_server(args.mdict_dir, args.host, args.port, args.debug)
+        start_flask_mdict_server(mdict_dir, host, port, debug)
 
 
 if __name__ == "__main__":
