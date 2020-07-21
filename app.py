@@ -30,6 +30,13 @@ def create_app(mdict_dir='content'):
     return app
 
 
+def start_flask_mdict_server(mdict_dir, host, port, debug=False):
+    app = create_app(mdict_dir)
+    url = 'http://%s:%s' % (host, port)
+    webbrowser.open_new_tab(url)
+    app.run(host=host, port=port, debug=debug)
+
+
 def mdict_index(mdict_dir, action=None):
     for root, dirs, files in os.walk(mdict_dir, followlinks=True):
         for fname in files:
@@ -100,7 +107,7 @@ def main():
     group.add_argument('--server', action='store_true', help='run Flask Mdict Server')
     group.add_argument('--debug', action='store_true', help='debug mode')
     group.add_argument('--host', default='127.0.0.1', help='the interface to bind to')
-    group.add_argument('--port', default=5000, help='the interface to bind to')
+    group.add_argument('--port', default=5248, help='the interface to bind to')
 
     parser.add_argument(
         '--create-ecdict', action='store_true',
@@ -125,10 +132,7 @@ def main():
     elif args.check_index:
         mdict_index(args.mdict_dir, 'check')
     else:
-        app = create_app(args.mdict_dir)
-        url = 'http://%s:%s' % (args.host, args.port)
-        webbrowser.open_new_tab(url)
-        app.run(host=args.host, port=args.port, debug=args.debug)
+        start_flask_mdict_server(args.mdict_dir, args.host, args.port, args.debug)
 
 
 if __name__ == "__main__":
