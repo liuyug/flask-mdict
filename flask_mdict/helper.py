@@ -31,7 +31,7 @@ def ecdict_query_word(word, item=None):
             html.append('</div>')
         return '\n'.join(html)
 
-    db = get_db('ecdict')
+    db = get_db('ecdict_wfd')
     if not db:
         return []
     sql = 'SELECT * FROM ecdict where WORD = ?'
@@ -77,7 +77,7 @@ def ecdict_query_word(word, item=None):
 
 def ecdict_random_word(tag):
     word = ['hello']
-    db = get_db('ecdict')
+    db = get_db('ecdict_wfd')
     if not db:
         return word[0]
     sql = 'SELECT word FROM ecdict WHERE word IN (SELECT word FROM ecdict WHERE ecdict.tag like ? ORDER BY RANDOM() LIMIT 1)'
@@ -97,9 +97,9 @@ def query_word_meta(word):
         'toefl': 'TOEFL',
         'ielts': 'IELTS',
     }
-    db = get_db('ecdict')
+    db = get_db('ecdict_wfd')
     if not db:
-        key = {'error': 'Could not found "ecdict.db"'}
+        key = {'error': 'Could not found "Word Frequency Database - ecdict_wfd.db"!'}
     else:
         sql = 'SELECT * FROM ecdict where WORD = ?'
         cursor = db.execute(sql, (word, ))
@@ -223,28 +223,12 @@ def init_mdict(mdict_dir):
                     'type': 'mdict',
                     'error': '',
                 }
-    dict_uuid = 'ecdict'
-    ecdict_db = os.path.join(mdict_dir, 'ecdict.db')
-    if os.path.exists(ecdict_db):
-        db_names[dict_uuid] = ecdict_db
-    # ecdict, add offical ecdict from http://github.com/skywind3000/ECDICT
-    if False:
-        title = 'ECDICT'
-        mdicts['ecdict'] = {
-            'title': title,
-            'uuid': dict_uuid,
-            'logo': 'logo.ico',
-            'about': 'ECDICT - Free English to Chinese Dictionary Database<br />https://github.com/skywind3000/ECDICT',
-            'root_path': '',
-            'query': ecdict_query_word,
-            'cache': {},
-            'type': 'app',
-            'error': '',
-        }
-        if not os.path.exists(db_names[dict_uuid]):
-            print('Do not find ECDICT "%s"' % db_names[dict_uuid])
-        else:
-            print('Add "%s"...' % title)
+    wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
+    if os.path.exists(wfd_db):
+        db_names['ecdict_wfd'] = wfd_db
+        print('Add "Word Frequency Database - ecdict_wfd.db"...')
+    else:
+        print('Could not found "Word Frequency Database - ecdict_wfd.db"!')
     # for google translate online
     title = 'Google 翻译'
     dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()

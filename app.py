@@ -8,6 +8,7 @@ import uuid
 import sqlite3
 import csv
 import webbrowser
+import zipfile
 
 import requests
 from flask import Flask, redirect, url_for
@@ -67,9 +68,9 @@ def mdict_index(mdict_dir, action=None):
                         f.write(text)
 
 
-def create_ecdict(mdict_dir):
+def install_wfd(mdict_dir):
     csv_file = os.path.join(mdict_dir, 'ecdict.csv')
-    db_file = os.path.join(mdict_dir, 'ecdict.db')
+    db_file = os.path.join(mdict_dir, 'ecdict_wfd.db')
     if not os.path.exists(csv_file):
         url = 'https://github.com/skywind3000/ECDICT/raw/master/ecdict.csv'
         print('get ecdict.csv.', end='', flush=True)
@@ -79,7 +80,7 @@ def create_ecdict(mdict_dir):
                 print('.', end='', flush=True)
                 f.write(chunk)
         print()
-    print('convert ecdict.csv to ecdict.db...')
+    print('convert ecdict.csv to ecdict_wfd.db...')
     with open(csv_file, newline='', encoding='utf-8') as f:
         reader = csv.reader(f)
         with sqlite3.connect(db_file) as conn:
@@ -98,33 +99,59 @@ def create_ecdict(mdict_dir):
             # conn.execute('CREATE INDEX ecdict_index_word ON ecdict(word)')
 
 
+def install_ecdict(mdict_dir):
+    url = 'https://github.com/skywind3000/ECDICT/releases/download/1.0.28/ecdict-mdx-style-28.zip'
+    fname = os.path.basename(url)
+    zip_file = os.path.join(mdict_dir, fname)
+    if not os.path.exists(zip_file):
+        print(f'get {fname}.', end='', flush=True)
+        r = requests.get(url, stream=True)
+        with open(zip_file, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=10240):
+                print('.', end='', flush=True)
+                f.write(chunk)
+        print()
+    dict_dir = os.path.join(mdict_dir, os.path.splitext(fname)[0])
+    print(f'extract "{fname}" into "{dict_dir}"...')
+    os.makedirs(dict_dir, exist_ok=True)
+    with zipfile.ZipFile(zip_file) as z:
+        z.extractall(dict_dir)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Flask Mdict Tool')
     parser.add_argument('--version', action='version',
                         version='Flask Mdict Tool v%s' % __version__,
                         help='show version')
     group = parser.add_argument_group('Flask Mdict Server')
-    group.add_argument('--server', action='store_true', help='run Flask Mdict Server')
-    group.add_argument('--debug', action='store_true', help='debug mode')
+    group.add_argument('--server', action='store_true', help='start Flask Mdict Server')
     group.add_argument('--host', default='127.0.0.1', help='the interface to bind to')
     group.add_argument('--port', default=5248, help='the interface to bind to')
+    group.add_argument('--debug', action='store_true', help='debug mode')
 
-    parser.add_argument(
-        '--create-ecdict', action='store_true',
-        help='create ECDICT (Free English to Chinese Dictionary Database). My Word Frequency Database')
+    group = parser.add_argument_group('ECDICT - Free English to Chinese Dictionary')
+    group.add_argument('--install-wfd', action='store_true',
+                       help='install Word Frequency Database from ECDICT csv')
+    group.add_argument('--install-ecdict', action='store_true',
+                       help='install ECDICT dictionary.')
 
-    group = parser.add_argument_group('Mdict Index DB for Flask Mdict')
-    group.add_argument('--create-index', action='store_true', help='create index')
-    group.add_argument('--remove-index', action='store_true', help='remove index')
-    group.add_argument('--check-index', action='store_true', help='check index')
+    group = parser.add_argument_group('Mdict Index for Flask Mdict')
+    group.add_argument('--create-index', action='store_true',
+                       help='create MDICT index database')
+    group.add_argument('--remove-index', action='store_true',
+                       help='remove MDICT index database')
+    group.add_argument('--check-index', action='store_true',
+                       help='check if the index is out of date')
 
     parser.add_argument('mdict_dir', nargs='?', default='content',
-                        help='mdict dictionary directory. default: "content"')
+                        help='dictionary directory. default: "content"')
 
     args = parser.parse_args()
 
-    if args.create_ecdict:
-        create_ecdict(args.mdict_dir)
+    if args.install_wfd:
+        install_wfd(args.mdict_dir)
+    elif args.install_ecdict:
+        install_ecdict(args.mdict_dir)
     elif args.remove_index:
         mdict_index(args.mdict_dir, 'remove')
     elif args.create_index:

@@ -47,14 +47,14 @@ class IndexBuilder2(IndexBuilder):
     @staticmethod
     def is_update(mdx_file):
         db_name = mdx_file + '.db'
-        creation_time = '%s' % os.path.getctime(mdx_file)
+        m_time = '%s' % os.path.getmtime(mdx_file)
 
         conn = sqlite3.connect(db_name)
         c = conn.cursor()
-        c.execute('SELECT * FROM META where key = "c_time"')
+        c.execute('SELECT * FROM META where key = "m_time"')
         row = dict(c.fetchall())
         conn.close()
-        if not row or creation_time != row['c_time']:
+        if not row or m_time != row['m_time']:
             return True
 
     def _make_mdx_index(self, db_name):
@@ -72,8 +72,8 @@ class IndexBuilder2(IndexBuilder):
                 fix_keys.append((fix_key,) + row[1:])
         c.executemany('INSERT INTO MDX_INDEX VALUES (?,?,?,?,?,?,?,?)', fix_keys)
         conn.commit()
-        creation_time = '%s' % os.path.getctime(self._mdx_file)
-        c.execute('INSERT INTO META VALUES (?,?)', ('c_time', creation_time))
+        m_time = '%s' % os.path.getmtime(self._mdx_file)
+        c.execute('INSERT INTO META VALUES (?,?)', ('m_time', m_time))
         conn.commit()
         conn.close()
 
@@ -87,7 +87,7 @@ class IndexBuilder2(IndexBuilder):
         else:
             # second mdd
             self._mdd_file = mdd_name
-        creation_time = '%s' % os.path.getctime(self._mdd_file)
+        m_time = '%s' % os.path.getmtime(self._mdd_file)
         super(IndexBuilder2, self)._make_mdd_index(db_name)
         self._mdd_file = old_mdd_file
 
@@ -95,7 +95,7 @@ class IndexBuilder2(IndexBuilder):
         c = conn.cursor()
         c.execute('''CREATE TABLE META (key text, value text)''')
         conn.commit()
-        c.execute('INSERT INTO META VALUES (?,?)', ('c_time', creation_time))
+        c.execute('INSERT INTO META VALUES (?,?)', ('m_time', m_time))
         conn.commit()
         conn.close()
 
