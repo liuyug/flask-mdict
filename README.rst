@@ -28,9 +28,11 @@ Install
     # copy MDICT dictionary into content directory
     cp <mdict> content/
 
-    # ecdict
-    python3 app.py --create-ecdict
+    # install word frequency database from ecdict csv
+    python3 app.py --install-wfd
 
+    # install ECDICT dictionary.
+    python3 app.py --install-ecdict
 
 Run
 ----
