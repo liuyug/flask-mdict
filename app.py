@@ -29,7 +29,7 @@ def init_config():
     cfg_path = os.path.join(f'{name}.cfg')
     if not os.path.exists(cfg_path):
         cfg_text = """[general]
-mdict_dir = content
+mdict_dir = .
 
 [server]
 host = 127.0.0.1
