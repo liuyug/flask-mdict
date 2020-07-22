@@ -6,14 +6,14 @@
 <link rel="stylesheet" href="{{url_for('.static', filename='css/mdict.css')}}">
 {% endblock %}
 
-{% block subtitle %}我爱词霸 - {{word}}{% endblock %}
+{% block subtitle %}吾爱词霸 - {{word}}{% endblock %}
 
 {% block maincontent %}
 <div class="row">
     <div class="col-sm-3">
         <div class="sticky-top">
             <div class="anchor-fix"> </div>
-            <h5>我爱词霸</h5>
+            <h5>吾爱词霸</h5>
             <form method="POST">
                 <div class="input-group">
                     {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
