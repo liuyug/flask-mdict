@@ -29,10 +29,8 @@ Install
     cp <mdict> content/
 
     # install word frequency database from ecdict csv
-    python3 app.py --install-wfd
+    ecdict.sh
 
-    # install ECDICT dictionary.
-    python3 app.py --install-ecdict
 
 Run
 ----
