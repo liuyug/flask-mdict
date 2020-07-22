@@ -23,6 +23,18 @@ with open(os.path.join('flask_mdict', '__init__.py')) as f:
     version = mo.group(1)
 
 
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+
+extra_files = package_files('flask_mdict/static')
+extra_files += package_files('flask_mdict/templates')
+
+
 setup(
     name='flask_mdict',
     version=version,
@@ -34,7 +46,8 @@ setup(
     long_description=long_description,
     python_requires='>=3.6',
     platforms=['noarch'],
-    py_modules=['flask_mdict'],
+    packages=find_packages(),
+    package_data={'': extra_files},
     install_requires=requirements,
     zip_safe=False,
 )
