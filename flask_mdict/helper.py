@@ -5,7 +5,6 @@ import os.path
 import sqlite3
 
 from flask import url_for
-from scss import Scss
 
 from googletranslate.googletranslate import main as gtranslate
 
@@ -303,35 +302,11 @@ def google_translate(word, item=None):
     return trans_group
 
 
-regex_body = re.compile(r'(#\S+ .mdict)\s+?(body)\s*?({)')
-regex_fontface = re.compile(r'(@font-face *{.+?})', re.DOTALL)
-
-
-def fix_css_scss(prefix_id, css_data):
-    # remove fontface with scss bug
-    fontface = []
-    for m in regex_fontface.findall(css_data):
-        fontface.append(m)
-    data = regex_fontface.sub('', css_data)
-
-    # with compressed
-    css = Scss(scss_opts={'style': True})
-    # check origin data
-    css.compile(data)
-
-    data = css.compile('%s .mdict { %s }' % (prefix_id, data))
-
-    data = regex_body.sub(r'\2 \1 \3', data)
-    # add fontface
-    data = '\n'.join(fontface) + data
-    return data
-
-
 regex_css_comment = re.compile(r'(/\*.*?\*/)', re.DOTALL)
 regex_css_tags = re.compile(r'([^}/;]+?){')
 
 
-def fix_css_regex(prefix_id, css_data):
+def fix_css(prefix_id, css_data):
     def replace(mo):
         tags = mo.group(1).strip()
         if not tags or tags.startswith('@'):
@@ -346,9 +321,6 @@ def fix_css_regex(prefix_id, css_data):
     data = regex_css_tags.sub(replace, data)
     return data
 
-
-fix_css = fix_css_regex
-# fix_css = fix_css_scss
 
 regex_opened_tag = re.compile(r'<([a-z]+)(?: .*?)?>', re.DOTALL | re.IGNORECASE)
 regex_closed_tag = re.compile(r'</([a-z]+)>', re.IGNORECASE)

@@ -4,5 +4,4 @@ Flask-DebugToolbar
 Flask-WTF
 WTForms-Components
 
-pyscss
 google-translate-for-goldendict
