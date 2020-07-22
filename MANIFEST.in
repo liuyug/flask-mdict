@@ -1,0 +1,3 @@
+recursive-include flask_mdict/static *.*
+recursive-include flask_mdict/templates *.*
+include *.rst *.py *.jpg *.png *.txt
