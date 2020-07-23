@@ -103,8 +103,8 @@ class IndexBuilder2(IndexBuilder):
         if not os.path.exists(self._mdx_db):
             return []
         # translate ' " % ...
-        keyword = re.sub(r'''(['%]+)''', r''''\1''', keyword)
-        keyword = re.sub(r'''(["]+)''', r'''"\1''', keyword)
+        keyword = re.sub(r'''(['%])''', r''''\1''', keyword)
+        keyword = re.sub(r'''(["])''', r'''"\1''', keyword)
         return super(IndexBuilder2, self).mdx_lookup(keyword, ignorecase)
 
     def mdd_lookup(self, conn, keyword, ignorecase=None):
