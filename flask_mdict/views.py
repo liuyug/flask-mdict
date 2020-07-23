@@ -1,6 +1,7 @@
 import io
 import re
 import os.path
+import urllib.parse
 
 from flask import render_template, send_file, url_for,  \
     redirect, abort, jsonify, request
@@ -222,3 +223,75 @@ def query_word_all():
 def google_translate(word):
     trans = helper.google_translate(word)
     return '\n'.join(trans)
+
+
+@mdict.route('/lite/<uuid>/<word>')
+def query_word_lite(uuid, word):
+    def url_replace(mo):
+        rel_url = mo.group(2)
+        abs_url = urllib.parse.urljoin(
+            url_for('.query_resource', uuid=uuid, resource='resource', _external=True),
+            rel_url)
+        return mo.group(1) + abs_url + mo.group(3)
+
+    word = word.strip()
+    item = get_mdict().get(uuid)
+    if not item:
+        abort(404)
+
+    # entry and word, load from mdx, db
+    q = item['query']
+    if item['type'] == 'app':
+        records = q(word, item)
+    else:
+        records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
+    html_content = []
+    if not records:
+        return google_translate(word)
+    html_content.append(f'<div id="class_{uuid}">')
+    html_content.append('<div class="mdict">')
+    if item['error']:
+        html_content.append('<div style="color: red;">%s</div>' % item['error'])
+    prefix_resource = '%s/resource' % '..'
+    # prefix_entry = '%s/query' % '..'
+    for record in records:
+        record = helper.fix_html(record)
+        mo = regex_word_link.match(record)
+        if mo:
+            link = mo.group(2).strip()
+            if '#' in link:
+                link, anchor = link.split('#')
+                return redirect(url_for('.query_resource', uuid=uuid, resource=link, _anchor=anchor))
+            else:
+                record = '<p>Also: <a href="%s">%s</a></p>' % (
+                    f'entry://{link}',
+                    link,
+                )
+        else:
+            record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
+            record = regex_href_end_slash.sub(r'\1\3', record)
+            record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+        html_content.append(record)
+    html_content.append('</div></div>')
+    html_content = '\n'.join(html_content)
+    html_content = re.sub(r'( href=")(.+?)(")', url_replace, html_content)
+    # html_content = re.sub(r'( src=")(.+?)(")', url_replace, html_content)
+    return html_content
+
+
+@mdict.route('/list/')
+def list_mdict():
+    all_mdict = []
+    for k, v in get_mdict().items():
+        all_mdict.append({
+            'title': v['title'],
+            'uuid': v['uuid'],
+            'logo': v['logo'],
+            'about': v['about'],
+            'type': v['type'],
+            'url': url_for('.query_word_lite', uuid=v['uuid'], word='word', _external=True),
+        })
+
+    return jsonify(all_mdict)

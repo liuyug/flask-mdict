@@ -54,7 +54,7 @@ def ecdict_query_word(word, item=None):
                 t, w = e.split(':')
                 exchanges.append('%s: %s' % (EXCHANGE.get(t, t), w))
         html = []
-        html.append('<link href="concise-enhanced.css" rel="stylesheet" type="text/css">')
+        html.append('<link href="ecdict_wfd.css" rel="stylesheet" type="text/css">')
         html.append('<div class="bdy" id="ecdict">')
         html.append('<div class="ctn" id="content">')
         html.append(f'<div class="hwd">{row["word"]}</div>')
