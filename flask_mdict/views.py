@@ -225,7 +225,7 @@ def google_translate(word):
     return '\n'.join(trans)
 
 
-@mdict.route('/lite/<uuid>/<word>')
+@mdict.route('/<uuid>/lite/<word>')
 def query_word_lite(uuid, word):
     def url_replace(mo):
         rel_url = mo.group(2)
@@ -291,7 +291,7 @@ def list_mdict():
             'logo': v['logo'],
             'about': v['about'],
             'type': v['type'],
-            'url': url_for('.query_word_lite', uuid=v['uuid'], word='word', _external=True),
+            'url': url_for('.query_word_lite', uuid=v['uuid'], word='', _external=True),
         })
 
     return jsonify(all_mdict)
