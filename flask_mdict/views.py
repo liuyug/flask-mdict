@@ -267,9 +267,9 @@ def query_word_lite(uuid, word):
             if '#' in link:
                 # anchor in current page
                 link, anchor = link.split('#')
-                return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
+                return redirect(url_for('.query_word_lite', uuid=uuid, word=link, _anchor=anchor))
             else:
-                record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                return redirect(url_for('.query_word_lite', uuid=uuid, word=link))
         else:
             record = regex_href_end_slash.sub(r'\1\3', record)
             # <img src="<add:resource/>...
@@ -296,10 +296,11 @@ def list_mdict():
         all_mdict.append({
             'title': v['title'],
             'uuid': v['uuid'],
-            'logo': v['logo'],
+            'logo': url_for('.query_resource', uuid=v['uuid'], resource=v['logo'], _external=True),
             'about': v['about'],
             'type': v['type'],
-            'url': url_for('.query_word_lite', uuid=v['uuid'], word='', _external=True),
+            'lite_url': url_for('.query_word_lite', uuid=v['uuid'], word='', _external=True),
+            'url': url_for('.query_word', uuid=v['uuid'], word='', _external=True),
         })
 
     return jsonify(all_mdict)
