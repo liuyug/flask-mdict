@@ -37,6 +37,7 @@ def query_part(part):
 
 @mdict.route('/<uuid>/resource/<path:resource>', methods=['GET', 'POST'])
 def query_resource(uuid, resource):
+    """query mdict resource file: mdd"""
     resource = resource.strip()
     item = get_mdict().get(uuid)
     if not item:
@@ -88,6 +89,7 @@ def query_resource(uuid, resource):
 
 @mdict.route('/<uuid>/query/<word>', methods=['GET', 'POST'])
 def query_word(uuid, word):
+    """query mdict dict file: mdx"""
     form = WordForm()
     if form.validate_on_submit():
         word = form.word.data
@@ -116,22 +118,26 @@ def query_word(uuid, word):
         if mo:
             link = mo.group(2).strip()
             if '#' in link:
+                # anchor in current page
                 link, anchor = link.split('#')
-                return redirect(url_for('.query_resource', uuid=uuid, resource=link, _anchor=anchor))
+                return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
             else:
-                record = '<p>Also: <a href="%s">%s</a></p>' % (
-                    f'entry://{link}',
-                    link,
-                )
+                record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
         else:
+            # for <img src="<add:resource/>..."
             record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
-            record = regex_href_end_slash.sub(r'\1\3', record)
+            # for <a href="sound://<add:resouce>..."
             record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
-            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            # for <a href="<add:resource/>image.png"
             record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+            # remove /
+            record = regex_href_end_slash.sub(r'\1\3', record)
+            # for <a href="entry://...", alread in query word page, do not add
+            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
         html_content.append(record)
     html_content = '<hr />'.join(html_content)
     about = item['about']
+    # fix about html. same above
     about = regex_href_end_slash.sub(r'\1\3', about)
     about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
     about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
@@ -185,17 +191,16 @@ def query_word_all():
                     link, anchor = link.split('#')
                     return redirect(url_for('.query_word_all', word=link, _anchor=anchor))
                 else:
-                    record = '<p>Also: <a href="%s">%s</a></p>' % (
-                        f'entry://{uuid}/query/{link}',
-                        link,
-                    )
+                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
             else:
-                # add dict uuid into url
-                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
                 record = regex_href_end_slash.sub(r'\1\3', record)
+                # add dict uuid into url
+                # for resource
+                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
                 record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
-                record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+                # for dict data
+                record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
             html_content.append(record)
         html_content = '<hr />'.join(html_content)
         about = item['about']
@@ -230,7 +235,7 @@ def query_word_lite(uuid, word):
     def url_replace(mo):
         rel_url = mo.group(2)
         abs_url = urllib.parse.urljoin(
-            url_for('.query_resource', uuid=uuid, resource='resource', _external=True),
+            url_for('.query_resource', uuid=uuid, resource='', _external=True),
             rel_url)
         return mo.group(1) + abs_url + mo.group(3)
 
@@ -260,22 +265,25 @@ def query_word_lite(uuid, word):
         if mo:
             link = mo.group(2).strip()
             if '#' in link:
+                # anchor in current page
                 link, anchor = link.split('#')
-                return redirect(url_for('.query_resource', uuid=uuid, resource=link, _anchor=anchor))
+                return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
             else:
-                record = '<p>Also: <a href="%s">%s</a></p>' % (
-                    f'entry://{link}',
-                    link,
-                )
+                record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
         else:
-            record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
             record = regex_href_end_slash.sub(r'\1\3', record)
+            # <img src="<add:resource/>...
+            record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
+            # <a href="sound://<add:resource/>...
             record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
-            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            # <a href="<add:resource/>image.png
             record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+            # entry://
+            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
         html_content.append(record)
     html_content.append('</div></div>')
     html_content = '\n'.join(html_content)
+    # convert to absolute url
     html_content = re.sub(r'( href=")(.+?)(")', url_replace, html_content)
     # html_content = re.sub(r'( src=")(.+?)(")', url_replace, html_content)
     return html_content
