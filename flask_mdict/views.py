@@ -4,7 +4,7 @@ import os.path
 import urllib.parse
 
 from flask import render_template, send_file, url_for,  \
-    redirect, abort, jsonify, request
+    redirect, abort, jsonify, request, make_response
 
 from .forms import WordForm
 from . import mdict, get_mdict, get_db, Config
@@ -82,7 +82,10 @@ def query_resource(uuid, resource):
         bio = io.BytesIO()
         bio.write(data)
         bio.seek(0)
-        return send_file(bio, attachment_filename=resource)
+
+        resp = make_response(send_file(bio, attachment_filename=resource))
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
     else:
         abort(404)
 
@@ -122,7 +125,10 @@ def query_word(uuid, word):
                 link, anchor = link.split('#')
                 return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
             else:
-                record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                if len(records) > 1:
+                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                else:
+                    return redirect(url_for('.query_word', uuid=uuid, word=link))
         else:
             # for <img src="<add:resource/>..."
             record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
@@ -189,7 +195,7 @@ def query_word_all():
                 link = mo.group(2).strip()
                 if '#' in link:
                     link, anchor = link.split('#')
-                    return redirect(url_for('.query_word_all', word=link, _anchor=anchor))
+                    record = f'<p>See also: <a href="entry://{link}#{anchor}">{link}</a></p>'
                 else:
                     record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
             else:
@@ -269,7 +275,10 @@ def query_word_lite(uuid, word):
                 link, anchor = link.split('#')
                 return redirect(url_for('.query_word_lite', uuid=uuid, word=link, _anchor=anchor))
             else:
-                return redirect(url_for('.query_word_lite', uuid=uuid, word=link))
+                if len(records) > 1:
+                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                else:
+                    return redirect(url_for('.query_word_lite', uuid=uuid, word=link))
         else:
             record = regex_href_end_slash.sub(r'\1\3', record)
             # <img src="<add:resource/>...
@@ -284,9 +293,13 @@ def query_word_lite(uuid, word):
     html_content.append('</div></div>')
     html_content = '\n'.join(html_content)
     # convert to absolute url
+    # css, image
     html_content = re.sub(r'( href=")(.+?)(")', url_replace, html_content)
-    # html_content = re.sub(r'( src=")(.+?)(")', url_replace, html_content)
-    return html_content
+    # script
+    html_content = re.sub(r'( src=")(.+?)(")', url_replace, html_content)
+    resp = make_response(html_content)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 
 @mdict.route('/list/')
