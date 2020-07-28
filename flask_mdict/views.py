@@ -304,6 +304,7 @@ def query_word_lite(uuid, word):
             record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\2\3', record)
         html_content.append(record)
     html_content.append('</div></div>')
+    # no template, add mdict.js link
     html_content.append(f'<script src="{url_for(".static", filename="js/mdict.js")}"></script>')
     html_content = '\n'.join(html_content)
     # convert to absolute url
