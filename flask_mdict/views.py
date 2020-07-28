@@ -49,11 +49,10 @@ def query_resource(uuid, resource):
     if resource in item:
         data = item['cache'][resource]
     elif os.path.exists(fname):
+        # mdict local disk
         data = open(fname, 'rb').read()
-    elif resource == 'logo.ico':
-        with mdict.open_resource(os.path.join('static', 'logo.ico')) as f:
-            data = f.read()
     else:
+        # mdict mdd
         q = item['query']
         if item['type'] == 'app':
             with mdict.open_resource(os.path.join('static', resource)) as f:
@@ -61,6 +60,11 @@ def query_resource(uuid, resource):
         else:
             key = '\\%s' % '\\'.join(resource.split('/'))
             data = q.mdd_lookup(get_db(uuid), key, ignorecase=True)
+    if not data:
+        # load from flask static
+        if resource in ['logo.ico', 'css/reset.css']:
+            with mdict.open_resource(os.path.join('static', resource)) as f:
+                data = f.read()
 
     if data:
         ext = resource.rpartition('.')[-1]
@@ -142,7 +146,7 @@ def query_word(uuid, word):
             record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\2\3', record)
             # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
         html_content.append(record)
-    html_content = '<hr />'.join(html_content)
+    html_content = '<link rel="stylesheet" href="../resource/css/reset.css">' + '<hr />'.join(html_content)
     about = item['about']
     # fix about html. same above
     about = regex_href_end_slash.sub(r'\1\3', about)
@@ -209,7 +213,8 @@ def query_word_all():
                 # for dict data
                 record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_entry, record)
             html_content.append(record)
-        html_content = '<hr />'.join(html_content)
+
+        html_content = '<link rel="stylesheet" href="../resource/css/reset.css">' + '<hr />'.join(html_content)
         about = item['about']
         about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
         about = regex_href_end_slash.sub(r'\1\3', about)
@@ -276,6 +281,7 @@ def query_word_lite(uuid, word):
     html_content.append('<div class="mdict">')
     if item['error']:
         html_content.append('<div style="color: red;">%s</div>' % item['error'])
+    html_content.append('<link rel="stylesheet" href="../resource/css/reset.css">')
     prefix_resource = '%s/resource' % '..'
     # prefix_entry = '%s/query' % '..'
     for record in records:
