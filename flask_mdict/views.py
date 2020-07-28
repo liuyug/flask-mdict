@@ -133,12 +133,13 @@ def query_word(uuid, word):
             # for <img src="<add:resource/>..."
             record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
             # for <a href="sound://<add:resouce>..."
-            record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+            record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
             # for <a href="<add:resource/>image.png"
             record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
             # remove /
             record = regex_href_end_slash.sub(r'\1\3', record)
             # for <a href="entry://...", alread in query word page, do not add
+            record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\2\3', record)
             # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
         html_content.append(record)
     html_content = '<hr />'.join(html_content)
@@ -146,7 +147,7 @@ def query_word(uuid, word):
     # fix about html. same above
     about = regex_href_end_slash.sub(r'\1\3', about)
     about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
-    about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
+    about = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, about)
 
     contents = {}
     contents[uuid] = {
@@ -203,16 +204,16 @@ def query_word_all():
                 # add dict uuid into url
                 # for resource
                 record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
-                record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # for dict data
-                record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_entry, record)
             html_content.append(record)
         html_content = '<hr />'.join(html_content)
         about = item['about']
         about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
         about = regex_href_end_slash.sub(r'\1\3', about)
-        about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
+        about = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, about)
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
@@ -240,10 +241,22 @@ def google_translate(word):
 def query_word_lite(uuid, word):
     def url_replace(mo):
         rel_url = mo.group(2)
+        schema = 'sound://'
+        if rel_url.startswith('sound://'):
+            abs_url = urllib.parse.urljoin(
+                url_for('.query_resource', uuid=uuid, resource='', _external=True),
+                rel_url[len(schema):]).replace('http://', schema)
+            return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
+        schema = 'entry://'
+        if rel_url.startswith(schema):
+            abs_url = urllib.parse.urljoin(
+                url_for('.query_word_lite', uuid=uuid, word='', _external=True),
+                rel_url[len(schema):]).replace('http://', schema)
+            return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
         abs_url = urllib.parse.urljoin(
             url_for('.query_resource', uuid=uuid, resource='', _external=True),
             rel_url)
-        return mo.group(1) + abs_url + mo.group(3)
+        return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
 
     word = word.strip()
     item = get_mdict().get(uuid)
@@ -284,19 +297,21 @@ def query_word_lite(uuid, word):
             # <img src="<add:resource/>...
             record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
             # <a href="sound://<add:resource/>...
-            record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+            record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
             # <a href="<add:resource/>image.png
             record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
             # entry://
-            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\2\3', record)
         html_content.append(record)
     html_content.append('</div></div>')
+    html_content.append(f'<script src="{url_for(".static", filename="js/mdict.js")}"></script>')
     html_content = '\n'.join(html_content)
     # convert to absolute url
     # css, image
     html_content = re.sub(r'( href=")(.+?)(")', url_replace, html_content)
     # script
     html_content = re.sub(r'( src=")(.+?)(")', url_replace, html_content)
+
     resp = make_response(html_content)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
