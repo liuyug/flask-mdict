@@ -216,7 +216,7 @@ def query_word_all():
                 record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_entry, record)
             html_content.append(record)
 
-        html_content = '<link rel="stylesheet" href="../resource/css/reset.css">' + '<hr />'.join(html_content)
+        html_content = f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">' + '<hr />'.join(html_content)
         about = item['about']
         about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
         about = regex_href_end_slash.sub(r'\1\3', about)
