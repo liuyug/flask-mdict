@@ -104,6 +104,8 @@ def query_word(uuid, word):
         form.word.data = word
 
     word = word.strip()
+    if uuid == 'default':
+        uuid = list(get_mdict().keys())[0]
     item = get_mdict().get(uuid)
     if not item:
         abort(404)
@@ -264,6 +266,9 @@ def query_word_lite(uuid, word):
         return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
 
     word = word.strip()
+    if uuid == 'default':
+        uuid = list(get_mdict().keys())[0]
+
     item = get_mdict().get(uuid)
     if not item:
         abort(404)
