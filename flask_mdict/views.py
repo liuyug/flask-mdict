@@ -105,69 +105,127 @@ def query_word(uuid, word):
 
     word = word.strip()
     if uuid == 'default':
-        items = [list(get_mdict().values())[0]]
-    elif uuid == 'all':
-        items = list(get_mdict().values())
-    else:
-        items = [get_mdict().get(uuid)]
-    if not items:
+        uuid = list(get_mdict().keys())[0]
+    item = get_mdict().get(uuid)
+    if not item:
         abort(404)
-    html_contents = {}
-    for item in items:
-        # entry and word, load from mdx, db
-        uuid = item['uuid']
+
+    # entry and word, load from mdx, db
+    q = item['query']
+    if item['type'] == 'app':
+        records = q(word, item)
+    else:
+        records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
+    html_content = []
+    if item['error']:
+        html_content.append('<div style="color: red;">%s</div>' % item['error'])
+    prefix_resource = '%s/resource' % '..'
+    # prefix_entry = '%s/query' % '..'
+    for record in records:
+        record = helper.fix_html(record)
+        mo = regex_word_link.match(record)
+        if mo:
+            link = mo.group(2).strip()
+            if '#' in link:
+                # anchor in current page
+                link, anchor = link.split('#')
+                return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
+            else:
+                if len(records) > 1:
+                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                else:
+                    return redirect(url_for('.query_word', uuid=uuid, word=link))
+        else:
+            # for <img src="<add:resource/>..."
+            record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
+            # for <a href="sound://<add:resouce>..."
+            record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
+            # for <a href="<add:resource/>image.png"
+            record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+            # remove /
+            record = regex_href_end_slash.sub(r'\1\3', record)
+            # for <a href="entry://...", alread in query word page, do not add
+            record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\2\3', record)
+            # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+        html_content.append(record)
+    html_content = '<link rel="stylesheet" href="../resource/css/reset.css">' + '<hr />'.join(html_content)
+    about = item['about']
+    # fix about html. same above
+    about = regex_href_end_slash.sub(r'\1\3', about)
+    about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
+    about = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, about)
+
+    contents = {}
+    contents[uuid] = {
+        'title': item['title'],
+        'logo': item['logo'],
+        'about': about,
+        'content': html_content,
+    }
+    word_meta = helper.query_word_meta(word)
+    return render_template(
+        'mdict/query.html',
+        form=form,
+        word=word,
+        word_meta=word_meta,
+        contents=contents,
+    )
+
+
+@mdict.route('/', methods=['GET', 'POST'])
+def query_word_all():
+    form = WordForm()
+    if form.validate_on_submit():
+        word = form.word.data
+    else:
+        word = request.args.get('word')
+        word = word or helper.ecdict_random_word('cet4')
+        form.word.data = word
+
+    word = word.strip()
+    contents = {}
+    for uuid, item in get_mdict().items():
         q = item['query']
         if item['type'] == 'app':
             records = q(word, item)
         else:
             records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
-        if not records:
-            continue
-        html = []
-        html.append(f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">')
+        html_content = []
         if item['error']:
-            html.append('<div style="color: red;">%s</div>' % item['error'])
-        prefix_resource = f'{url_for(".query_resource", uuid=uuid, resource="")}'
-        prefix_entry = f'{url_for(".query_word", uuid=uuid, word="")}'
+            html_content.append('<div style="color: red;">%s</div>' % item['error'])
+        prefix_resource = '%s/resource' % uuid
+        prefix_entry = '%s/query' % uuid
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
             if mo:
                 link = mo.group(2).strip()
                 if '#' in link:
-                    # anchor in current page
                     link, anchor = link.split('#')
-                    return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
+                    record = f'<p>See also: <a href="entry://{link}#{anchor}">{link}</a></p>'
                 else:
-                    if len(records) > 1:
-                        record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
-                    else:
-                        return redirect(url_for('.query_word', uuid=uuid, word=link))
+                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
             else:
-                # for <img src="<add:resource/>..."
-                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
-                # for <a href="sound://<add:resouce>..."
-                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
-                # for <a href="<add:resource/>image.png"
-                record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
-                # remove /
                 record = regex_href_end_slash.sub(r'\1\3', record)
-                # for <a href="entry://<add:query>..."
-                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s\3' % prefix_entry, record)
+                # add dict uuid into url
+                # for resource
+                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
+                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
+                record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+                # for dict data
+                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_entry, record)
+            html_content.append(record)
 
-            html.append(record)
-        html = '\n'.join(html)
+        html_content = f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">' + '<hr />'.join(html_content)
         about = item['about']
-        # fix about html. same above
-        about = regex_href_end_slash.sub(r'\1\3', about)
         about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
+        about = regex_href_end_slash.sub(r'\1\3', about)
         about = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, about)
-
-        html_contents[uuid] = {
+        contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
             'about': about,
-            'content': html,
+            'content': html_content,
         }
 
     word_meta = helper.query_word_meta(word)
@@ -176,15 +234,8 @@ def query_word(uuid, word):
         form=form,
         word=word,
         word_meta=word_meta,
-        contents=html_contents,
+        contents=contents,
     )
-
-
-@mdict.route('/')
-def query_word_all():
-    word = request.args.get('word')
-    word = word or helper.ecdict_random_word('cet4')
-    return redirect(url_for('.query_word', uuid='all', word=word))
 
 
 @mdict.route('/gtranslate/query/<word>', methods=['GET', 'POST'])
@@ -204,22 +255,8 @@ def query_word_meta(word):
 @mdict.route('/<uuid>/lite/<word>')
 def query_word_lite(uuid, word):
     def url_replace(mo):
-        rel_url = mo.group(2)
-        schema = 'sound://'
-        if rel_url.startswith('sound://'):
-            abs_url = urllib.parse.urljoin(
-                url_for('.query_resource', uuid=uuid, resource='', _external=True),
-                rel_url[len(schema):]).replace('http://', schema)
-            return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
-        schema = 'entry://'
-        if rel_url.startswith(schema):
-            abs_url = urllib.parse.urljoin(
-                url_for('.query_word_lite', uuid=uuid, word='', _external=True),
-                rel_url[len(schema):]).replace('http://', schema)
-            return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
-        abs_url = urllib.parse.urljoin(
-            url_for('.query_resource', uuid=uuid, resource='', _external=True),
-            rel_url)
+        abs_url = mo.group(2)
+        abs_url = re.sub(r'(?<!:)//', '/', abs_url)
         return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
 
     word = word.strip()
@@ -246,15 +283,20 @@ def query_word_lite(uuid, word):
         html = []
         html.append(f'<div id="class_{uuid}">')
         html.append('<div class="mdict">')
-        html.append(f'<link rel="stylesheet" href="/{uuid}/resource/css/reset.css">')
+        html.append(f'''<link rel="stylesheet"
+                    href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css", _external=True)}">''')
         if item['error']:
             html.append('<div style="color: red;">%s</div>' % item['error'])
-        html.append('<div class="dict-name">')
-        html.append(f'<img style="height:16px;border-radius:.25rem;vertical-align:baseline" src="{url_for(".query_resource", uuid=uuid, resource=item["logo"])}"/>')
+        html.append('<div class="mdict-title">')
+        html.append(f'''<img
+                    style="height:16px !important;
+                    border-radius:.25rem !important;
+                    vertical-align:baseline !important"
+                    src="{url_for(".query_resource", uuid=uuid, resource=item["logo"], _external=True)}"/>''')
         html.append(item['title'])
         html.append('</div>')
-        prefix_resource = f'{url_for(".query_resource", uuid=uuid, resource="")}'
-        prefix_entry = f'{url_for(".query_word_lite", uuid=uuid, word="")}'
+        prefix_resource = f'{url_for(".query_resource", uuid=uuid, resource="", _external=True)}'
+        prefix_entry = f'{url_for(".query_word_lite", uuid=uuid, word="", _external=True)}'
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -266,29 +308,30 @@ def query_word_lite(uuid, word):
                     return redirect(url_for('.query_word_lite', uuid=uuid, word=link, _anchor=anchor))
                 else:
                     if len(records) > 1:
-                        record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                        record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=uuid, word=link)}">{link}</a></p>'''
                     else:
                         return redirect(url_for('.query_word_lite', uuid=uuid, word=link))
             else:
+                # remove http:// from sound:// and entry://
                 record = regex_href_end_slash.sub(r'\1\3', record)
                 # <img src="<add:resource/>...
                 record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
                 # <a href="sound://<add:resource/>...
-                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
+                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource[7:], record)
                 # <a href="<add:resource/>image.png
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # entry://
-                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s\3' % prefix_entry, record)
+                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s\3' % prefix_entry[7:], record)
             html.append(record)
         html.append('</div></div>')
         # no template, add mdict.js link
         html.append(f'<script src="{url_for(".static", filename="js/mdict.js")}"></script>')
         html = '\n'.join(html)
-        # convert to absolute url
+        # fix url with "//"
         # css, image
         html = re.sub(r'( href=")(.+?)(")', url_replace, html)
         # script
-        html = re.sub(r'( src=")(.+?)(")', url_replace, html)
+        html = re.sub(r'( src=")(?!data:)(.+?)(")', url_replace, html)
         html_contents.append(html)
 
     if not html_contents:
