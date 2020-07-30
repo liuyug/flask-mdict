@@ -139,13 +139,13 @@ def query_word(uuid, word):
             # for <img src="<add:resource/>..."
             record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
             # for <a href="sound://<add:resouce>..."
-            record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
+            record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
             # for <a href="<add:resource/>image.png"
             record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
             # remove /
             record = regex_href_end_slash.sub(r'\1\3', record)
             # for <a href="entry://...", alread in query word page, do not add
-            record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\2\3', record)
+            record = regex_href_schema_entry.sub(r'\1\2\3', record)
             # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
         html_content.append(record)
     html_content = '<link rel="stylesheet" href="../resource/css/reset.css">' + '<hr />'.join(html_content)
@@ -153,7 +153,7 @@ def query_word(uuid, word):
     # fix about html. same above
     about = regex_href_end_slash.sub(r'\1\3', about)
     about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
-    about = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, about)
+    about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
 
     contents = {}
     contents[uuid] = {
@@ -210,17 +210,17 @@ def query_word_all():
                 # add dict uuid into url
                 # for resource
                 record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
-                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, record)
+                record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # for dict data
-                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_entry, record)
+                record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
             html_content.append(record)
 
         html_content = f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">' + '<hr />'.join(html_content)
         about = item['about']
         about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
         about = regex_href_end_slash.sub(r'\1\3', about)
-        about = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource, about)
+        about = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, about)
         contents[uuid] = {
             'title': item['title'],
             'logo': item['logo'],
@@ -317,11 +317,11 @@ def query_word_lite(uuid, word):
                 # <img src="<add:resource/>...
                 record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
                 # <a href="sound://<add:resource/>...
-                record = regex_href_schema_sound.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s/\3' % prefix_resource[7:], record)
+                record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource[7:], record)
                 # <a href="<add:resource/>image.png
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # entry://
-                record = regex_href_schema_entry.sub(r' onclick="mdict_click(this, event);" \1\g<2>%s\3' % prefix_entry[7:], record)
+                record = regex_href_schema_entry.sub(r'\1\g<2>%s\3' % prefix_entry[7:], record)
             html.append(record)
         html.append('</div></div>')
         # no template, add mdict.js link
