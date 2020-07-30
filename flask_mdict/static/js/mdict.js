@@ -1,7 +1,10 @@
 
 function mdict_click(element, event) {
     let url = element.href;
+    // prevent default action: jump by a.href
     event.preventDefault();
+    // prevent other event listener
+    event.stopPropagation();
     if (url.lastIndexOf('sound://', 0) === 0){
         if (element.hasAttribute('abs_url')) {
             url = url.replace("sound://", "http://");
@@ -18,6 +21,6 @@ function mdict_click(element, event) {
         } else {
             url = url.replace("entry://", "");
         }
-        window.location = url;
+        window.location.href = url;
     }
 }
