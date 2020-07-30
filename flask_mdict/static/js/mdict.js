@@ -5,7 +5,7 @@ function mdict_click(element, event) {
     event.preventDefault();
     // prevent other event listener
     event.stopPropagation();
-    if (url.lastIndexOf('sound://', 0) === 0){
+    if (url.indexOf('sound://', 0) === 0){
         if (element.hasAttribute('abs_url')) {
             url = url.replace("sound://", "http://");
         } else {
@@ -15,7 +15,7 @@ function mdict_click(element, event) {
         mdict_player.id = 'mdict_player';
         mdict_player.src = url;
         mdict_player.play();
-    } else if (url.lastIndexOf('entry://', 0) === 0){
+    } else if (url.indexOf('entry://', 0) === 0){
         if (element.hasAttribute('abs_url')) {
             url = url.replace("entry://", "http://");
         } else {
