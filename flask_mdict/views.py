@@ -325,7 +325,7 @@ def query_word_lite(uuid, word):
             html.append(record)
         html.append('</div></div>')
         # no template, add mdict.js link
-        html.append(f'<script src="{url_for(".static", filename="js/mdict.js")}"></script>')
+        html.append(f'<script src="{url_for(".static", filename="js/mdict.js", _external=True)}"></script>')
         html = '\n'.join(html)
         # fix url with "//"
         # css, image
