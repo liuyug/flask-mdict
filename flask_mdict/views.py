@@ -106,6 +106,8 @@ def query_word(uuid, word):
     word = word.strip()
     if uuid == 'default':
         uuid = list(get_mdict().keys())[0]
+        return redirect(url_for('.query_word', uuid=uuid, word=word))
+
     item = get_mdict().get(uuid)
     if not item:
         abort(404)
