@@ -3,6 +3,8 @@ import re
 import uuid
 import os.path
 import sqlite3
+import datetime
+import csv
 
 from flask import url_for
 
@@ -131,6 +133,63 @@ def query_word_meta(word):
     return ' '.join(word_meta)
 
 
+def init_history():
+    db_name = Config.DB_NAMES.get('history')
+    db = sqlite3.connect(db_name)
+    c = db.cursor()
+    sql = 'SELECT name FROM sqlite_master WHERE type="table" AND name="history";'
+    row = c.execute(sql).fetchone()
+    if not row:
+        sql = 'CREATE TABLE history(word TEXT PRIMARY KEY, count INT, last_time DATETIME);'
+        db.execute(sql)
+        db.commit()
+    db.close()
+
+
+def add_history(word):
+    db = get_db('history')
+    if not db:
+        print('no history db')
+        return
+    now = datetime.datetime.now()
+    c = db.cursor()
+    sql = 'SELECT count FROM history WHERE word = ?;'
+    row = c.execute(sql, (word,)).fetchone()
+    if row:
+        count = row[0] + 1
+        sql = 'UPDATE history SET count = ?, last_time = ? WHERE word = ?;'
+        c.execute(sql, (count, now, word))
+    else:
+        sql = 'INSERT INTO history VALUES(?, ?, ?);'
+        c.execute(sql, (word, 1, now))
+    db.commit()
+
+
+def get_history(max_num=500):
+    db = get_db('history')
+    if not db:
+        print('no history db')
+        return
+    c = db.cursor()
+    sql = 'SELECT * FROM history ORDER BY last_time LIMIT ?;'
+    rows = c.execute(sql, (max_num, )).fetchall()
+    return rows
+
+
+def export_history(sio):
+    db = get_db('history')
+    if not db:
+        print('no history db')
+        return
+    c = db.cursor()
+    sql = 'SELECT * FROM history;'
+    rows = c.execute(sql).fetchall()
+    csv_writer = csv.writer(sio)
+    for row in rows:
+        csv_writer.writerow((row['word'], row['count'], row['last_time'].rpartition('.')[0]))
+    return sio
+
+
 def init_mdict(mdict_dir):
     mdicts = {}
     db_names = {}
@@ -230,7 +289,9 @@ def init_mdict(mdict_dir):
         print('Could not found "Word Frequency Database - ecdict_wfd.db"!')
     # for google translate online
     title = 'Google 翻译'
-    dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
+    # dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
+    # fake uuid
+    dict_uuid = 'gtranslate'
     mdicts[dict_uuid] = {
         'title': title,
         'uuid': dict_uuid,

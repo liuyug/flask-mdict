@@ -2,3 +2,32 @@
 .anchor-fix {
     height: 1em;
 }
+
+.mdict-list {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 20em;
+    outline: 1px solid rgba(0,0,0,.125);
+    margin-bottom: 5px;
+    font-size: 10pt;
+}
+.mdict-list li {
+    padding: .25rem 1rem;
+}
+
+.history-list {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 20em;
+    outline: 1px solid rgba(0,0,0,.125);
+    margin-bottom: 5px;
+    font-size: 10pt;
+}
+.history-list li {
+    padding: .25rem 1rem;
+}
+#export-history {
+    cursor: pointer;
+    font-size: 10pt;
+    padding: 1px 6px;
+}

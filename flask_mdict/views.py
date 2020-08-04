@@ -1,7 +1,9 @@
 import io
 import re
 import os.path
+import datetime
 import urllib.parse
+from io import StringIO, BytesIO
 
 from flask import render_template, send_file, url_for,  \
     redirect, abort, jsonify, request, make_response
@@ -123,6 +125,7 @@ def query_word(uuid, word):
         html_content.append('<div style="color: red;">%s</div>' % item['error'])
     prefix_resource = '%s/resource' % '..'
     # prefix_entry = '%s/query' % '..'
+    found_word = (uuid != 'gtranslate' and len(records) > 0)
     for record in records:
         record = helper.fix_html(record)
         mo = regex_word_link.match(record)
@@ -165,11 +168,15 @@ def query_word(uuid, word):
         'content': html_content,
     }
     word_meta = helper.query_word_meta(word)
+    history = helper.get_history()
+    if found_word:
+        helper.add_history(word)
     return render_template(
         'mdict/query.html',
         form=form,
         word=word,
         word_meta=word_meta,
+        history=history,
         contents=contents,
     )
 
@@ -186,6 +193,7 @@ def query_word_all():
 
     word = word.strip()
     contents = {}
+    found_word = False
     for uuid, item in get_mdict().items():
         q = item['query']
         if item['type'] == 'app':
@@ -197,6 +205,7 @@ def query_word_all():
             html_content.append('<div style="color: red;">%s</div>' % item['error'])
         prefix_resource = '%s/resource' % uuid
         prefix_entry = '%s/query' % uuid
+        found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -231,11 +240,16 @@ def query_word_all():
         }
 
     word_meta = helper.query_word_meta(word)
+
+    history = helper.get_history()
+    if found_word:
+        helper.add_history(word)
     return render_template(
         'mdict/query.html',
         form=form,
         word=word,
         word_meta=word_meta,
+        history=history,
         contents=contents,
     )
 
@@ -272,6 +286,7 @@ def query_word_lite(uuid, word):
         abort(404)
 
     html_contents = []
+    found_word = False
     for item in items:
         # entry and word, load from mdx, db
         uuid = item['uuid']
@@ -299,6 +314,7 @@ def query_word_lite(uuid, word):
         html.append('</div>')
         prefix_resource = f'{url_for(".query_resource", uuid=uuid, resource="", _external=True)}'
         prefix_entry = f'{url_for(".query_word_lite", uuid=uuid, word="", _external=True)}'
+        found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -340,6 +356,8 @@ def query_word_lite(uuid, word):
         html_contents.append(google_translate(word))
     resp = make_response('<hr class="seprator" />'.join(html_contents))
     resp.headers['Access-Control-Allow-Origin'] = '*'
+    if found_word:
+        helper.add_history(word)
     return resp
 
 
@@ -358,3 +376,22 @@ def list_mdict():
         })
 
     return jsonify(all_mdict)
+
+
+@mdict.route('/export_history/')
+def export_history():
+    now = datetime.datetime.now()
+    filename = f'history-{now.strftime("%Y%m%d")}.csv'
+    sio = StringIO()
+    helper.export_history(sio)
+    bio = BytesIO(sio.getvalue().encode('utf-8'))
+    bio.seek(0)
+    sio.close()
+
+    return send_file(
+        bio,
+        mimetype='text/csv',
+        as_attachment=True,
+        attachment_filename=filename,
+        last_modified=now,
+    )

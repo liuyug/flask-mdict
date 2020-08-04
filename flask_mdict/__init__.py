@@ -34,6 +34,10 @@ def init_app(app, url_prefix=None):
         raise ValueError('Please set "MDICT_DIR" in app.config')
     Config.MDICT, Config.DB_NAMES = helper.init_mdict(Config.MDICT_DIR)
 
+    # for search history
+    Config.DB_NAMES['history'] = os.path.join(Config.MDICT_DIR, 'history.db')
+    helper.init_history()
+
     app.register_blueprint(mdict, url_prefix=url_prefix)
 
 

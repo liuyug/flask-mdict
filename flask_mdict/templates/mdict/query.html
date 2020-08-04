@@ -25,9 +25,11 @@
                 {{ form.csrf_token }}
             </form>
             <br />
+            <h6>从以下词典查找：</h6>
+            <div class="mdict-list">
             <ul class="list-group">
                 {% for uuid, item in contents.items() %}
-                <li class="list-group-item">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
                     <a href="#{{uuid}}">{{item.title|safe}}</a>
                     <small data-toggle="modal" data-target="#about_{{uuid}}">
                         <i class="fas fa-info-circle"></i>
@@ -58,6 +60,21 @@
                 </li>
                 {% endfor %}
             </ul>
+            </div>
+            <div id="export-history" class="float-right">
+                <a href="{{url_for('.export_history')}}">导出</a>
+            </div>
+            <h6>历史：</h6>
+            <div class="history-list">
+                <ul class="list-group">
+                    {%for row in history%}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{{url_for('.query_word_all', word=row.word)}}">{{row.word}}</a>
+                            <span class="badge badge-primary badge-pill">{{row.count}}</span>
+                        </li>
+                    {%endfor%}
+                </ul>
+            </div>
         </div>
     </div>
 
