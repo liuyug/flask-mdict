@@ -99,13 +99,40 @@ class IndexBuilder2(IndexBuilder):
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def lookup_indexes(db, keyword, ignorecase=None):
+        indexes = []
+        with sqlite3.connect(db) as conn:
+            if ignorecase:
+                sql = 'SELECT * FROM MDX_INDEX WHERE lower(key_text) = ?'
+                cursor = conn.execute(sql, (keyword.lower(), ))
+            else:
+                sql = 'SELECT * FROM MDX_INDEX WHERE key_text = ?'
+                cursor = conn.execute(sql, (keyword, ))
+
+            for result in cursor:
+                index = {}
+                index['file_pos'] = result[1]
+                index['compressed_size'] = result[2]
+                index['decompressed_size'] = result[3]
+                index['record_block_type'] = result[4]
+                index['record_start'] = result[5]
+                index['record_end'] = result[6]
+                index['offset'] = result[7]
+                indexes.append(index)
+        return indexes
+
     def mdx_lookup(self, conn, keyword, ignorecase=None):
         if not os.path.exists(self._mdx_db):
             return []
-        # translate ' " % ...
-        keyword = re.sub(r'''(['%])''', r''''\1''', keyword)
-        keyword = re.sub(r'''(["])''', r'''"\1''', keyword)
-        return super(IndexBuilder2, self).mdx_lookup(keyword, ignorecase)
+        # return super(IndexBuilder2, self).mdx_lookup(keyword, ignorecase)
+        # super mdx_lookup code
+        lookup_result_list = []
+        indexes = self.lookup_indexes(self._mdx_db, keyword, ignorecase)
+        with open(self._mdx_file, 'rb') as mdx_file:
+            for index in indexes:
+                lookup_result_list.append(self.get_mdx_by_index(mdx_file, index))
+        return lookup_result_list
 
     def mdd_lookup(self, conn, keyword, ignorecase=None):
         """ MDD is resource file, should always return one file """
@@ -118,8 +145,27 @@ class IndexBuilder2(IndexBuilder):
                 with open(mdd_file, 'rb') as mdd_fobj:
                     return self.get_mdd_by_index(mdd_fobj, indexes[0])
 
+    @staticmethod
+    def get_keys(db, query=''):
+        if not db:
+            return []
+        with sqlite3.connect(db) as conn:
+            if query:
+                if '*' in query:
+                    query = query.replace('*', '%')
+                else:
+                    query = query + '%'
+                sql = 'SELECT key_text FROM MDX_INDEX WHERE key_text LIKE ?;'
+                cursor = conn.execute(sql, (query,))
+            else:
+                sql = 'SELECT key_text FROM MDX_INDEX;'
+                cursor = conn.execute(sql)
+
+            keys = [item[0] for item in cursor]
+            return keys
+
     def get_mdx_keys(self, conn, query=''):
-        return super(IndexBuilder2, self).get_mdx_keys(query)
+        return self.get_keys(self._mdx_db, query)
 
     def get_mdd_keys(self, conn, query=''):
         keys = []
