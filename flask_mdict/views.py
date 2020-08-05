@@ -268,14 +268,16 @@ def query_word_meta(word):
     return '\n'.join(html)
 
 
-@mdict.route('/<uuid>/lite/<word>')
-def query_word_lite(uuid, word):
+@mdict.route('/<uuid>/lite/')
+def query_word_lite(uuid):
     def url_replace(mo):
         abs_url = mo.group(2)
         abs_url = re.sub(r'(?<!:)//', '/', abs_url)
         return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
 
-    word = word.strip()
+    fallback = request.args.get('fallback', '')
+    word = request.args.get('word').strip()
+    # word = word.strip()
     if uuid == 'default':
         items = [list(get_mdict().values())[0]]
     elif uuid == 'all':
@@ -352,8 +354,16 @@ def query_word_lite(uuid, word):
         html = re.sub(r'( src=")(?!data:)(.+?)(")', url_replace, html)
         html_contents.append(html)
 
-    if not html_contents:
-        html_contents.append(google_translate(word))
+    if not html_contents and fallback == 'google':
+        item = get_mdict().get('gtranslate')
+        html_title = f'''<div><span>Fallback to </span><img style="height:16px !important;
+                border-radius:.25rem !important;
+                vertical-align:baseline !important"
+                src="{url_for(".query_resource", uuid="gtranslate", resource=item["logo"], _external=True)}"/>
+            <span>{item['title']}</span>
+        </div>
+        '''
+        html_contents.append(html_title + google_translate(word))
     resp = make_response('<hr class="seprator" />'.join(html_contents))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     if found_word:
