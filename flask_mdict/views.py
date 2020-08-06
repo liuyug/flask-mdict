@@ -275,15 +275,21 @@ def query_word_lite(uuid):
         abs_url = re.sub(r'(?<!:)//', '/', abs_url)
         return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
 
-    fallback = request.args.get('fallback', '')
+    all_result = request.args.get('all_result', '') == 'true'
+    fallback = request.args.get('fallback', '').split(',')
     word = request.args.get('word').strip()
-    # word = word.strip()
     if uuid == 'default':
         items = [list(get_mdict().values())[0]]
+        for f in fallback:
+            if f in get_mdict():
+                items.append(get_mdict().get(f))
     elif uuid == 'all':
         items = list(get_mdict().values())
     else:
         items = [get_mdict().get(uuid)]
+        for f in fallback:
+            if f in get_mdict():
+                items.append(get_mdict().get(f))
     if not items:
         abort(404)
 
@@ -291,19 +297,19 @@ def query_word_lite(uuid):
     found_word = False
     for item in items:
         # entry and word, load from mdx, db
-        uuid = item['uuid']
+        cur_uuid = item['uuid']
         q = item['query']
         if item['type'] == 'app':
             records = q(word, item)
         else:
-            records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
+            records = q.mdx_lookup(get_db(cur_uuid), word, ignorecase=True)
         if not records:
             continue
         html = []
-        html.append(f'<div id="class_{uuid}">')
+        html.append(f'<div id="class_{cur_uuid}">')
         html.append('<div class="mdict">')
         html.append(f'''<link rel="stylesheet"
-                    href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css", _external=True)}">''')
+                    href="{url_for(".query_resource", uuid=cur_uuid, resource="css/reset.css", _external=True)}">''')
         if item['error']:
             html.append('<div style="color: red;">%s</div>' % item['error'])
         html.append('<div class="mdict-title">')
@@ -311,12 +317,12 @@ def query_word_lite(uuid):
                     style="height:16px !important;
                     border-radius:.25rem !important;
                     vertical-align:baseline !important"
-                    src="{url_for(".query_resource", uuid=uuid, resource=item["logo"], _external=True)}"/>''')
+                    src="{url_for(".query_resource", uuid=cur_uuid, resource=item["logo"], _external=True)}"/>''')
         html.append(item['title'])
         html.append('</div>')
-        prefix_resource = f'{url_for(".query_resource", uuid=uuid, resource="", _external=True)}'
-        prefix_entry = f'{url_for(".query_word_lite", uuid=uuid, word="", _external=True)}'
-        found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
+        prefix_resource = f'{url_for(".query_resource", uuid=cur_uuid, resource="", _external=True)}'
+        prefix_entry = f'{url_for(".query_word_lite", uuid=cur_uuid, word="", _external=True)}'
+        found_word = found_word or (cur_uuid != 'gtranslate' and len(records) > 0)
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -325,12 +331,12 @@ def query_word_lite(uuid):
                 if '#' in link:
                     # anchor in current page
                     link, anchor = link.split('#')
-                    return redirect(url_for('.query_word_lite', uuid=uuid, word=link, _anchor=anchor))
+                    return redirect(url_for('.query_word_lite', uuid=cur_uuid, word=link, _anchor=anchor))
                 else:
                     if len(records) > 1:
-                        record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=uuid, word=link)}">{link}</a></p>'''
+                        record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=cur_uuid, word=link)}">{link}</a></p>'''
                     else:
-                        return redirect(url_for('.query_word_lite', uuid=uuid, word=link))
+                        return redirect(url_for('.query_word_lite', uuid=cur_uuid, word=link))
             else:
                 # remove http:// from sound:// and entry://
                 record = regex_href_end_slash.sub(r'\1\3', record)
@@ -353,17 +359,8 @@ def query_word_lite(uuid):
         # script
         html = re.sub(r'( src=")(?!data:)(.+?)(")', url_replace, html)
         html_contents.append(html)
-
-    if not html_contents and fallback == 'google':
-        item = get_mdict().get('gtranslate')
-        html_title = f'''<div><span>Fallback to </span><img style="height:16px !important;
-                border-radius:.25rem !important;
-                vertical-align:baseline !important"
-                src="{url_for(".query_resource", uuid="gtranslate", resource=item["logo"], _external=True)}"/>
-            <span>{item['title']}</span>
-        </div>
-        '''
-        html_contents.append(html_title + google_translate(word))
+        if uuid != 'all' and not all_result:
+            break
     resp = make_response('<hr class="seprator" />'.join(html_contents))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     if found_word:
