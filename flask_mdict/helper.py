@@ -171,7 +171,7 @@ def get_history(max_num=500):
         print('no history db')
         return
     c = db.cursor()
-    sql = 'SELECT * FROM history ORDER BY last_time LIMIT ?;'
+    sql = 'SELECT * FROM history ORDER BY last_time DESC LIMIT ?;'
     rows = c.execute(sql, (max_num, )).fetchall()
     return rows
 
