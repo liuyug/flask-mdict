@@ -25,6 +25,11 @@ regex_href_schema_entry = re.compile(r'([ "]href=["\'])(entry://)([^#].+?["\'])'
 # default: http
 regex_href_no_schema = re.compile(r'([ "]href=["\'])(?!sound://|entry://)([^#].+?["\'])')
 
+# css
+regex_css = re.compile(r'(<link.*? )(href)(=".+?>)')
+# js
+regex_js = re.compile(r'(<script.*? )(src)(=".+?>)')
+
 
 @mdict.route('/search/<part>')
 def query_part(part):
@@ -126,6 +131,7 @@ def query_word(uuid, word):
     prefix_resource = '%s/resource' % '..'
     # prefix_entry = '%s/query' % '..'
     found_word = (uuid != 'gtranslate' and len(records) > 0)
+    count = 1
     for record in records:
         record = helper.fix_html(record)
         mo = regex_word_link.match(record)
@@ -152,7 +158,15 @@ def query_word(uuid, word):
             # for <a href="entry://...", alread in query word page, do not add
             record = regex_href_schema_entry.sub(r'\1\2\3', record)
             # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+        # keep first css
+        if count > 1:
+            record = regex_css.sub(r'\1data-\2\3', record)
+        # keep last js
+        if count < len(records):
+            record = regex_js.sub(r'\1data-\2\3', record)
+
         html_content.append(record)
+        count += 1
     html_content = '<link rel="stylesheet" href="../resource/css/reset.css">' + '<hr />'.join(html_content)
     about = item['about']
     # fix about html. same above
@@ -206,6 +220,7 @@ def query_word_all():
         prefix_resource = '%s/resource' % uuid
         prefix_entry = '%s/query' % uuid
         found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
+        count = 1
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -225,7 +240,15 @@ def query_word_all():
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # for dict data
                 record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            # keep first css
+            if count > 1:
+                record = regex_css.sub(r'\1data-\2\3', record)
+            # keep last js
+            if count < len(records):
+                record = regex_js.sub(r'\1data-\2\3', record)
+
             html_content.append(record)
+            count += 1
 
         html_content = f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">' + '<hr />'.join(html_content)
         about = item['about']
@@ -323,6 +346,7 @@ def query_word_lite(uuid):
         prefix_resource = f'{url_for(".query_resource", uuid=cur_uuid, resource="", _external=True)}'
         prefix_entry = f'{url_for(".query_word_lite", uuid=cur_uuid, word="", _external=True)}'
         found_word = found_word or (cur_uuid != 'gtranslate' and len(records) > 0)
+        count = 1
         for record in records:
             record = helper.fix_html(record)
             mo = regex_word_link.match(record)
@@ -348,7 +372,15 @@ def query_word_lite(uuid):
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # entry://
                 record = regex_href_schema_entry.sub(r'\1\g<2>%s\3' % prefix_entry[7:], record)
+            # keep first css
+            if count > 1:
+                record = regex_css.sub(r'\1data-\2\3', record)
+            # keep last js
+            if count < len(records):
+                record = regex_js.sub(r'\1data-\2\3', record)
+
             html.append(record)
+            count += 1
         html.append('</div></div>')
         # no template, add mdict.js link
         html.append(f'<script src="{url_for(".static", filename="js/mdict.js", _external=True)}"></script>')
