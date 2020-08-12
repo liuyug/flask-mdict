@@ -213,7 +213,7 @@ def init_mdict(mdict_dir):
                     if os.path.exists(os.path.join(root, name + ext)):
                         logo = name + ext
                         break
-                dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, db_file)).upper()
+                dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, db_file.replace('\\', '/'))).upper()
                 print('\tuuid: %s' % dict_uuid)
                 db_names[dict_uuid] = db_file
                 mdicts[dict_uuid] = {
@@ -235,7 +235,7 @@ def init_mdict(mdict_dir):
                         logo = name + ext
                         break
                 mdx_file = os.path.join(root, fname)
-                dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file)).upper()
+                dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file.replace('\\', '/'))).upper()
                 print('Initialize MDICT "%s" {%s}...' % (name, dict_uuid))
 
                 idx = IndexBuilder2(mdx_file)

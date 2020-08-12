@@ -297,8 +297,8 @@ class MDict(object):
         # store stylesheet in dict in the form of
         # {'number' : ('style_begin', 'style_end')}
         self._stylesheet = {}
-        if header_tag.get('StyleSheet'):
-            lines = header_tag['StyleSheet'].splitlines()
+        if header_tag.get(b'StyleSheet'):
+            lines = header_tag[b'StyleSheet'].splitlines()
             for i in range(0, len(lines), 3):
                 self._stylesheet[lines[i]] = (lines[i + 1], lines[i + 2])
 
@@ -852,7 +852,7 @@ class MDX(MDict):
         #这里比 mdd 部分稍有不同，应该还需要传递编码以及样式表信息
         meta = {}
         meta['encoding'] = self._encoding
-        meta['stylesheet'] = json.dumps(self._stylesheet)
+        meta['stylesheet'] = self._stylesheet
         meta['title'] = self._title
         meta['description'] = self._description
 

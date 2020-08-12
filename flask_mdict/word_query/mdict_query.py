@@ -9,6 +9,7 @@ import sys
 import os
 import sqlite3
 import json
+import ast
 
 # zlib compression is used for engine version >=2.0
 import zlib
@@ -75,7 +76,7 @@ class IndexBuilder(object):
                 self._encoding = cc[1]
             cursor = conn.execute("SELECT * FROM META WHERE key = \"stylesheet\"")
             for cc in cursor:
-                self._stylesheet = json.loads(cc[1])
+                self._stylesheet = ast.literal_eval(cc[1])
 
             cursor = conn.execute("SELECT * FROM META WHERE key = \"title\"")
             for cc in cursor:
@@ -110,13 +111,13 @@ class IndexBuilder(object):
 
     def _replace_stylesheet(self, txt):
         # substitute stylesheet definition
-        txt_list = re.split('`\d+`', txt)
-        txt_tag = re.findall('`\d+`', txt)
+        txt_list = re.split(b'`\\d+`', txt)
+        txt_tag = re.findall(b'`\\d+`', txt)
         txt_styled = txt_list[0]
         for j, p in enumerate(txt_list[1:]):
             style = self._stylesheet[txt_tag[j][1:-1]]
-            if p and p[-1] == '\n':
-                txt_styled = txt_styled + style[0] + p.rstrip() + style[1] + '\r\n'
+            if p and p[-1] == b'\n':
+                txt_styled = txt_styled + style[0] + p.rstrip() + style[1] + b'\r\n'
             else:
                 txt_styled = txt_styled + style[0] + p + style[1]
         return txt_styled
@@ -174,7 +175,7 @@ class IndexBuilder(object):
         c.executemany(
             'INSERT INTO META VALUES (?,?)', 
             [('encoding', meta['encoding']),
-             ('stylesheet', meta['stylesheet']),
+             ('stylesheet', str(meta['stylesheet'])),
              ('title', meta['title']),
              ('description', meta['description']),
              ('version', version)
@@ -192,7 +193,7 @@ class IndexBuilder(object):
         conn.close()
         #set class member
         self._encoding = meta['encoding']
-        self._stylesheet = json.loads(meta['stylesheet'])
+        self._stylesheet = meta['stylesheet']
         self._title = meta['title']
         self._description = meta['description']
 
