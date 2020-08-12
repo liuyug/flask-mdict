@@ -417,8 +417,11 @@ def query_word_lite(uuid):
 
 @mdict.route('/list/')
 def list_mdict():
+    uuid = request.args.get('uuid')
     all_mdict = []
     for k, v in get_mdict().items():
+        if uuid and uuid != k:
+            continue
         all_mdict.append({
             'title': v['title'],
             'uuid': v['uuid'],
