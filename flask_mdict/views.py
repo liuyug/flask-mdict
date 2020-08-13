@@ -319,12 +319,13 @@ def query_word_lite(uuid):
     elif uuid == 'all':
         items = list(get_mdict().values())
     else:
-        items = [get_mdict().get(uuid)]
+        item = get_mdict().get(uuid)
+        if not item:
+            abort(404)
+        items = [item]
         for f in fallback:
             if f in get_mdict():
                 items.append(get_mdict().get(f))
-    if not items:
-        abort(404)
 
     html_contents = []
     found_word = False
