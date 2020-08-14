@@ -306,7 +306,7 @@ def query_word_lite(uuid):
     def url_replace(mo):
         abs_url = mo.group(2)
         abs_url = re.sub(r'(?<!:)//', '/', abs_url)
-        return ' abs_url' + mo.group(1) + abs_url + mo.group(3)
+        return ' data-abs-url' + mo.group(1) + abs_url + mo.group(3)
 
     all_result = request.args.get('all_result', '') == 'true'
     fallback = request.args.get('fallback', '').split(',')
