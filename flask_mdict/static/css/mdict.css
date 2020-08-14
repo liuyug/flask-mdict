@@ -3,6 +3,9 @@
     height: 1em;
 }
 
+.mdict-title {
+    font-size: 16px;
+}
 .mdict-list {
     overflow-x: hidden;
     overflow-y: auto;

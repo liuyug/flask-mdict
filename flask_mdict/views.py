@@ -69,7 +69,7 @@ def query_resource(uuid, resource):
             data = q.mdd_lookup(get_db(uuid), key, ignorecase=True)
     if not data:
         # load from flask static
-        if resource in ['logo.ico', 'css/reset.css']:
+        if resource in ['logo.ico', 'css/reset.css', 'css/mdict.css']:
             with mdict.open_resource(os.path.join('static', resource)) as f:
                 data = f.read()
 
@@ -342,8 +342,11 @@ def query_word_lite(uuid):
         html = []
         html.append(f'<div id="class_{cur_uuid}">')
         html.append('<div class="mdict">')
+        # add mdict_uuid by query_resource
         html.append(f'''<link rel="stylesheet"
-                    href="{url_for(".query_resource", uuid=cur_uuid, resource="css/reset.css", _external=True)}">''')
+                    href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css", _external=True)}">''')
+        html.append(f'''<link rel="stylesheet"
+                    href="{url_for(".query_resource", uuid=uuid, resource="css/mdict.css", _external=True)}">''')
         if item['error']:
             html.append('<div style="color: red;">%s</div>' % item['error'])
         html.append('<div class="mdict-title">')
