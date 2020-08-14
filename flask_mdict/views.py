@@ -439,6 +439,12 @@ def list_mdict():
     return jsonify(all_mdict)
 
 
+@mdict.route('/clear_history/')
+def clear_history():
+    helper.clear_history()
+    return redirect(url_for('.query_word_all'))
+
+
 @mdict.route('/export_history/')
 def export_history():
     now = datetime.datetime.now()

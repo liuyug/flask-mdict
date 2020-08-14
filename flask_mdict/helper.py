@@ -176,6 +176,17 @@ def get_history(max_num=500):
     return rows
 
 
+def clear_history():
+    db = get_db('history')
+    if not db:
+        print('no history db')
+        return
+    c = db.cursor()
+    sql = 'DELETE FROM history;'
+    c.execute(sql)
+    db.commit()
+
+
 def export_history(sio):
     db = get_db('history')
     if not db:
