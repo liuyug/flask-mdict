@@ -421,7 +421,14 @@ def query_word_lite(uuid):
 
 @mdict.route('/list/')
 def list_mdict():
+    def src_replace(mo):
+        link = mo.group(2)
+        url = url_for('.query_resource', uuid=v['uuid'], resource=link, _external=True)
+        return mo.group(1) + url + mo.group(3)
+
     uuid = request.args.get('uuid')
+    regex_img = re.compile(r'( src=")(.+?)(")')
+
     all_mdict = []
     for k, v in get_mdict().items():
         if uuid and uuid != k:
@@ -430,7 +437,7 @@ def list_mdict():
             'title': v['title'],
             'uuid': v['uuid'],
             'logo': url_for('.query_resource', uuid=v['uuid'], resource=v['logo'], _external=True),
-            'about': v['about'],
+            'about': regex_img.sub(src_replace, v['about']),
             'type': v['type'],
             'lite_url': url_for('.query_word_lite', uuid=v['uuid'], word='', _external=True),
             'url': url_for('.query_word', uuid=v['uuid'], word='', _external=True),
