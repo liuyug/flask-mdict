@@ -310,6 +310,7 @@ def query_word_lite(uuid):
 
     all_result = request.args.get('all_result', '') == 'true'
     fallback = request.args.get('fallback', '').split(',')
+    nohistory = request.args.get('nohistory', '') == 'true'
     word = request.args.get('word').strip()
     if uuid == 'default':
         items = [list(get_mdict().values())[0]]
@@ -414,7 +415,7 @@ def query_word_lite(uuid):
             break
     resp = make_response('<hr class="seprator" />'.join(html_contents))
     resp.headers['Access-Control-Allow-Origin'] = '*'
-    if found_word:
+    if not nohistory and found_word:
         helper.add_history(word)
     return resp
 
