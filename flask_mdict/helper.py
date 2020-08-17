@@ -270,7 +270,7 @@ def init_mdict(mdict_dir):
                     text = fix_html(idx._description)
                 about_html = os.path.join(root, 'about_%s.html' % name)
                 if not os.path.exists(about_html):
-                    with open(about_html, 'wt') as f:
+                    with open(about_html, 'wt', encoding='utf-8') as f:
                         f.write(text)
                 if False:
                     text = regex_style.sub('', text)
