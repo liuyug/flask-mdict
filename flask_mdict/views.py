@@ -237,9 +237,9 @@ def query_word_all():
                 link = mo.group(2).strip()
                 if '#' in link:
                     link, anchor = link.split('#')
-                    record = f'<p>See also: <a href="entry://{link}#{anchor}">{link}</a></p>'
+                    record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link, _anchor=anchor)}">{link}</a></p>'''
                 else:
-                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                    record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link)}">{link}</a></p>'''
             else:
                 record = regex_href_end_slash.sub(r'\1\3', record)
                 # add dict uuid into url
