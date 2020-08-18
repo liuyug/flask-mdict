@@ -22,8 +22,8 @@ regex_href_end_slash = re.compile(r'([ "]href=["\'].+?)(/)(["\'])')
 regex_href_schema_sound = re.compile(r'([ "]href=["\'])(sound://)([^#].+?["\'])')
 # entry://
 regex_href_schema_entry = re.compile(r'([ "]href=["\'])(entry://)([^#].+?["\'])')
-# default: http
-regex_href_no_schema = re.compile(r'([ "]href=["\'])(?!sound://|entry://)([^#].+?["\'])')
+# /xxx/xxx.css
+regex_href_no_schema = re.compile(r'([ "]href=["\'])(?!http://|https://|sound://|entry://)([^#].+?["\'])')
 
 # css
 regex_css = re.compile(r'(<link.*? )(href)(=".+?>)')
