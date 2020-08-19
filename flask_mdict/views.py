@@ -423,7 +423,7 @@ def query_word_lite(uuid):
 @mdict.route('/list/')
 def list_mdict():
     def src_replace(mo):
-        link = mo.group(2)
+        link = mo.group(2).lstrip('/')
         url = url_for('.query_resource', uuid=v['uuid'], resource=link, _external=True)
         return mo.group(1) + url + mo.group(3)
 
