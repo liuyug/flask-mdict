@@ -379,12 +379,25 @@ def query_word_lite(uuid):
                 if '#' in link:
                     # anchor in current page
                     link, anchor = link.split('#')
-                    return redirect(url_for('.query_word_lite', uuid=cur_uuid, word=link, _anchor=anchor))
+                    return redirect(url_for(
+                        '.query_word_lite',
+                        uuid=cur_uuid,
+                        word=link,
+                        fallback=','.join(fallback),
+                        nohistory='true' if nohistory else 'false',
+                        _anchor=anchor,
+                    ))
                 else:
                     if len(records) > 1:
                         record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=cur_uuid, word=link)}">{link}</a></p>'''
                     else:
-                        return redirect(url_for('.query_word_lite', uuid=cur_uuid, word=link))
+                        return redirect(url_for(
+                            '.query_word_lite',
+                            uuid=cur_uuid,
+                            word=link,
+                            fallback=','.join(fallback),
+                            nohistory='true' if nohistory else 'false',
+                        ))
             else:
                 # remove http:// from sound:// and entry://
                 record = regex_href_end_slash.sub(r'\1\3', record)
