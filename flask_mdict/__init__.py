@@ -32,11 +32,17 @@ def init_app(app, url_prefix=None):
     Config.MDICT_CACHE = app.config.get('MDICT_CACHE')
     if not Config.MDICT_DIR:
         raise ValueError('Please set "MDICT_DIR" in app.config')
-    Config.MDICT, Config.DB_NAMES = helper.init_mdict(Config.MDICT_DIR)
 
-    # for search history
-    Config.DB_NAMES['history'] = os.path.join(Config.MDICT_DIR, 'history.db')
-    helper.init_history()
+    Config.MDICT = {}
+    Config.DB_NAMES = {}
+
+    # for flask mdict: setting, history...
+    Config.DB_NAMES['flask_mdict'] = os.path.join(Config.MDICT_DIR, 'flask_mdict.db')
+    helper.init_flask_mdict()
+
+    mdicts, db_names = helper.init_mdict(Config.MDICT_DIR)
+    Config.MDICT.update(mdicts)
+    Config.DB_NAMES.update(db_names)
 
     app.register_blueprint(mdict, url_prefix=url_prefix)
 

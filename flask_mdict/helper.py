@@ -133,42 +133,65 @@ def query_word_meta(word):
     return ' '.join(word_meta)
 
 
-def init_history():
-    db_name = Config.DB_NAMES.get('history')
+def init_flask_mdict():
+    db_name = Config.DB_NAMES.get('flask_mdict')
     db = sqlite3.connect(db_name)
     c = db.cursor()
+    # history
     sql = 'SELECT name FROM sqlite_master WHERE type="table" AND name="history";'
     row = c.execute(sql).fetchone()
     if not row:
         sql = 'CREATE TABLE history(word TEXT PRIMARY KEY, count INT, last_time DATETIME);'
         db.execute(sql)
         db.commit()
+    # mdict setting
+    sql = 'SELECT name FROM sqlite_master WHERE type="table" AND name="setting";'
+    row = c.execute(sql).fetchone()
+    if not row:
+        sql = 'CREATE TABLE setting(name TEXT PRIMARY KEY, value TEXT);'
+        db.execute(sql)
+        db.commit()
     db.close()
 
 
-def add_history(word):
-    db = get_db('history')
+def mdict_enable(uuid, value=None):
+    db = get_db('flask_mdict')
     if not db:
-        print('no history db')
+        print('no flask_mdict db')
+        return
+    c = db.cursor()
+    if value is not None:
+        sql = 'INSERT INTO setting (name, value) VALUES(?, ?) ON CONFLICT(name) DO UPDATE SET value = ?;'
+        c.execute(sql, (uuid, value, value))
+        db.commit()
+    else:
+        sql = 'SELECT value FROM setting WHERE name = ?;'
+        row = c.execute(sql, (uuid,)).fetchone()
+        if row:
+            return row[0]
+        else:
+            sql = 'INSERT INTO setting (name, value) VALUES(?, ?);'
+            c.execute(sql, (uuid, True))
+            db.commit()
+            return True
+
+
+def add_history(word):
+    db = get_db('flask_mdict')
+    if not db:
+        print('no flask_mdict db')
         return
     now = datetime.datetime.now()
     c = db.cursor()
-    sql = 'SELECT count FROM history WHERE word = ?;'
-    row = c.execute(sql, (word,)).fetchone()
-    if row:
-        count = row[0] + 1
-        sql = 'UPDATE history SET count = ?, last_time = ? WHERE word = ?;'
-        c.execute(sql, (count, now, word))
-    else:
-        sql = 'INSERT INTO history VALUES(?, ?, ?);'
-        c.execute(sql, (word, 1, now))
+    sql = 'INSERT INTO history (word, count, last_time) VALUES(?, 1, ?) ON CONFLICT(word) DO UPDATE SET count = count + 1, last_time = ?;'
+    c.execute(sql, (word, now, now))
     db.commit()
 
 
 def get_history(max_num=500):
-    db = get_db('history')
+    db = get_db('flask_mdict')
     if not db:
-        print('no history db')
+        print('no flask_mdict db')
         return
     c = db.cursor()
     sql = 'SELECT * FROM history ORDER BY last_time DESC LIMIT ?;'
@@ -177,9 +200,9 @@ def get_history(max_num=500):
 
 
 def clear_history():
-    db = get_db('history')
+    db = get_db('flask_mdict')
     if not db:
-        print('no history db')
+        print('no flask_mdict db')
         return
     c = db.cursor()
     sql = 'DELETE FROM history;'
@@ -188,9 +211,9 @@ def clear_history():
 
 
 def export_history(sio):
-    db = get_db('history')
+    db = get_db('flask_mdict')
     if not db:
-        print('no history db')
+        print('no flask_mdict db')
         return
     c = db.cursor()
     sql = 'SELECT * FROM history;'
@@ -204,6 +227,11 @@ def export_history(sio):
 def init_mdict(mdict_dir):
     mdicts = {}
     db_names = {}
+    mdict_setting = {}
+    with sqlite3.connect(Config.DB_NAMES['flask_mdict']) as conn:
+        rows = conn.execute('SELECT name, value FROM setting;')
+        for row in rows:
+            mdict_setting[row[0]] = row[1] == '1'
     for root, dirs, files in os.walk(mdict_dir, followlinks=True):
         for fname in files:
             if fname.endswith('.db') \
@@ -214,8 +242,10 @@ def init_mdict(mdict_dir):
                 if not d.is_ok():
                     continue
                 # mdict db
+                dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, db_file.replace('\\', '/'))).upper()
                 name = os.path.splitext(fname)[0]
-                print('Initialize DICT DB "%s"...' % name)
+                enable = mdict_setting.get(dict_uuid, True)
+                print('Initialize DICT DB "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
                 print('\tfind %s:mdx' % fname)
                 if d.is_mdd():
                     print('\tfind %s:mdd' % fname)
@@ -224,8 +254,6 @@ def init_mdict(mdict_dir):
                     if os.path.exists(os.path.join(root, name + ext)):
                         logo = name + ext
                         break
-                dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, db_file.replace('\\', '/'))).upper()
-                print('\tuuid: %s' % dict_uuid)
                 db_names[dict_uuid] = db_file
                 mdicts[dict_uuid] = {
                     'title': d.title(),
@@ -237,6 +265,7 @@ def init_mdict(mdict_dir):
                     'cache': {},
                     'type': 'mdict_db',
                     'error': '',
+                    'enable': enable,
                 }
             elif fname.endswith('.mdx'):
                 name = os.path.splitext(fname)[0]
@@ -247,7 +276,8 @@ def init_mdict(mdict_dir):
                         break
                 mdx_file = os.path.join(root, fname)
                 dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file.replace('\\', '/'))).upper()
-                print('Initialize MDICT "%s" {%s}...' % (name, dict_uuid))
+                enable = mdict_setting.get(dict_uuid, True)
+                print('Initialize MDICT "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
 
                 idx = IndexBuilder2(mdx_file)
                 if not idx._title or idx._title == 'Title (No HTML code allowed)':
@@ -291,18 +321,14 @@ def init_mdict(mdict_dir):
                     'cache': {},
                     'type': 'mdict',
                     'error': '',
+                    'enable': enable,
                 }
-    wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
-    if os.path.exists(wfd_db):
-        db_names['ecdict_wfd'] = wfd_db
-        print('Add "Word Frequency Database - ecdict_wfd.db"...')
-    else:
-        print('Could not found "Word Frequency Database - ecdict_wfd.db"!')
     # for google translate online
     title = 'Google 翻译'
     # dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
     # fake uuid
     dict_uuid = 'gtranslate'
+    enable = mdict_setting.get(dict_uuid, True)
     mdicts[dict_uuid] = {
         'title': title,
         'uuid': dict_uuid,
@@ -313,9 +339,18 @@ def init_mdict(mdict_dir):
         'cache': {},
         'type': 'app',
         'error': '',
+        'enable': enable,
     }
     db_names[dict_uuid] = None
-    print('Add "%s"...' % title)
+    print('Add "%s" [%s]...' % (title, 'Enable' if enable else 'Disable'))
+
+    wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
+    if os.path.exists(wfd_db):
+        db_names['ecdict_wfd'] = wfd_db
+        print('Add "Word Frequency Database - ecdict_wfd.db"...')
+    else:
+        print('Could not found "Word Frequency Database - ecdict_wfd.db"!')
+
     print('--- MDict is Ready ---')
     return mdicts, db_names
 

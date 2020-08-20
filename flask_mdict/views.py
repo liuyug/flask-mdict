@@ -185,6 +185,7 @@ def query_word(uuid, word):
         'logo': item['logo'],
         'about': about,
         'content': html_content,
+        'enable': item['enable'],
     }
     word_meta = helper.query_word_meta(word)
     history = helper.get_history()
@@ -215,10 +216,13 @@ def query_word_all():
     found_word = False
     for uuid, item in get_mdict().items():
         q = item['query']
-        if item['type'] == 'app':
-            records = q(word, item)
+        if item['enable']:
+            if item['type'] == 'app':
+                records = q(word, item)
+            else:
+                records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
         else:
-            records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
+            records = []
         html_content = []
         if item['error']:
             html_content.append('<div style="color: red;">%s</div>' % item['error'])
@@ -270,6 +274,7 @@ def query_word_all():
             'logo': item['logo'],
             'about': about,
             'content': html_content,
+            'enable': item['enable'],
         }
 
     word_meta = helper.query_word_meta(word)
@@ -420,6 +425,16 @@ def query_word_lite(uuid):
     return resp
 
 
+@mdict.route('/toggle/<uuid>')
+def mdict_toggle(uuid):
+    item = get_mdict().get(uuid)
+    if not item:
+        abort(404)
+    item['enable'] = not item['enable']
+    helper.mdict_enable(uuid, item['enable'])
+    return jsonify(status='ok', uuid=uuid, enable=item['enable'])
+
+
 @mdict.route('/list/')
 def list_mdict():
     def src_replace(mo):
@@ -442,6 +457,7 @@ def list_mdict():
             'type': v['type'],
             'lite_url': url_for('.query_word_lite', uuid=v['uuid'], word='', _external=True),
             'url': url_for('.query_word', uuid=v['uuid'], word='', _external=True),
+            'enable': v['enable'],
         })
 
     return jsonify(all_mdict)
