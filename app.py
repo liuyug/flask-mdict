@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding:utf-8 -*-
-
+import os
 
 from flask import Flask, redirect, url_for
 
@@ -12,6 +12,7 @@ def create_app(mdict_dir='content'):
     app.config['MDICT_DIR'] = mdict_dir
     app.config['MDICT_CACHE'] = False
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
+    app.config['APP_DB'] = os.path.join(mdict_dir, 'flask_mdict.db')
 
     init_app(app, url_prefix='/')
 

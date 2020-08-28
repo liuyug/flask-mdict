@@ -134,7 +134,7 @@ def query_word_meta(word):
 
 
 def init_flask_mdict():
-    db_name = Config.DB_NAMES.get('flask_mdict')
+    db_name = Config.DB_NAMES.get('app_db')
     db = sqlite3.connect(db_name)
     c = db.cursor()
     # history
@@ -155,9 +155,9 @@ def init_flask_mdict():
 
 
 def mdict_enable(uuid, value=None):
-    db = get_db('flask_mdict')
+    db = get_db('app_db')
     if not db:
-        print('no flask_mdict db')
+        print('no app db')
         return
     c = db.cursor()
     if value is not None:
@@ -177,9 +177,9 @@ def mdict_enable(uuid, value=None):
 
 
 def add_history(word):
-    db = get_db('flask_mdict')
+    db = get_db('app_db')
     if not db:
-        print('no flask_mdict db')
+        print('no app db')
         return
     now = datetime.datetime.now()
     c = db.cursor()
@@ -189,9 +189,9 @@ def add_history(word):
 
 
 def get_history(max_num=500):
-    db = get_db('flask_mdict')
+    db = get_db('app_db')
     if not db:
-        print('no flask_mdict db')
+        print('no app db')
         return
     c = db.cursor()
     sql = 'SELECT * FROM history ORDER BY last_time DESC LIMIT ?;'
@@ -200,9 +200,9 @@ def get_history(max_num=500):
 
 
 def clear_history():
-    db = get_db('flask_mdict')
+    db = get_db('app_db')
     if not db:
-        print('no flask_mdict db')
+        print('no app db')
         return
     c = db.cursor()
     sql = 'DELETE FROM history;'
@@ -211,9 +211,9 @@ def clear_history():
 
 
 def export_history(sio):
-    db = get_db('flask_mdict')
+    db = get_db('app_db')
     if not db:
-        print('no flask_mdict db')
+        print('no app db')
         return
     c = db.cursor()
     sql = 'SELECT * FROM history;'
@@ -228,7 +228,7 @@ def init_mdict(mdict_dir):
     mdicts = {}
     db_names = {}
     mdict_setting = {}
-    with sqlite3.connect(Config.DB_NAMES['flask_mdict']) as conn:
+    with sqlite3.connect(Config.DB_NAMES['app_db']) as conn:
         rows = conn.execute('SELECT name, value FROM setting;')
         for row in rows:
             mdict_setting[row[0]] = row[1] == '1'
