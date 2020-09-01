@@ -5,6 +5,7 @@ import os.path
 import sqlite3
 import datetime
 import csv
+import logging
 
 from flask import url_for
 
@@ -14,6 +15,8 @@ from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
 
+
+logger = logging.getLogger(__name__)
 
 regex_style = re.compile(r'<style.+?</style>', re.DOTALL | re.IGNORECASE)
 regex_ln = re.compile(r'<(p|br|tr)[^>]*?>', re.IGNORECASE)
@@ -157,7 +160,7 @@ def init_flask_mdict():
 def mdict_enable(uuid, value=None):
     db = get_db('app_db')
     if not db:
-        print('no app db')
+        logger.error('no app db')
         return
     c = db.cursor()
     if value is not None:
@@ -179,7 +182,7 @@ def mdict_enable(uuid, value=None):
 def add_history(word):
     db = get_db('app_db')
     if not db:
-        print('no app db')
+        logger.error('no app db')
         return
     now = datetime.datetime.now()
     c = db.cursor()
@@ -191,7 +194,7 @@ def add_history(word):
 def get_history(max_num=500):
     db = get_db('app_db')
     if not db:
-        print('no app db')
+        logger.error('no app db')
         return
     c = db.cursor()
     sql = 'SELECT * FROM history ORDER BY last_time DESC LIMIT ?;'
@@ -202,7 +205,7 @@ def get_history(max_num=500):
 def clear_history():
     db = get_db('app_db')
     if not db:
-        print('no app db')
+        logger.error('no app db')
         return
     c = db.cursor()
     sql = 'DELETE FROM history;'
@@ -213,7 +216,7 @@ def clear_history():
 def export_history(sio):
     db = get_db('app_db')
     if not db:
-        print('no app db')
+        logger.error('no app db')
         return
     c = db.cursor()
     sql = 'SELECT * FROM history;'
@@ -245,10 +248,10 @@ def init_mdict(mdict_dir):
                 dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, db_file.replace('\\', '/'))).upper()
                 name = os.path.splitext(fname)[0]
                 enable = mdict_setting.get(dict_uuid, True)
-                print('Initialize DICT DB "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
-                print('\tfind %s:mdx' % fname)
+                logger.info('Initialize DICT DB "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
+                logger.info('\tfind %s:mdx' % fname)
                 if d.is_mdd():
-                    print('\tfind %s:mdd' % fname)
+                    logger.info('\tfind %s:mdd' % fname)
                 logo = 'logo.ico'
                 for ext in ['ico', '.jpg', '.png']:
                     if os.path.exists(os.path.join(root, name + ext)):
@@ -277,7 +280,7 @@ def init_mdict(mdict_dir):
                 mdx_file = os.path.join(root, fname)
                 dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, mdx_file.replace('\\', '/'))).upper()
                 enable = mdict_setting.get(dict_uuid, True)
-                print('Initialize MDICT "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
+                logger.info('Initialize MDICT "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
 
                 idx = IndexBuilder2(mdx_file)
                 if not idx._title or idx._title == 'Title (No HTML code allowed)':
@@ -289,10 +292,10 @@ def init_mdict(mdict_dir):
                 abouts = []
                 abouts.append('<ul>')
                 abouts.append('<li>%s</li>' % os.path.basename(idx._mdx_file))
-                print('\t+ %s' % os.path.basename(idx._mdx_file))
+                logger.info('\t+ %s' % os.path.basename(idx._mdx_file))
                 for mdd in idx._mdd_files:
                     abouts.append('<li>%s</li>' % os.path.basename(mdd))
-                    print('\t+ %s' % os.path.basename(mdd))
+                    logger.info('\t+ %s' % os.path.basename(mdd))
                 abouts.append('</ul><hr />')
                 if idx._description == '<font size=5 color=red>Paste the description of this product in HTML source code format here</font>':
                     text = ''
@@ -342,16 +345,16 @@ def init_mdict(mdict_dir):
         'enable': enable,
     }
     db_names[dict_uuid] = None
-    print('Add "%s" [%s]...' % (title, 'Enable' if enable else 'Disable'))
+    logger.info('Add "%s" [%s]...' % (title, 'Enable' if enable else 'Disable'))
 
     wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
     if os.path.exists(wfd_db):
         db_names['ecdict_wfd'] = wfd_db
-        print('Add "Word Frequency Database - ecdict_wfd.db"...')
+        logger.info('Add "Word Frequency Database - ecdict_wfd.db"...')
     else:
-        print('Could not found "Word Frequency Database - ecdict_wfd.db"!')
+        logger.error('Could not found "Word Frequency Database - ecdict_wfd.db"!')
 
-    print('--- MDict is Ready ---')
+    logger.info('--- MDict is Ready ---')
     return mdicts, db_names
 
 
