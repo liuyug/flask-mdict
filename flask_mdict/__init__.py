@@ -38,6 +38,7 @@ def init_app(app, url_prefix=None):
 
     # for flask mdict: setting, history...
     Config.DB_NAMES['app_db'] = app.config.get('APP_DB')
+    Config.DB_NAMES['wfd_db'] = app.config.get('WFD_DB')
     helper.init_flask_mdict()
 
     mdicts, db_names = helper.init_mdict(Config.MDICT_DIR)
