@@ -132,7 +132,7 @@ def query_word_meta(word):
                          '<span class="badge badge-pill badge-info" title="COCA: %s">COCA: %s</span>'
                          '</a>' % (key['frq'], key['frq']))
     if key.get('error'):
-        word_meta.append('<span class="badge badge-pill badge-danger">%s</span>' % (key['error']))
+        word_meta.append('<span class="badge badge-pill badge-danger"></span>')
     return ' '.join(word_meta)
 
 
