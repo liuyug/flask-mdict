@@ -389,7 +389,7 @@ def query_word_lite(uuid):
                     ))
                 else:
                     if len(records) > 1 or len(items) > 1:
-                        record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=cur_uuid, word=link)}">{link}</a></p>'''
+                        record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=cur_uuid, word=link, _external=True)[7:]}">{link}</a></p>'''
                     else:
                         return redirect(url_for(
                             '.query_word_lite',
