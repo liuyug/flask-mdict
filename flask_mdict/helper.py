@@ -227,7 +227,7 @@ def export_history(sio):
     return sio
 
 
-def init_mdict(mdict_dir):
+def init_mdict(mdict_dir, index_dir=None):
     mdicts = {}
     db_names = {}
     mdict_setting = {}
@@ -282,7 +282,13 @@ def init_mdict(mdict_dir):
                 enable = mdict_setting.get(dict_uuid, True)
                 logger.info('Initialize MDICT "%s" {%s} [%s]...' % (name, dict_uuid, 'Enable' if enable else 'Disable'))
 
-                idx = IndexBuilder2(mdx_file)
+                if index_dir:
+                    mdict_index_dir = os.path.join(index_dir, dict_uuid)
+                    if not os.path.exists(mdict_index_dir):
+                        os.makedirs(mdict_index_dir)
+                else:
+                    mdict_index_dir = None
+                idx = IndexBuilder2(mdx_file, index_dir=mdict_index_dir)
                 if not idx._title or idx._title == 'Title (No HTML code allowed)':
                     title = name
                 else:

@@ -3,6 +3,7 @@ import string
 import sqlite3
 import re
 import os.path
+import ast
 
 from .word_query.mdict_query import IndexBuilder
 
@@ -11,42 +12,92 @@ version = '1.2'
 
 class IndexBuilder2(IndexBuilder):
     _mdd_files = None
+    _index_dir = None
 
     def __init__(self, fname, encoding="", passcode=None,
                  force_rebuild=False, enable_history=False,
-                 sql_index=True, check=False):
-        super(IndexBuilder2, self).__init__(
-            fname, encoding, passcode,
-            force_rebuild, enable_history, sql_index, check)
+                 sql_index=True, check=False, index_dir=None):
+        # from super class
+        self._mdx_file = fname
+        self._mdd_file = ""
+        self._encoding = ''
+        self._stylesheet = {}
+        self._title = ''
+        self._version = ''
+        self._description = ''
+        self._sql_index = sql_index
+        self._check = check
 
-        # all mdd file
-        self._mdd_files = []
-        if self._mdd_file:
-            self._mdd_files.append(self._mdd_file)
         dirname = os.path.dirname(self._mdx_file)
         basename = os.path.basename(self._mdx_file)
         name, _ = os.path.splitext(basename)
+
+        self._index_dir = index_dir or dirname
+        self._mdx_db = self.get_index_db(self._mdx_file, self._index_dir)
+
+        self._mdd_files = []
+        if os.path.isfile(os.path.join(dirname, name + '.mdd')):
+            self._mdd_file = os.path.join(dirname, name + '.mdd')
+            self._mdd_files.append(self._mdd_file)
         regex_mdd = re.compile(r'^(.+?)\..+?\.mdd$')
         for fname in os.listdir(dirname):
             m = regex_mdd.match(fname)
             if m and m.group(1) == name:
                 self._mdd_files.append(os.path.join(dirname, fname))
 
-        if self.is_update(self._mdx_file):
-            self._make_mdx_index(self._mdx_file + '.db')
-        if self._mdd_file and self.is_update(self._mdd_file):
-            self._make_mdd_index(self._mdd_file + '.db')
+        if force_rebuild or self.is_update(self._mdx_file, self._index_dir):
+            self._make_mdx_index(self.get_index_db(self._mdx_file, self._index_dir))
+        else:
+            # read meta from index db
+            conn = sqlite3.connect(self._mdx_db)
+            # 判断有无版本号
+            cursor = conn.execute("SELECT * FROM META WHERE key = \"version\"")
+            for cc in cursor:
+                self._version = cc[1]
+            cursor = conn.execute("SELECT * FROM META WHERE key = \"encoding\"")
+            for cc in cursor:
+                self._encoding = cc[1]
+            cursor = conn.execute("SELECT * FROM META WHERE key = \"stylesheet\"")
+            for cc in cursor:
+                self._stylesheet = ast.literal_eval(cc[1])
+
+            cursor = conn.execute("SELECT * FROM META WHERE key = \"title\"")
+            for cc in cursor:
+                self._title = cc[1]
+
+            cursor = conn.execute("SELECT * FROM META WHERE key = \"description\"")
+            for cc in cursor:
+                self._description = cc[1]
+
+        if self._mdd_file and self.is_update(self._mdd_file, self._index_dir):
+            self._mdd_db = self.get_index_db(self._mdd_file, self._index_dir)
+            self._make_mdd_index(self._mdd_db)
+
         # check mdd db
         for mdd_file in self._mdd_files:    # parent class has initialize first item
             if mdd_file == self._mdd_file:
                 continue
-            mdd_db = mdd_file + '.db'
-            if force_rebuild or not os.path.isfile(mdd_db) or self.is_update(mdd_file):
-                self._make_mdd_index(mdd_db, mdd_file)
+            if force_rebuild or self.is_update(mdd_file, self._index_dir):
+                self._make_mdd_index(
+                    self.get_index_db(mdd_file, self._index_dir),
+                    mdd_file
+                )
 
-    @staticmethod
-    def is_update(mdx_file):
-        db_name = mdx_file + '.db'
+    @classmethod
+    def get_index_db(cls, mdx_file, index_dir=None):
+        if index_dir:
+            basename = os.path.basename(mdx_file)
+            db_name = os.path.join(index_dir, basename + '.db')
+        else:
+            db_name = mdx_file + '.db'
+        return db_name
+
+    @classmethod
+    def is_update(cls, mdx_file, index_dir=None):
+        db_name = cls.get_index_db(mdx_file, index_dir)
+        if not os.path.isfile(db_name):
+            return True
+
         m_time = '%s' % os.path.getmtime(mdx_file)
 
         conn = sqlite3.connect(db_name)
@@ -137,7 +188,7 @@ class IndexBuilder2(IndexBuilder):
     def mdd_lookup(self, conn, keyword, ignorecase=None):
         """ MDD is resource file, should always return one file """
         for mdd_file in self._mdd_files:
-            mdd_db = mdd_file + '.db'
+            mdd_db = self.get_index_db(mdd_file, self._index_dir)
             if not os.path.exists(mdd_db):
                 continue
             indexes = self.lookup_indexes(mdd_db, keyword, ignorecase)
@@ -170,6 +221,6 @@ class IndexBuilder2(IndexBuilder):
     def get_mdd_keys(self, conn, query=''):
         keys = []
         for mdd_file in self._mdd_files:
-            mdd_db = mdd_file + '.db'
+            mdd_db = self.get_index_db(mdd_file, self._index_dir)
             keys.extend(self.get_keys(mdd_db, query))
         return keys

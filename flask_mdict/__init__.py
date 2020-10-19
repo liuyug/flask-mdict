@@ -33,6 +33,8 @@ def init_app(app, url_prefix=None):
     if not Config.MDICT_DIR:
         raise ValueError('Please set "MDICT_DIR" in app.config')
 
+    Config.INDEX_DIR = app.config.get('INDEX_DIR')
+
     Config.MDICT = {}
     Config.DB_NAMES = {}
 
@@ -41,7 +43,7 @@ def init_app(app, url_prefix=None):
     Config.DB_NAMES['wfd_db'] = app.config.get('WFD_DB')
     helper.init_flask_mdict()
 
-    mdicts, db_names = helper.init_mdict(Config.MDICT_DIR)
+    mdicts, db_names = helper.init_mdict(Config.MDICT_DIR, Config.INDEX_DIR)
     Config.MDICT.update(mdicts)
     Config.DB_NAMES.update(db_names)
 
