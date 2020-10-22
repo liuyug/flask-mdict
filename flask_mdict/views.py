@@ -318,10 +318,9 @@ def query_word_lite(uuid):
     nohistory = request.args.get('nohistory', '') == 'true'
     word = request.args.get('word').strip()
     if uuid == 'default':
-        items = [list(get_mdict().values())[0]]
-        for f in fallback:
-            if f in get_mdict():
-                items.append(get_mdict().get(f))
+        default_uuid = next(iter(get_mdict()))
+        url = re.sub(r'/default/lite/', f'/{default_uuid}/lite/', request.url)
+        return redirect(url)
     elif uuid == 'all':
         items = list(get_mdict().values())
     else:
