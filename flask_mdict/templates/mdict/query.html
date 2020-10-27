@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{url_for('.static', filename='css/mdict.css')}}">
 {% endblock %}
 
-{% block subtitle %}Flask Mdict - {{word}}{% endblock %}
+{% block subtitle %}{{word}} - {{config.APP_NAME}}{% endblock %}
 
 {% block maincontent %}
 <div class="row">
