@@ -9,6 +9,18 @@
 {% block subtitle %}{{word}} - {{config.APP_NAME}}{% endblock %}
 
 {% block maincontent %}
+    <div class="modal fade" id="message" tabindex="-1" role="dialog" aria-labelledby="message_body" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div id="message_body" class="modal-body">
+                    {{message}}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 <div class="row">
     <div class="col-sm-3">
         <div class="sticky-top">
@@ -121,6 +133,9 @@
 <script src="{{url_for(".static", filename="js/mdict.js")}}"></script>
 <script src="{{url_for(".static", filename="js/typeahead.bundle.min.js")}}"></script>
 <script type="text/javascript">
+    if ("{{message}}") {
+        $('#message').modal('show');
+    }
 /* typeahead */
 var dataset_engine = new Bloodhound({
     queryTokenizer: Bloodhound.tokenizers.whitespace,

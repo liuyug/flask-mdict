@@ -115,6 +115,8 @@ def query_word(uuid, word):
         uuid = list(get_mdict().keys())[0]
         return redirect(url_for('.query_word', uuid=uuid, word=word))
 
+    message = ''
+
     item = get_mdict().get(uuid)
     if not item:
         abort(404)
@@ -198,6 +200,7 @@ def query_word(uuid, word):
         word_meta=word_meta,
         history=history,
         contents=contents,
+        message=message,
     )
 
 
@@ -210,6 +213,11 @@ def query_word_all():
         word = request.args.get('word')
         word = word or helper.ecdict_random_word('cet4')
         form.word.data = word
+
+    if len(get_mdict()) <= 1:
+        message = f'没有发现词典，请将词典放入：“{Config.MDICT_DIR}”'
+    else:
+        message = ''
 
     word = word.strip()
     contents = {}
@@ -289,6 +297,7 @@ def query_word_all():
         word_meta=word_meta,
         history=history,
         contents=contents,
+        message=message,
     )
 
 
