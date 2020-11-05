@@ -96,34 +96,34 @@
     </div>
 
     <div class="col">
-        {% for uuid, item in contents.items() %}
-        <div id="{{uuid}}" class="anchor-fix"> </div>
-        <div class="card">
-            <div class="card-body py-0" id="class_{{uuid}}">
-                <div class="d-flex flex-row-reverse">
-                    <div>
-                        {%if item.content%}<small>{{word_meta|safe}}</small>{%endif%}
-                        <a style="text-decoration:none;"
-                           target="_blank"
-                           href="{{url_for('.query_word', uuid=uuid, word=word)}}">
-                            <img class="rounded align-text-bottom"
-                                 height="16px"
-                                 src="{{url_for('.query_resource', uuid=uuid, resource=item.logo)}}"/>
-                        </a>
-                        <button class="btn btn-link btn-sm p-0"
-                                data-toggle="collapse"
-                                data-target="#collapse_{{uuid}}">
-                            {{item.title|safe}}
-                        </button>
+        {% for uuid, item in contents.items() if item.content %}
+            <div id="{{uuid}}" class="anchor-fix"> </div>
+            <div class="card">
+                <div class="card-body py-0" id="class_{{uuid}}">
+                    <div class="d-flex flex-row-reverse">
+                        <div>
+                            {%if item.content%}<small>{{word_meta|safe}}</small>{%endif%}
+                            <a style="text-decoration:none;"
+                               target="_blank"
+                               href="{{url_for('.query_word', uuid=uuid, word=word)}}">
+                                <img class="rounded align-text-bottom"
+                                     height="16px"
+                                     src="{{url_for('.query_resource', uuid=uuid, resource=item.logo)}}"/>
+                            </a>
+                            <button class="btn btn-link btn-sm p-0"
+                                    data-toggle="collapse"
+                                    data-target="#collapse_{{uuid}}">
+                                {{item.title|safe}}
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div id="collapse_{{uuid}}" class="collapse{%if item.content%} show{%endif%}">
-                    <div class="mdict">
-                        {{item.content|safe}}
+                    <div id="collapse_{{uuid}}" class="collapse{%if item.content%} show{%endif%}">
+                        <div class="mdict">
+                            {{item.content|safe}}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         {% endfor %}
     </div>
 </div>

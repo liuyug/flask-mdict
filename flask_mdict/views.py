@@ -229,50 +229,50 @@ def query_word_all():
                 records = q(word, item)
             else:
                 records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
-        else:
-            records = []
-        html_content = []
-        if item['error']:
-            html_content.append('<div style="color: red;">%s</div>' % item['error'])
-        prefix_resource = '%s/resource' % uuid
-        prefix_entry = '%s/query' % uuid
-        found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
-        count = 1
-        record_num = len(records)
-        for record in records:
-            if record.startswith('@@@LINK='):
-                record_num -= 1
-        for record in records:
-            record = helper.fix_html(record)
-            mo = regex_word_link.match(record)
-            if mo:
-                link = mo.group(2).strip()
-                if '#' in link:
-                    link, anchor = link.split('#')
-                    record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link, _anchor=anchor)}">{link}</a></p>'''
+            html_content = []
+            if item['error']:
+                html_content.append('<div style="color: red;">%s</div>' % item['error'])
+            prefix_resource = '%s/resource' % uuid
+            prefix_entry = '%s/query' % uuid
+            found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
+            count = 1
+            record_num = len(records)
+            for record in records:
+                if record.startswith('@@@LINK='):
+                    record_num -= 1
+            for record in records:
+                record = helper.fix_html(record)
+                mo = regex_word_link.match(record)
+                if mo:
+                    link = mo.group(2).strip()
+                    if '#' in link:
+                        link, anchor = link.split('#')
+                        record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link, _anchor=anchor)}">{link}</a></p>'''
+                    else:
+                        record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link)}">{link}</a></p>'''
                 else:
-                    record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link)}">{link}</a></p>'''
-            else:
-                record = regex_href_end_slash.sub(r'\1\3', record)
-                # add dict uuid into url
-                # for resource
-                record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
-                record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
-                record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
-                # for dict data
-                record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+                    record = regex_href_end_slash.sub(r'\1\3', record)
+                    # add dict uuid into url
+                    # for resource
+                    record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
+                    record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+                    record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
+                    # for dict data
+                    record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
 
-                # keep first css
-                if count > 1:
-                    record = regex_css.sub(r'\1data-\2\3', record)
-                # keep last js
-                if count < record_num:
-                    record = regex_js.sub(r'\1data-\2\3', record)
-                count += 1
+                    # keep first css
+                    if count > 1:
+                        record = regex_css.sub(r'\1data-\2\3', record)
+                    # keep last js
+                    if count < record_num:
+                        record = regex_js.sub(r'\1data-\2\3', record)
+                    count += 1
 
-            html_content.append(record)
+                html_content.append(record)
+            html_content = f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">' + '<hr />'.join(html_content)
+        else:
+            html_content = ''
 
-        html_content = f'<link rel="stylesheet" href="{url_for(".query_resource", uuid=uuid, resource="css/reset.css")}">' + '<hr />'.join(html_content)
         about = item['about']
         about = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, about)
         about = regex_href_end_slash.sub(r'\1\3', about)
