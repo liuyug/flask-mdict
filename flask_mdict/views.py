@@ -37,8 +37,9 @@ def query_part(part):
     for uuid, item in get_mdict().items():
         if item['type'] == 'app':
             continue
-        content = item['query'].get_mdx_keys(get_db(uuid), part)
-        contents |= set(content)
+        if item['enable']:
+            content = item['query'].get_mdx_keys(get_db(uuid), part)
+            contents |= set(content)
     return jsonify(suggestion=sorted(contents))
 
 
