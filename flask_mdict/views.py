@@ -224,6 +224,8 @@ def query_word_all():
     contents = {}
     found_word = False
     for uuid, item in get_mdict().items():
+        prefix_resource = '%s/resource' % uuid
+        prefix_entry = '%s/query' % uuid
         q = item['query']
         if item['enable']:
             if item['type'] == 'app':
@@ -233,8 +235,6 @@ def query_word_all():
             html_content = []
             if item['error']:
                 html_content.append('<div style="color: red;">%s</div>' % item['error'])
-            prefix_resource = '%s/resource' % uuid
-            prefix_entry = '%s/query' % uuid
             found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
             count = 1
             record_num = len(records)
