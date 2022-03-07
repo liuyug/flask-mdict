@@ -4,12 +4,7 @@ function click_sound(event) {
     event.preventDefault();
     // prevent other event listener
     event.stopPropagation();
-    let url = this.href;
-    if (this.hasAttribute('abs_url')) {
-        url = url.replace("sound://", "http://");
-    } else {
-        url = url.replace("sound://", "");
-    }
+    let url = this.getAttribute('data-sound-url');
     let mdict_player = document.createElement("audio");
     mdict_player.id = 'mdict_player';
     mdict_player.src = url;
@@ -21,12 +16,7 @@ function click_entry(event) {
     event.preventDefault();
     // prevent other event listener
     event.stopPropagation();
-    let url = this.href;
-    if (this.hasAttribute('abs_url')) {
-        url = url.replace("entry://", "http://");
-    } else {
-        url = url.replace("entry://", "");
-    }
+    let url = this.getAttribute('data-entry-url');
     window.location.href = url;
 }
 

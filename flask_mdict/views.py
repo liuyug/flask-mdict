@@ -43,7 +43,7 @@ def query_part(part):
     return jsonify(suggestion=sorted(contents))
 
 
-@mdict.route('/<uuid>/resource/<path:resource>', methods=['GET', 'POST'])
+@mdict.route('/uuid_<uuid>/resource/<path:resource>', methods=['GET', 'POST'])
 def query_resource(uuid, resource):
     """query mdict resource file: mdd"""
     resource = resource.strip()
@@ -102,7 +102,7 @@ def query_resource(uuid, resource):
         abort(404)
 
 
-@mdict.route('/<uuid>/query/<word>', methods=['GET', 'POST'])
+@mdict.route('/uuid_<uuid>/query/<word>', methods=['GET', 'POST'])
 def query_word(uuid, word):
     """query mdict dict file: mdx"""
     form = WordForm()
@@ -131,8 +131,7 @@ def query_word(uuid, word):
     html_content = []
     if item['error']:
         html_content.append('<div style="color: red;">%s</div>' % item['error'])
-    prefix_resource = '%s/resource' % '..'
-    # prefix_entry = '%s/query' % '..'
+    prefix_resource = url_for('.query_resource', uuid=uuid, resource='')
     found_word = (uuid != 'gtranslate' and len(records) > 0)
     count = 1
     record_num = len(records)
@@ -157,14 +156,19 @@ def query_word(uuid, word):
             # for <img src="<add:resource/>..."
             record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
             # for <a href="sound://<add:resouce>..."
-            record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+            # record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
             # for <a href="<add:resource/>image.png"
             record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
             # remove /
             record = regex_href_end_slash.sub(r'\1\3', record)
             # for <a href="entry://...", alread in query word page, do not add
-            record = regex_href_schema_entry.sub(r'\1\2\3', record)
+            # record = regex_href_schema_entry.sub(r'\1\2\3', record)
             # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+            # sound://
+            record = regex_href_schema_sound.sub(r' data-sound-url="%s/\3" \1\2\3' % prefix_resource, record)
+            # entry://
+            query_word_url = url_for('.query_word', uuid=uuid, word='')
+            record = regex_href_schema_entry.sub(r' data-entry-url="%s\3" \1\2\3' % query_word_url, record)
 
             # keep first css
             if count > 1:
@@ -224,8 +228,7 @@ def query_word_all():
     contents = {}
     found_word = False
     for uuid, item in get_mdict().items():
-        prefix_resource = '%s/resource' % uuid
-        prefix_entry = '%s/query' % uuid
+        prefix_resource = url_for('.query_resource', uuid=uuid, resource='')
         q = item['query']
         if item['enable']:
             if item['type'] == 'app':
@@ -256,10 +259,16 @@ def query_word_all():
                     # add dict uuid into url
                     # for resource
                     record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
-                    record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
+                    # record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource, record)
                     record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                     # for dict data
-                    record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+                    # record = regex_href_schema_entry.sub(r'\1\g<2>%s/\3' % prefix_entry, record)
+
+                    # sound://
+                    record = regex_href_schema_sound.sub(r' data-sound-url="%s/\3" \1\2\3' % prefix_resource, record)
+                    # entry://
+                    query_word_url = url_for('.query_word', uuid=uuid, word='')
+                    record = regex_href_schema_entry.sub(r' data-entry-url="%s\3" \1\2\3' % query_word_url, record)
 
                     # keep first css
                     if count > 1:
@@ -316,20 +325,32 @@ def query_word_meta(word):
     return '\n'.join(html)
 
 
-@mdict.route('/<uuid>/lite/')
-def query_word_lite(uuid):
+@mdict.route('/lite_<uuid>/<word>')
+def query_word_lite(uuid, word):
     def url_replace(mo):
         abs_url = mo.group(2)
-        abs_url = re.sub(r'(?<!:)//', '/', abs_url)
-        return ' data-abs-url' + mo.group(1) + abs_url + mo.group(3)
+        abs_url = urllib.parse.unquote(abs_url)
+        if abs_url.startswith('sound://'):
+            sound_url = url_for('static', filename=f'{uuid}/{abs_url[8:]}', _external=True, _scheme='https')
+            return f' data-sound-url="{sound_url}"' + mo.group(1) + abs_url + mo.group(3)
+        elif abs_url.startswith('entry://'):
+            entry_url = url_for('.query_word_lite', uuid=uuid, word=abs_url[8:], _external=True, _scheme='https')
+            return f' data-entry-url="{entry_url}"' + mo.group(1) + abs_url + mo.group(3)
+        elif abs_url.startswith('/static/'):
+            abs_url2 = url_for('static', filename=abs_url[8:], _external=True, _scheme='https')
+        else:
+            abs_url2 = re.sub(r'(?<!:)//', '/', abs_url)
+        return mo.group(1) + abs_url2 + mo.group(3)
 
     all_result = request.args.get('all_result', '') == 'true'
     fallback = request.args.get('fallback', '').split(',')
     nohistory = request.args.get('nohistory', '') == 'true'
-    word = request.args.get('word').strip()
+    if not word:
+        return abort(404)
+    word = word.strip()
     if uuid == 'default':
         default_uuid = next(iter(get_mdict()))
-        url = re.sub(r'/default/lite/', f'/{default_uuid}/lite/', request.url)
+        url = re.sub(r'/lite_default/', f'/lite_{default_uuid}/', request.url)
         return redirect(url)
     elif uuid == 'all':
         items = list(get_mdict().values())
@@ -373,7 +394,7 @@ def query_word_lite(uuid):
         html.append(item['title'])
         html.append('</div>')
         prefix_resource = f'{url_for(".query_resource", uuid=cur_uuid, resource="", _external=True)}'
-        prefix_entry = f'{url_for(".query_word_lite", uuid=cur_uuid, word="", _external=True)}'
+        # prefix_entry = f'{url_for(".query_word_lite", uuid=cur_uuid, word="", _external=True)}'
         found_word = found_word or (cur_uuid != 'gtranslate' and len(records) > 0)
         count = 1
         record_num = len(records)
@@ -413,11 +434,11 @@ def query_word_lite(uuid):
                 # <img src="<add:resource/>...
                 record = regex_src_schema.sub(r'\g<1>%s/\3' % prefix_resource, record)
                 # <a href="sound://<add:resource/>...
-                record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource[7:], record)
+                # record = regex_href_schema_sound.sub(r'\1\g<2>%s/\3' % prefix_resource[7:], record)
                 # <a href="<add:resource/>image.png
                 record = regex_href_no_schema.sub(r'\g<1>%s/\2' % prefix_resource, record)
                 # entry://
-                record = regex_href_schema_entry.sub(r'\1\g<2>%s\3' % prefix_entry[7:], record)
+                # record = regex_href_schema_entry.sub(r'\1\g<2>%s\3' % prefix_entry[7:], record)
 
                 # keep first css
                 if count > 1:
