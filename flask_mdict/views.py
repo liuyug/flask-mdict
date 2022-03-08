@@ -331,17 +331,18 @@ def query_word_lite(uuid, word):
         abs_url = mo.group(2)
         abs_url = urllib.parse.unquote(abs_url)
         if abs_url.startswith('sound://'):
-            sound_url = url_for('static', filename=f'{uuid}/{abs_url[8:]}', _external=True, _scheme='https')
+            sound_url = url_for('.query_resource', uuid=uuid, resource=abs_url[8:], _external=True, _scheme=scheme)
             return f' data-sound-url="{sound_url}"' + mo.group(1) + abs_url + mo.group(3)
         elif abs_url.startswith('entry://'):
-            entry_url = url_for('.query_word_lite', uuid=uuid, word=abs_url[8:], _external=True, _scheme='https')
+            entry_url = url_for('.query_word_lite', uuid=uuid, word=abs_url[8:], _external=True, _scheme=scheme)
             return f' data-entry-url="{entry_url}"' + mo.group(1) + abs_url + mo.group(3)
         elif abs_url.startswith('/static/'):
-            abs_url2 = url_for('static', filename=abs_url[8:], _external=True, _scheme='https')
+            abs_url2 = url_for('static', filename=abs_url[8:], _external=True, _scheme=scheme)
         else:
             abs_url2 = re.sub(r'(?<!:)//', '/', abs_url)
         return mo.group(1) + abs_url2 + mo.group(3)
 
+    scheme = 'https'
     all_result = request.args.get('all_result', '') == 'true'
     fallback = request.args.get('fallback', '').split(',')
     nohistory = request.args.get('nohistory', '') == 'true'
@@ -450,8 +451,8 @@ def query_word_lite(uuid, word):
 
             html.append(record)
         html.append('</div></div>')
-        # no template, add mdict.js link
-        html.append(f'<script src="{url_for(".static", filename="js/mdict.js", _external=True)}"></script>')
+        # use chrome extension event handler
+        # html.append(f'<script src="{url_for(".static", filename="js/mdict.js", _external=True)}"></script>')
         html = '\n'.join(html)
         # fix url with "//"
         # css, image
