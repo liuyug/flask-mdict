@@ -451,8 +451,10 @@ def query_word_lite(uuid, word):
 
             html.append(record)
         html.append('</div></div>')
-        # use chrome extension event handler
-        # html.append(f'<script src="{url_for(".static", filename="js/mdict.js", _external=True)}"></script>')
+        # 有两种事件处理方式：
+        # chrome extension event handler 在第三方页面，使用插件里发声
+        # 在独立页面，使用js发声
+        html.append(f'<script src="{url_for(".static", filename="js/mdict.js", _external=True)}"></script>')
         html = '\n'.join(html)
         # fix url with "//"
         # css, image
