@@ -35,7 +35,6 @@ def init_app(app, url_prefix=None):
 
     Config.INDEX_DIR = app.config.get('INDEX_DIR')
 
-    Config.MDICT = {}
     Config.DB_NAMES = {}
 
     # for flask mdict: setting, history...
@@ -44,7 +43,7 @@ def init_app(app, url_prefix=None):
     helper.init_flask_mdict()
 
     mdicts, db_names = helper.init_mdict(Config.MDICT_DIR, Config.INDEX_DIR)
-    Config.MDICT.update(mdicts)
+    Config.MDICT = mdicts
     Config.DB_NAMES.update(db_names)
 
     app.register_blueprint(mdict, url_prefix=url_prefix)
