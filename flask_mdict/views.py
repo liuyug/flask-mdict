@@ -149,7 +149,7 @@ def query_word(uuid, word):
                 return redirect(url_for('.query_word', uuid=uuid, word=link, _anchor=anchor))
             else:
                 if len(records) > 1:
-                    record = f'<p>See also: <a href="entry://{link}">{link}</a></p>'
+                    record = f'''<p>See also: <a data-entry-url="url_for('.query_word', uuid=uuid, word=link)" href="entry://{link}">{link}</a></p>'''
                 else:
                     return redirect(url_for('.query_word', uuid=uuid, word=link))
         else:
@@ -251,9 +251,9 @@ def query_word_all():
                     link = mo.group(2).strip()
                     if '#' in link:
                         link, anchor = link.split('#')
-                        record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link, _anchor=anchor)}">{link}</a></p>'''
+                        record = f'''<p>See also: <a data-entry_url="{url_for(".query_word", uuid=uuid, word=link, _anchor=anchor)}" href="entry://{link}">{link}</a></p>'''
                     else:
-                        record = f'''<p>See also: <a href="entry://{url_for(".query_word", uuid=uuid, word=link)}">{link}</a></p>'''
+                        record = f'''<p>See also: <a data-entry-url="{url_for(".query_word", uuid=uuid, word=link)}" href="entry://{link}">{link}</a></p>'''
                 else:
                     record = regex_href_end_slash.sub(r'\1\3', record)
                     # add dict uuid into url
@@ -420,7 +420,7 @@ def query_word_lite(uuid, word):
                     ))
                 else:
                     if len(records) > 1 or len(items) > 1:
-                        record = f'''<p>See also: <a href="entry://{url_for(".query_word_lite", uuid=cur_uuid, word=link, _external=True)[7:]}">{link}</a></p>'''
+                        record = f'''<p>See also: <a data-entry-url="{url_for(".query_word_lite", uuid=cur_uuid, word=link, _external=True)[7:]}" href="entry://{link}">{link}</a></p>'''
                     else:
                         return redirect(url_for(
                             '.query_word_lite',
