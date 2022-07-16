@@ -420,7 +420,7 @@ def query_word_lite(uuid, word):
                     ))
                 else:
                     if len(records) > 1 or len(items) > 1:
-                        record = f'''<p>See also: <a data-entry-url="{url_for(".query_word_lite", uuid=cur_uuid, word=link, _external=True)[7:]}" href="entry://{link}">{link}</a></p>'''
+                        record = f'''<p>See also: <a data-entry-url="{url_for(".query_word_lite", uuid=cur_uuid, word=link, _external=True, _scheme=scheme)}" href="entry://{link}">{link}</a></p>'''
                     else:
                         return redirect(url_for(
                             '.query_word_lite',
@@ -428,6 +428,7 @@ def query_word_lite(uuid, word):
                             word=link,
                             fallback=','.join(fallback),
                             nohistory='true' if nohistory else 'false',
+                            _external=True, _scheme=scheme,
                         ))
             else:
                 # remove http:// from sound:// and entry://
