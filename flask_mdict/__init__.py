@@ -6,7 +6,7 @@ from flask import Blueprint, g
 from .utils import singleton
 
 
-__version__ = '1.1.6'
+__version__ = '1.1.7'
 
 
 mdict = Blueprint(
