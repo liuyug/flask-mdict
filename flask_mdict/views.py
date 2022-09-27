@@ -110,7 +110,10 @@ def query_word(uuid, word):
         word = form.word.data
     else:
         form.word.data = word
-
+    if request.method == 'GET':
+        nohistory = request.args.get('nohistory', '') == 'true'
+    else:
+        nohistory = False
     word = word.strip()
     if uuid == 'default':
         uuid = list(get_mdict().keys())[0]
@@ -195,9 +198,9 @@ def query_word(uuid, word):
         'enable': item['enable'],
     }
     word_meta = helper.query_word_meta(word)
-    history = helper.get_history()
-    if found_word:
+    if not nohistory and found_word:
         helper.add_history(word)
+    history = helper.get_history()
     return render_template(
         'mdict/query.html',
         form=form,
@@ -218,6 +221,11 @@ def query_word_all():
         word = request.args.get('word')
         word = word or helper.ecdict_random_word('cet4')
         form.word.data = word
+
+    if request.method == 'GET':
+        nohistory = request.args.get('nohistory', '') == 'true'
+    else:
+        nohistory = False
 
     if len(get_mdict()) <= 1:
         message = f'没有发现词典，请将词典放入：“{Config.MDICT_DIR}”'
@@ -297,9 +305,9 @@ def query_word_all():
 
     word_meta = helper.query_word_meta(word)
 
-    history = helper.get_history()
-    if found_word:
+    if not nohistory and found_word:
         helper.add_history(word)
+    history = helper.get_history()
     return render_template(
         'mdict/query.html',
         form=form,
