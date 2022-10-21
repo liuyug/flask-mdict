@@ -10,11 +10,11 @@ from collections import OrderedDict
 
 from flask import url_for
 
-from googletranslate.googletranslate import main as gtranslate
-
 from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
+from . import iciba
+from . import google
 
 
 logger = logging.getLogger(__name__)
@@ -333,83 +333,18 @@ def init_mdict(mdict_dir, index_dir=None):
                     'error': '',
                     'enable': enable,
                 }
-    # for google translate online
-    title = 'Google 翻译'
-    # dict_uuid = str(uuid.uuid3(uuid.NAMESPACE_URL, title)).upper()
-    # fake uuid
-    dict_uuid = 'gtranslate'
-    enable = mdict_setting.get(dict_uuid, True)
-    mdicts[dict_uuid] = {
-        'title': title,
-        'uuid': dict_uuid,
-        'logo': 'google_translate.ico',
-        'about': 'google-translate-for-goldendict<br />https://github.com/xinebf/google-translate-for-goldendict',
-        'root_path': 'translate.google.cn',
-        'query': google_translate,
-        'cache': {},
-        'type': 'app',
-        'error': '',
-        'enable': enable,
-    }
-    db_names[dict_uuid] = None
-    logger.info('Add "%s" [%s]...' % (title, 'Enable' if enable else 'Disable'))
+
+    for other_dict in [iciba, google]:
+        config = other_dict.init()
+        dict_uuid = config['uuid']
+        mdicts[dict_uuid] = config
+        enable = mdict_setting.get(dict_uuid, True)
+        config['enable'] = enable
+        db_names[dict_uuid] = None
+        logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
 
     logger.info('--- MDict is Ready ---')
     return mdicts, db_names
-
-
-def google_translate(word, item=None):
-    """
-    python -m googletranslate.googletranslate -s "translate.google.cn" -r plain zh-CN "word"
-    """
-    class Args:
-        target: str = 'zh-CN'
-        query: str = ''
-        host: str = 'translate.google.com'
-        proxy: str = ''
-        alternative: str = 'en'
-        type: str = 'plain'
-        synonyms: bool = False
-        definitions: bool = True
-        examples: bool = False
-        tkk: str = ''
-    Args.host = item['root_path'] if item else 'translate.google.cn'
-    Args.query = word
-    trans = []
-    trans_group = []
-    result = gtranslate(Args)
-    tags = []
-    for line in result.split('\n'):
-        if not line:
-            continue
-        elif line == '=========':
-            trans_group.append('<div>%s%s</div>' % (
-                '<br />'.join(trans),
-                ''.join(['</%s>' % t for t in tags[::-1]])
-            ))
-            trans = []
-            tags = []
-            continue
-        elif line.startswith('^_^:'):
-            line = '<span>%s</span>' % line
-        elif line.startswith('0_0:'):
-            line = '<span>%s</span>' % line
-        elif line.startswith('#'):
-            if tags:
-                line = '</%s><%s>%s' % (tags[-1], tags[-1], line)
-            else:
-                tags.append('ul')
-                tags.append('li')
-                line = '<%s><%s>%s' % (tags[-2], tags[-1], line)
-        else:
-            line = '%s' % line
-        trans.append(line)
-    if trans:
-        trans_group.append('<div>%s%s</div>' % (
-            '<br />'.join(trans),
-            ''.join(['</%s>' % t for t in tags[::-1]])
-        ))
-    return trans_group
 
 
 regex_css_comment = re.compile(r'(/\*.*?\*/)', re.DOTALL)
