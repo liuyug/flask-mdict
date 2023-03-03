@@ -107,7 +107,6 @@ class IndexBuilder(object):
             if not os.path.isfile(self._mdd_db):
                 self._make_mdd_index(self._mdd_db)
         pass
-    
 
     def _replace_stylesheet(self, txt):
         # substitute stylesheet definition
@@ -203,7 +202,8 @@ class IndexBuilder(object):
             os.remove(db_name)
         mdd = MDD(self._mdd_file)
         self._mdd_db = db_name
-        index_list = mdd.get_index(check_block = self._check)
+        returned_index = mdd.get_index(check_block = self._check)
+        index_list = returned_index['index_dict_list']
         conn = sqlite3.connect(db_name)
         c = conn.cursor()
         c.execute(
@@ -247,10 +247,12 @@ class IndexBuilder(object):
     def get_data_by_index(fmdx, index):
         fmdx.seek(index['file_pos'])
         record_block_compressed = fmdx.read(index['compressed_size'])
-        record_block_type = record_block_compressed[:4]
         record_block_type = index['record_block_type']
         decompressed_size = index['decompressed_size']
-        #adler32 = unpack('>I', record_block_compressed[4:8])[0]
+        # adler32 = unpack('>I', record_block_compressed[4:8])[0]
+
+        # _record_block = MDX.decode_block(record_block_compressed, decompressed_size)
+        # version 2.0
         if record_block_type == 0:
             _record_block = record_block_compressed[8:]
             # lzo compression
@@ -264,11 +266,13 @@ class IndexBuilder(object):
         elif record_block_type == 2:
             # decompress
             _record_block = zlib.decompress(record_block_compressed[8:])
+
         data = _record_block[index['record_start'] - index['offset']:index['record_end'] - index['offset']]
         return data
 
     def get_mdx_by_index(self, fmdx, index):
         data = self.get_data_by_index(fmdx,index)
+
         record  = data.decode(self._encoding, errors='ignore').strip(u'\x00').encode('utf-8')
         if self._stylesheet:
             record = self._replace_stylesheet(record)

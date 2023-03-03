@@ -338,7 +338,7 @@ def init_mdict(mdict_dir, index_dir=None):
         config = other_dict.init()
         dict_uuid = config['uuid']
         mdicts[dict_uuid] = config
-        enable = mdict_setting.get(dict_uuid, True)
+        enable = mdict_setting.get(dict_uuid, False)
         config['enable'] = enable
         db_names[dict_uuid] = None
         logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
