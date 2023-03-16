@@ -95,7 +95,7 @@ def query_resource(uuid, resource):
         bio.write(data)
         bio.seek(0)
 
-        resp = make_response(send_file(bio, attachment_filename=resource))
+        resp = make_response(send_file(bio, download_name=resource))
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
     else:
@@ -538,6 +538,6 @@ def export_history():
         bio,
         mimetype='text/csv',
         as_attachment=True,
-        attachment_filename=filename,
+        download_name=filename,
         last_modified=now,
     )
