@@ -19,7 +19,8 @@ class Ciba(object):
             'sign': '',
         }
         form_data = {
-            'from': 'en',
+            # 'from': 'en',
+            'from': 'auto',
             'to': 'auto',
             'q': entry,
         }
@@ -38,7 +39,9 @@ def translate(text, item=None):
     result = Ciba.fy(text)
     content = result['content']
     if content.get('err_no') == 0:
-        trans = '<div title="%(ciba_use)s">%(out)s</div>' % content
+        out = content.get('out', '')
+        ciba_use = content.get('ciba_use', '')
+        trans = f'<div title="{ciba_use}">{out}</div>'
     else:
         trans = '<div>Translate Error: %s</div>' % content.get('err_no')
     return [trans]
