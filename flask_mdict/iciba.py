@@ -29,21 +29,37 @@ class Ciba(object):
         sign_str = hashlib.md5(encrypt_str.encode()).hexdigest()
         query_data['sign'] = sign_str[:16]
 
-        res = requests.post(cls.base_url, params=query_data, data=form_data)
-        res.raise_for_status()
-        json_data = res.json()
+        try:
+            res = requests.post(cls.base_url, params=query_data, data=form_data)
+            res.raise_for_status()
+            json_data = res.json()
+        except Exception as err:
+            if res.content:
+                message = res.content.decode()
+            else:
+                message = str(err)
+            json_data = {'content': {
+                'err_no': '{}'.format(message),
+                'ciba_use': '',
+            }}
+
         return json_data
 
 
 def translate(text, item=None):
     result = Ciba.fy(text)
-    content = result['content']
-    if content.get('err_no') == 0:
-        out = content.get('out', '')
-        ciba_use = content.get('ciba_use', '')
-        trans = f'<div title="{ciba_use}">{out}</div>'
+    content = result.get('content')
+    if content:
+        if content.get('err_no') == 0:
+            out = content.get('out', '')
+            ciba_use = content.get('ciba_use', '')
+            trans = f'<div title="{ciba_use}">{out}</div>'
+        else:
+            trans = '<div>Translate Error: %s</div>' % content.get('err_no')
+    elif 'error_code' in result:
+        trans = '<div>Translate Error: {error_code} - {message}</div>'.format(**result)
     else:
-        trans = '<div>Translate Error: %s</div>' % content.get('err_no')
+        trans = str(result)
     return [trans]
 
 
