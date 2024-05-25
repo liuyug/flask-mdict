@@ -1,5 +1,6 @@
 
 import re
+import sys
 import uuid
 import os.path
 import sqlite3
@@ -14,6 +15,7 @@ from flask import url_for
 from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
+from .plugins import bing, google, iciba
 
 
 logger = logging.getLogger(__name__)
@@ -333,28 +335,38 @@ def init_mdict(mdict_dir, index_dir=None):
                     'enable': enable,
                 }
 
-    init_third_app(mdicts, mdict_setting, db_names)
-    # for other_dict in [iciba, google]:
-    #     config = other_dict.init()
-    #     dict_uuid = config['uuid']
-    #     mdicts[dict_uuid] = config
-    #     enable = mdict_setting.get(dict_uuid, False)
-    #     config['enable'] = enable
-    #     db_names[dict_uuid] = None
-    #     logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
+    init_plugins(mdicts, mdict_setting, db_names)
 
     logger.info('--- MDict is Ready ---')
     return mdicts, db_names
 
 
-def init_third_app(mdicts, mdict_setting, db_names):
-    third_dir = os.path.join(os.path.dirname(__file__), 'third_app')
-    for file in os.listdir(third_dir):
-        if file.endswith('.py') and file != '__init__.py':
-            name = os.path.splitext(file)[0]
-            third_app = import_module('flask_mdict.third_app.%s' % (name))
+def init_plugins(mdicts, mdict_setting, db_names):
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        plugins_dir = os.path.abspath(os.path.join(sys._MEIPASS, 'flask_mdict', 'plugins'))
+    else:
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
 
-            config = third_app.init()
+    for module in [google, bing, iciba]:
+        config = module.init()
+        dict_uuid = config['uuid']
+        mdicts[dict_uuid] = config
+        enable = mdict_setting.get(dict_uuid, False)
+        config['enable'] = enable
+        db_names[dict_uuid] = None
+        logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
+
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        plugins_dir = os.path.abspath(os.path.join(sys._MEIPASS, 'flask_mdict', 'plugins'))
+    else:
+        plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
+
+    exclude_files = ['__init__.py', 'google.py', 'bing.py', 'iciba.py']
+    for file in os.listdir(plugins_dir):
+        if file.endswith('.py') and file not in exclude_files:
+            modulename = os.path.splitext(file)[0]
+            module = import_module('flask_mdict.plugins.%s' % (modulename))
+            config = module.init()
             dict_uuid = config['uuid']
             mdicts[dict_uuid] = config
             enable = mdict_setting.get(dict_uuid, False)

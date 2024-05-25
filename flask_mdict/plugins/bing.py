@@ -19,6 +19,10 @@ def translate(content, item):
     strUrl = url + data.decode() + "&appId=%223DAEE5B978BA031557E739EE1E2A68CB1FAD5909%22"
     response = urllib.request.urlopen(strUrl)
     str_data = response.read().decode('utf-8')
+
+    if 'onError_3' in str_data:
+        return [str_data]
+
     tmp, str_data = str_data.split('"TranslatedText":')
     translate_data = str_data[1:str_data.find('"', 1)]
     return [translate_data]
