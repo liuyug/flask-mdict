@@ -74,3 +74,9 @@ def init():
         'enable': enable,
     }
     return config
+
+
+if __name__ == '__main__':
+    word = 'hello word'
+    print('Goolge Translate', word)
+    translate(word)

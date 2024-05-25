@@ -6,6 +6,7 @@ import sqlite3
 import datetime
 import csv
 import logging
+from importlib import import_module
 from collections import OrderedDict
 
 from flask import url_for
@@ -13,8 +14,6 @@ from flask import url_for
 from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
-from . import iciba
-from . import google
 
 
 logger = logging.getLogger(__name__)
@@ -334,17 +333,34 @@ def init_mdict(mdict_dir, index_dir=None):
                     'enable': enable,
                 }
 
-    for other_dict in [iciba, google]:
-        config = other_dict.init()
-        dict_uuid = config['uuid']
-        mdicts[dict_uuid] = config
-        enable = mdict_setting.get(dict_uuid, False)
-        config['enable'] = enable
-        db_names[dict_uuid] = None
-        logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
+    init_third_app(mdicts, mdict_setting, db_names)
+    # for other_dict in [iciba, google]:
+    #     config = other_dict.init()
+    #     dict_uuid = config['uuid']
+    #     mdicts[dict_uuid] = config
+    #     enable = mdict_setting.get(dict_uuid, False)
+    #     config['enable'] = enable
+    #     db_names[dict_uuid] = None
+    #     logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
 
     logger.info('--- MDict is Ready ---')
     return mdicts, db_names
+
+
+def init_third_app(mdicts, mdict_setting, db_names):
+    third_dir = os.path.join(os.path.dirname(__file__), 'third_app')
+    for file in os.listdir(third_dir):
+        if file.endswith('.py') and file != '__init__.py':
+            name = os.path.splitext(file)[0]
+            third_app = import_module('flask_mdict.third_app.%s' % (name))
+
+            config = third_app.init()
+            dict_uuid = config['uuid']
+            mdicts[dict_uuid] = config
+            enable = mdict_setting.get(dict_uuid, False)
+            config['enable'] = enable
+            db_names[dict_uuid] = None
+            logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
 
 
 regex_css_comment = re.compile(r'(/\*.*?\*/)', re.DOTALL)

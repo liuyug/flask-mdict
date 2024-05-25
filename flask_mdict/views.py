@@ -63,7 +63,7 @@ def query_resource(uuid, resource):
         # mdict mdd
         q = item['query']
         if item['type'] == 'app':
-            with mdict.open_resource(os.path.join('static', resource)) as f:
+            with mdict.open_resource(os.path.join('third_app', resource)) as f:
                 data = f.read()
         else:
             key = '\\%s' % '\\'.join(resource.split('/'))
