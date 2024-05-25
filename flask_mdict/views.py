@@ -62,9 +62,12 @@ def query_resource(uuid, resource):
     else:
         # mdict mdd
         q = item['query']
+        data = None
         if item['type'] == 'app':
-            with mdict.open_resource(os.path.join('plugins', 'static', resource)) as f:
-                data = f.read()
+            filepath = os.path.join(item['plugins_dir'], 'static', resource)
+            if os.path.exists(filepath):
+                with open(filepath, 'rb') as f:
+                    data = f.read()
         else:
             key = '\\%s' % '\\'.join(resource.split('/'))
             data = q.mdd_lookup(get_db(uuid), key, ignorecase=True)
