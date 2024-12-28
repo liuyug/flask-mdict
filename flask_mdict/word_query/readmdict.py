@@ -16,7 +16,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-
+import json
 from struct import pack, unpack
 from io import BytesIO
 import re
@@ -678,8 +678,15 @@ class MDict(object):
         meta['encoding'] = self._encoding
         meta['stylesheet'] = self._stylesheet
         meta['version'] = self._version
-        meta['title'] = self.header[b'Title'].decode(self._encoding)
-        meta['description'] = self.header[b'Title'].decode(self._encoding)
+
+        try:
+            meta['title'] = self.header[b'Title'].decode(self._encoding)
+            meta['description'] = self.header[b'Title'].decode(self._encoding)
+        except UnicodeDecodeError:
+            custom_encoding = json.detect_encoding(self.header[b"Title"])
+            meta['title'] = self.header[b'Title'].decode(custom_encoding)
+            meta['description'] = self.header[b'Title'].decode(custom_encoding)
+
         return {"index_dict_list": index_dict_list, 'meta': meta}
 
     def get_index_v3(self, check_block=False):

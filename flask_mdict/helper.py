@@ -290,7 +290,11 @@ def init_mdict(mdict_dir, index_dir=None):
                         os.makedirs(mdict_index_dir)
                 else:
                     mdict_index_dir = None
-                idx = IndexBuilder2(mdx_file, index_dir=mdict_index_dir)
+                try:
+                    idx = IndexBuilder2(mdx_file, index_dir=mdict_index_dir)
+                except Exception as e:
+                    print(f"\u2757\u2757\u2757ERROR PROCESSING FILE: {mdx_file}:\n\t{str(e)}\n\n")
+                    continue
                 if not idx._title or idx._title == 'Title (No HTML code allowed)':
                     title = name
                 else:
