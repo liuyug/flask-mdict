@@ -3,7 +3,7 @@
 # readmdict.py
 # Octopus MDict Dictionary File (.mdx) and Resource File (.mdd) Analyser
 #
-# Copyright (C) 2012, 2013, 2015, 2022 Xiaoqiang Wang <xiaoqiangwang AT gmail DOT com>
+# Copyright (C) 2012, 2013, 2015, 2022, 2023 Xiaoqiang Wang <xiaoqiangwang AT gmail DOT com>
 #
 # This program is a free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ from .pureSalsa20 import Salsa20
 import zlib
 # LZO compression is used for engine version < 2.0
 try:
-    from . import lzo
+    import lzo
 except ImportError:
     lzo = None
 
@@ -103,13 +103,14 @@ class MDict(object):
             if isinstance(userid, unicode):
                 userid = userid.encode('utf8')
             self._encrypted_key = _decrypt_regcode_by_userid(regcode, userid)
-        # MDict 3.0 encryption key derives from UUID
+        # MDict 3.0 encryption key derives from UUID if present
         elif self._version >= 3.0:
-            if xxhash is None:
-                raise RuntimeError('xxhash module is needed to read MDict 3.0 format')
-            uuid = self.header[b'UUID']
-            mid = (len(uuid) + 1) // 2
-            self._encrypted_key = xxhash.xxh64_digest(uuid[:mid]) + xxhash.xxh64_digest(uuid[mid:])
+            uuid = self.header.get(b'UUID')
+            if uuid:
+                if xxhash is None:
+                    raise RuntimeError('xxhash module is needed to read MDict 3.0 format')
+                mid = (len(uuid) + 1) // 2
+                self._encrypted_key = xxhash.xxh64_digest(uuid[:mid]) + xxhash.xxh64_digest(uuid[mid:])
 
         self._key_list = self._read_keys()
 
@@ -135,7 +136,7 @@ class MDict(object):
         """
         extract attributes from <Dict attr="value" ... >
         """
-        taglist = re.findall(b'(\w+)="(.*?)"', header, re.DOTALL)
+        taglist = re.findall(rb'(\w+)="(.*?)"', header, re.DOTALL)
         tagdict = {}
         for key, value in taglist:
             tagdict[key] = _unescape_entities(value)
@@ -189,7 +190,7 @@ class MDict(object):
             assert(hex(adler32) == hex(zlib.adler32(decompressed_block) & 0xffffffff))
 
         return decompressed_block
-
+    
     def _decode_key_block_info(self, key_block_info_compressed):
         if self._version >= 2:
             # zlib compression
@@ -332,8 +333,8 @@ class MDict(object):
         # store stylesheet in dict in the form of
         # {'number' : ('style_begin', 'style_end')}
         self._stylesheet = {}
-        if header_tag.get('StyleSheet'):
-            lines = header_tag['StyleSheet'].splitlines()
+        if header_tag.get(b'StyleSheet'):
+            lines = header_tag[b'StyleSheet'].splitlines()
             for i in range(0, len(lines), 3):
                 self._stylesheet[lines[i]] = (lines[i+1], lines[i+2])
 
@@ -514,6 +515,10 @@ class MDict(object):
             yield from self._read_records_v1v2()
 
     def _read_records_v3(self):
+
+        # record index has redudant information about block compressed/decompresed size
+        record_index = self._read_record_index()
+
         f = open(self._fname, 'rb')
         f.seek(self._record_block_offset)
 
@@ -526,6 +531,16 @@ class MDict(object):
         for j in range(num_record_blocks):
             decompressed_size = self._read_int32(f)
             compressed_size = self._read_int32(f)
+
+            # check against the record index information
+            if (compressed_size + 8, decompressed_size) != record_index[j]:
+                compressed_size = record_index[j][0] - 8
+                decompressed_size = record_index[j][1]
+                # skip to the next block
+                print('Skip (potentially) damaged record block')
+                f.read(compressed_size)
+                continue
+
             record_block = self._decode_block(f.read(compressed_size), decompressed_size)
 
             # split record block according to the offset info from key block
@@ -592,153 +607,31 @@ class MDict(object):
 
         f.close()
 
-    def _treat_record_data(self, data):
-        return data
-
-    def get_index(self, check_block=True):
-        if self._version >= 3:
-            return self.get_index_v3(check_block=check_block)
-        else:
-            return self.get_index_v1v2(check_block=check_block)
-
-    def get_index_v1v2(self, check_block=True):
-        # 获取 mdx 文件的索引列表，格式为
-        # key_text(关键词，可以由后面的 keylist 得到)
-        # file_pos(record_block开始的位置)
-        # compressed_size(record_block压缩前的大小)
-        # decompressed_size(解压后的大小)
-        # record_block_type(record_block 的压缩类型)
-        # record_start (以下三个为从 record_block 中提取某一调记录需要的参数，可以直接保存）
-        # record_end
-        # offset
-        # 所需 metadata
-        index_dict_list = []
-
+    def _read_record_index(self):
         f = open(self._fname, 'rb')
-        f.seek(self._record_block_offset)
 
-        num_record_blocks = self._read_number(f)
-        num_entries = self._read_number(f)
-        assert(num_entries == self._num_entries)
-        record_block_info_size = self._read_number(f)
-        record_block_size = self._read_number(f)
-
-        # record block info section
-        record_block_info_list = []
-        size_counter = 0
-        for i in range(num_record_blocks):
-            compressed_size = self._read_number(f)
-            decompressed_size = self._read_number(f)
-            record_block_info_list += [(compressed_size, decompressed_size)]
-            size_counter += self._number_width * 2
-        assert(size_counter == record_block_info_size)
-
-        # actual record block
-        offset = 0
-        i = 0
-        size_counter = 0
-        for compressed_size, decompressed_size in record_block_info_list:
-            current_pos = f.tell()
-            record_block_compressed = f.read(compressed_size)
-            record_block_type, = unpack('<L', record_block_compressed[:4])
-
-            # split record block according to the offset info from key block
-            while i < len(self._key_list):
-                index_dict = {}
-                index_dict['file_pos'] = current_pos
-                index_dict['compressed_size'] = compressed_size
-                index_dict['decompressed_size'] = decompressed_size
-                index_dict['record_block_type'] = record_block_type
-
-                record_start, key_text = self._key_list[i]
-                index_dict['record_start'] = record_start
-                index_dict['key_text'] = key_text.decode("utf-8")
-                index_dict['offset'] = offset
-
-                # reach the end of current record block
-                # next block
-                if record_start - offset >= decompressed_size:
-                    break
-
-                # record end index
-                if i < len(self._key_list) - 1:
-                    record_end = self._key_list[i + 1][0]
-                else:
-                    record_end = decompressed_size + offset
-                index_dict['record_end'] = record_end
-                i += 1
-                index_dict_list.append(index_dict)
-            offset += decompressed_size
-            size_counter += compressed_size
-        assert(size_counter == record_block_size)
-
-        f.close()
-        # 这里比 mdd 部分稍有不同，应该还需要传递编码以及样式表信息
-        meta = {}
-        meta['encoding'] = self._encoding
-        meta['stylesheet'] = self._stylesheet
-        meta['version'] = self._version
-        meta['title'] = self.header[b'Title'].decode(self._encoding)
-        meta['description'] = self.header[b'Title'].decode(self._encoding)
-        return {"index_dict_list": index_dict_list, 'meta': meta}
-
-    def get_index_v3(self, check_block=False):
-        index_dict_list = []
-
-        f = open(self._fname, 'rb')
-        f.seek(self._record_block_offset)
-
-        offset = 0
-        i = 0
-        size_counter = 0
-
+        f.seek(self._record_index_offset)
         num_record_blocks = self._read_int32(f)
         num_bytes = self._read_number(f)
-        for j in range(num_record_blocks):
-            current_pos = f.tell()
+
+        record_index = []
+        for i in range(num_record_blocks):
             decompressed_size = self._read_int32(f)
             compressed_size = self._read_int32(f)
-            record_block_compressed = f.read(compressed_size)
-            record_block_type, = unpack('<L', record_block_compressed[:4])
+            record_block = self._decode_block(f.read(compressed_size), decompressed_size)
+            if len(record_block) % 16 != 0:
+                raise Exception('record index block has invalid size %d' % len(record_block))
 
-            # split record block according to the offset info from key block
-            while i < len(self._key_list):
-                index_dict = {}
-                index_dict['file_pos'] = current_pos
-                index_dict['compressed_size'] = compressed_size
-                index_dict['decompressed_size'] = decompressed_size
-                index_dict['record_block_type'] = record_block_type
-
-                record_start, key_text = self._key_list[i]
-                index_dict['record_start'] = record_start
-                index_dict['key_text'] = key_text.decode("utf-8")
-                index_dict['offset'] = offset
-
-                # reach the end of current record block
-                if record_start - offset >= decompressed_size:
-                    break
-                # record end index
-                if i < len(self._key_list) - 1:
-                    record_end = self._key_list[i + 1][0]
-                else:
-                    record_end = decompressed_size + offset
-
-                index_dict['record_end'] = record_end
-                i += 1
-                index_dict_list.append(index_dict)
-
-            offset += decompressed_size
-            size_counter += compressed_size
-
+            j = 0
+            while j < len(record_block):
+                block_size, decompressed_size = unpack('>QQ', record_block[j:j+16])
+                record_index.append((block_size, decompressed_size))
+                j += 16
         f.close()
-        # 这里比 mdd 部分稍有不同，应该还需要传递编码以及样式表信息
-        meta = {}
-        meta['encoding'] = self._encoding
-        meta['version'] = self._version
-        meta['stylesheet'] = self._stylesheet
-        meta['title'] = self.header[b'Title'].decode(self._encoding)
-        meta['description'] = self.header[b'Title'].decode(self._encoding)
-        return {"index_dict_list": index_dict_list, 'meta': meta}
+        return record_index
+
+    def _treat_record_data(self, data):
+        return data
 
 
 class MDD(MDict):
@@ -769,8 +662,8 @@ class MDX(MDict):
 
     def _substitute_stylesheet(self, txt):
         # substitute stylesheet definition
-        txt_list = re.split('`\d+`', txt)
-        txt_tag = re.findall('`\d+`', txt)
+        txt_list = re.split(rb'`\d+`', txt)
+        txt_tag = re.findall(rb'`\d+`', txt)
         txt_styled = txt_list[0]
         for j, p in enumerate(txt_list[1:]):
             style = self._stylesheet[txt_tag[j][1:-1]]
@@ -815,7 +708,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--datafolder', default="data",
                         help='folder to extract data files from mdd')
     parser.add_argument('-e', '--encoding', default="",
-                        help='folder to extract data files from mdd')
+                        help='override the encoding specified in the mdx file')
     parser.add_argument('-p', '--passcode', default=None, type=passcode,
                         help='register_code,email_or_deviceid')
     parser.add_argument("filename", nargs='?', help="mdx file name")
@@ -853,20 +746,26 @@ if __name__ == '__main__':
     else:
         mdx = None
 
-    # find companion mdd file
-    mdd_filename = ''.join([base, os.path.extsep, 'mdd'])
-    if os.path.exists(mdd_filename):
-        mdd = MDD(mdd_filename, args.passcode)
-        if type(mdd_filename) is unicode:
-            bfname = mdd_filename.encode('utf-8')
+    # find companion mdd file(s)
+    i = 0
+    mdds = []
+    while True:
+        extra = '' if i == 0 else '.%d' % i
+        mdd_filename = ''.join([base, extra, os.path.extsep, 'mdd'])
+        if os.path.exists(mdd_filename):
+            mdd = MDD(mdd_filename, args.passcode)
+            if type(mdd_filename) is unicode:
+                bfname = mdd_filename.encode('utf-8')
+            else:
+                bfname = mdd_filename
+            print('======== %s ========' % bfname)
+            print('  Number of Entries : %d' % len(mdd))
+            for key, value in mdd.header.items():
+                print('  %s : %s' % (key, value))
+            mdds.append(mdd)
         else:
-            bfname = mdd_filename
-        print('======== %s ========' % bfname)
-        print('  Number of Entries : %d' % len(mdd))
-        for key, value in mdd.header.items():
-            print('  %s : %s' % (key, value))
-    else:
-        mdd = None
+            break
+        i += 1
 
     if args.extract:
         # write out glos
@@ -882,21 +781,22 @@ if __name__ == '__main__':
                 tf.write(b'</>\r\n')
             tf.close()
             # write out style
-            if mdx.header.get('StyleSheet'):
+            if mdx.header.get(b'StyleSheet'):
                 style_fname = ''.join([base, '_style', os.path.extsep, 'txt'])
                 sf = open(style_fname, 'wb')
-                sf.write(b'\r\n'.join(mdx.header['StyleSheet'].splitlines()))
+                sf.write(b'\r\n'.join(mdx.header[b'StyleSheet'].splitlines()))
                 sf.close()
         # write out optional data files
-        if mdd:
+        if mdds:
             datafolder = os.path.join(os.path.dirname(args.filename), args.datafolder)
             if not os.path.exists(datafolder):
                 os.makedirs(datafolder)
-            for key, value in mdd.items():
-                fname = key.decode('utf-8').replace('\\', os.path.sep)
-                dfname = datafolder + fname
-                if not os.path.exists(os.path.dirname(dfname)):
-                    os.makedirs(os.path.dirname(dfname))
-                df = open(dfname, 'wb')
-                df.write(value)
-                df.close()
+            for mdd in mdds:
+                for key, value in mdd.items():
+                    fname = key.decode('utf-8').replace('\\', os.path.sep)
+                    dfname = datafolder + fname
+                    if not os.path.exists(os.path.dirname(dfname)):
+                        os.makedirs(os.path.dirname(dfname))
+                    df = open(dfname, 'wb')
+                    df.write(value)
+                    df.close()
