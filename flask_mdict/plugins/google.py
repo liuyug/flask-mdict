@@ -12,8 +12,8 @@ def translate(content, item):
             to_language=item.get('to_lan', 'zh'),
         )
         return [text]
-    except ts.server.TranslatorError as err:
-        return [str(err)]
+    except Exception as err:
+        return ['Translators error: %s' % (err)]
 
 
 def init():
