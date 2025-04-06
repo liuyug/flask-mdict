@@ -33,6 +33,7 @@ def package_files(directory):
 
 extra_files = package_files('flask_mdict/static')
 extra_files += package_files('flask_mdict/templates')
+extra_files += package_files('flask_mdict/plugins')
 
 
 setup(
