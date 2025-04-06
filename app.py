@@ -3,7 +3,7 @@
 import os
 import logging
 
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, g
 
 from flask_mdict import __version__, init_app
 
@@ -51,4 +51,17 @@ def create_app(mdict_dir='content'):
     def favicon():
         return redirect(url_for('mdict.static', filename='logo.ico'))
 
+    @app.teardown_appcontext
+    def close_connection(exception):
+        database = getattr(g, '_database', None)
+        if not database:
+            return
+        for conn in database.values():
+            conn.close()
+
     return app
+
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run()

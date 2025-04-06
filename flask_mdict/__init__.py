@@ -20,14 +20,6 @@ class Config():
 
 
 def init_app(app, url_prefix=None):
-    @app.teardown_appcontext
-    def close_connection(exception):
-        database = getattr(g, '_database', None)
-        if not database:
-            return
-        for conn in database.values():
-            conn.close()
-
     Config.MDICT_DIR = app.config.get('MDICT_DIR')
     Config.MDICT_CACHE = app.config.get('MDICT_CACHE')
     if not Config.MDICT_DIR:
