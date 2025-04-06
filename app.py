@@ -28,22 +28,24 @@ def create_app(mdict_dir='content'):
     app.config['INDEX_DIR'] = None
     app.config['APP_NAME'] = 'Flask Mdict'
 
-    init_app(app, url_prefix='/')
-
-    logger.info(' * app version: %s' % __version__)
-    logger.info(' * app db: %s' % app.config['APP_DB'])
-
-    wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
-    app_wfd_db = os.path.join(os.path.dirname(__file__), os.path.basename(wfd_db))
-    if os.path.exists(wfd_db):
-        logger.info(f' * Word Frequency Database: {wfd_db}"')
+    wfd_db = None
+    local_wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
+    app_wfd_db = os.path.join(os.path.dirname(__file__), os.path.basename(local_wfd_db))
+    if os.path.exists(local_wfd_db):
+        wfd_db = local_wfd_db
         app.config['WFD_DB'] = wfd_db
     elif os.path.exists(app_wfd_db):
         wfd_db = app_wfd_db
         app.config['WFD_DB'] = wfd_db
+
+    init_app(app, url_prefix='/')
+
+    logger.info(' * app version: %s' % __version__)
+    logger.info(' * app db: %s' % app.config['APP_DB'])
+    if wfd_db:
         logger.info(f' * Word Frequency Database: {wfd_db}"')
     else:
-        logger.error(f' * Could not found "Word Frequency Database - {wfd_db}"!')
+        logger.error(f' * Could not found "Word Frequency Database - {local_wfd_db}"!')
 
     @app.route('/favicon.ico')
     def favicon():
