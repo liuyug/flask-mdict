@@ -5,7 +5,7 @@ import logging
 
 from flask import Flask, redirect, url_for
 
-from flask_mdict import __version__, init_app, mdict_query2
+from flask_mdict import __version__, init_app
 
 
 logger = logging.getLogger(__name__)
@@ -23,18 +23,25 @@ def create_app(mdict_dir='content'):
     app.config['MDICT_CACHE'] = False
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
     app.config['APP_DB'] = os.path.join(mdict_dir, 'flask_mdict.db')
-    app.config['WFD_DB'] = os.path.join(mdict_dir, 'ecdict_wfd.db')
     app.config['INDEX_DIR'] = None
     app.config['APP_NAME'] = 'Flask Mdict'
 
     init_app(app, url_prefix='/')
+
+    logger.info(' * app version: %s' % __version__)
     logger.info(' * app db: %s' % app.config['APP_DB'])
 
-    wfd_db = app.config['WFD_DB']
+    wfd_db = os.path.join(mdict_dir, 'ecdict_wfd.db')
+    app_wfd_db = os.path.join(os.path.dirname(__file__), os.path.basename(wfd_db))
     if os.path.exists(wfd_db):
         logger.info(f' * Word Frequency Database: {wfd_db}"')
+        app.config['WFD_DB'] = wfd_db
+    elif os.path.exists(app_wfd_db):
+        wfd_db = app_wfd_db
+        app.config['WFD_DB'] = wfd_db
+        logger.info(f' * Word Frequency Database: {wfd_db}"')
     else:
-        logger.error(' * Could not found "Word Frequency Database - {wfd_db}"!')
+        logger.error(f' * Could not found "Word Frequency Database - {wfd_db}"!')
 
     @app.route('/favicon.ico')
     def favicon():
