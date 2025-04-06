@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- encoding:utf-8 -*-
 import os
+import argparse
 import logging
 
 from flask import Flask, redirect, url_for, g
@@ -62,6 +63,29 @@ def create_app(mdict_dir='content'):
     return app
 
 
+def cli():
+    parser = argparse.ArgumentParser(description='Flask-mdict')
+    about = 'Flask-mdict version: %s' % __version__
+    parser.add_argument('--version', action='version', version=about, help='show version')
+
+    parser.add_argument('--host', default='127.0.0.1:5678', help='service listen ip:port')
+    parser.add_argument('-m', '--mdict-dir', default='content', help='mdict dictionary path')
+
+    args = parser.parse_args()
+
+    app = create_app(args.mdict_dir)
+
+    ip, port = args.host.split(':')
+
+    debug = False
+    threaded = True
+    process = 1
+
+    app.run(
+        host=ip, port=port, debug=debug,
+        threaded=threaded, processes=process
+    )
+
+
 if __name__ == "__main__":
-    app = create_app()
-    app.run()
+    cli()
