@@ -19,6 +19,8 @@ def create_app(mdict_dir='content'):
     mdict_dir = os.path.realpath(mdict_dir)
 
     app = Flask(__name__, template_folder=None, static_folder=None)
+    # csrf 永久有效
+    app.config['WTF_CSRF_TIME_LIMIT'] = None
     app.config['MDICT_DIR'] = mdict_dir
     app.config['MDICT_CACHE'] = False
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
