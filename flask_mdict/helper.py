@@ -15,7 +15,6 @@ from flask import url_for
 from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
-from .plugins import bing, google, iciba
 
 
 logger = logging.getLogger(__name__)
@@ -353,13 +352,16 @@ def init_plugins(mdicts, mdict_setting, db_names):
             modulename = os.path.splitext(file)[0]
             module = import_module('flask_mdict.plugins.%s' % (modulename))
             config = module.init()
-            config['plugins_dir'] = plugins_dir
-            dict_uuid = config['uuid']
-            mdicts[dict_uuid] = config
-            enable = mdict_setting.get(dict_uuid, False)
-            config['enable'] = enable
-            db_names[dict_uuid] = None
-            logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
+            if config['enable']:
+                config['plugins_dir'] = plugins_dir
+                dict_uuid = config['uuid']
+                mdicts[dict_uuid] = config
+                enable = mdict_setting.get(dict_uuid, False)
+                config['enable'] = enable
+                db_names[dict_uuid] = None
+                logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
+            else:
+                logger.info('Skip "%s" [%s]...' % (config['title'], 'Disable'))
 
 
 regex_css_comment = re.compile(r'(/\*.*?\*/)', re.DOTALL)

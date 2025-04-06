@@ -19,7 +19,8 @@ def init():
     title = '火山翻译-字节跳动'
     dict_uuid = 'volcengine_translate'
     about = 'https://translate.volcengine.com/'
-    enable = True
+    # NOTE：没有结果
+    enable = False
     config = {
         'title': title,
         'uuid': dict_uuid,
