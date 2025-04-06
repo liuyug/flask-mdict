@@ -1,5 +1,4 @@
-
-# http://github.com/UlionTse/translators/tree/master
+# https://github.com/UlionTse/translators/tree/master
 import translators as ts
 
 
@@ -7,7 +6,7 @@ def translate(content, item):
     try:
         text = ts.translate_text(
             content,
-            translator='iciba',
+            translator='volcengine',
             from_language=item.get('from_lan', 'auto'),
             to_language=item.get('to_lan', 'zh'),
         )
@@ -17,14 +16,14 @@ def translate(content, item):
 
 
 def init():
-    title = '金山词霸 - 在线翻译'
-    dict_uuid = 'iciba_translate'
-    about = 'http://www.iciba.com/fy'
+    title = '火山翻译-字节跳动'
+    dict_uuid = 'volcengine_translate'
+    about = 'https://translate.volcengine.com/'
     enable = True
     config = {
         'title': title,
         'uuid': dict_uuid,
-        'logo': 'iciba.ico',
+        'logo': 'volcengine.ico',
         'about': about,
         'root_path': '',
         'query': translate,
@@ -34,3 +33,8 @@ def init():
         'enable': enable,
     }
     return config
+
+
+if __name__ == '__main__':
+    content = "How do I access a previous row when iterating through a pandas dataframe? ... How would I access the previous row? I've tried row.shift(1)"
+    print(translate(content))

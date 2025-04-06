@@ -8,6 +8,7 @@ def translate(content, item):
         text = ts.translate_text(
             content,
             translator='google',
+            from_language=item.get('from_lan', 'auto'),
             to_language=item.get('to_lan', 'zh'),
         )
         return [text]

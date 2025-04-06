@@ -3,12 +3,16 @@ import translators as ts
 
 
 def translate(content, item):
-    text = ts.translate_text(
-        content,
-        translator='bing',
-        to_language=item.get('to_lan', 'zh'),
-    )
-    return [text]
+    try:
+        text = ts.translate_text(
+            content,
+            translator='bing',
+            from_language=item.get('from_lan', 'auto'),
+            to_language=item.get('to_lan', 'zh'),
+        )
+        return [text]
+    except ts.server.TranslatorError as err:
+        return [str(err)]
 
 
 def init():
@@ -27,8 +31,6 @@ def init():
         'type': 'app',
         'error': '',
         'enable': enable,
-        'from_lan': 'en',
-        'to_lan': 'zh',
     }
     return config
 

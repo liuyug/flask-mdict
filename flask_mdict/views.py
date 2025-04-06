@@ -138,9 +138,18 @@ def query_word(uuid, word):
     if item['error']:
         html_content.append('<div style="color: red;">%s</div>' % item['error'])
     prefix_resource = url_for('.query_resource', uuid=uuid, resource='')
-    found_word = (uuid != 'gtranslate' and len(records) > 0)
+    found_word = len(records) > 0
     count = 1
     record_num = len(records)
+
+    # 直接显示 @@@LINK 内容
+    for idx, record in enumerate(records):
+        mo = regex_word_link.match(record)
+        if mo:
+            link = mo.group(2).strip()
+            link_records = q.mdx_lookup(get_db(uuid), link, ignorecase=True)
+            records[idx] = '\n\n'.join(link_records)
+
     for record in records:
         if record.startswith('@@@LINK='):
             record_num -= 1
@@ -246,10 +255,22 @@ def query_word_all():
                 records = q(word, item)
             else:
                 records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
+
+            # 直接显示 @@@LINK 内容
+            for idx, record in enumerate(records):
+                mo = regex_word_link.match(record)
+                if mo:
+                    link = mo.group(2).strip()
+                    if item['type'] == 'app':
+                        link_records = q(link, item)
+                    else:
+                        link_records = q.mdx_lookup(get_db(uuid), link, ignorecase=True)
+                    records[idx] = '\n\n'.join(link_records)
+
             html_content = []
             if item['error']:
                 html_content.append('<div style="color: red;">%s</div>' % item['error'])
-            found_word = found_word or (uuid != 'gtranslate' and len(records) > 0)
+            found_word = found_word or len(records) > 0
             count = 1
             record_num = len(records)
             for record in records:
@@ -322,12 +343,6 @@ def query_word_all():
     )
 
 
-@mdict.route('/gtranslate/query/<word>', methods=['GET', 'POST'])
-def google_translate(word):
-    trans = helper.google_translate(word)
-    return '\n'.join(trans)
-
-
 @mdict.route('/meta/<word>')
 def query_word_meta(word):
     word_meta = helper.query_word_meta(word)
@@ -387,6 +402,18 @@ def query_word_lite(uuid, word):
             records = q.mdx_lookup(get_db(cur_uuid), word, ignorecase=True)
         if not records:
             continue
+
+        # 直接显示 @@@LINK 内容
+        for idx, record in enumerate(records):
+            mo = regex_word_link.match(record)
+            if mo:
+                link = mo.group(2).strip()
+                if item['type'] == 'app':
+                    link_records = q(link, item)
+                else:
+                    link_records = q.mdx_lookup(get_db(uuid), link, ignorecase=True)
+                records[idx] = '\n\n'.join(link_records)
+
         html = []
         html.append(f'<div id="class_{cur_uuid}">')
         html.append('<div class="mdict">')
@@ -407,7 +434,7 @@ def query_word_lite(uuid, word):
         html.append('</div>')
         prefix_resource = f'{url_for(".query_resource", uuid=cur_uuid, resource="", _external=True)}'
         # prefix_entry = f'{url_for(".query_word_lite", uuid=cur_uuid, word="", _external=True)}'
-        found_word = found_word or (cur_uuid != 'gtranslate' and len(records) > 0)
+        found_word = found_word or len(records) > 0
         count = 1
         record_num = len(records)
         for record in records:

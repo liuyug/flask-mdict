@@ -347,17 +347,7 @@ def init_plugins(mdicts, mdict_setting, db_names):
     else:
         plugins_dir = os.path.join(os.path.dirname(__file__), 'plugins')
 
-    for module in [google, bing, iciba]:
-        config = module.init()
-        config['plugins_dir'] = plugins_dir
-        dict_uuid = config['uuid']
-        mdicts[dict_uuid] = config
-        enable = mdict_setting.get(dict_uuid, False)
-        config['enable'] = enable
-        db_names[dict_uuid] = None
-        logger.info('Add "%s" [%s]...' % (config['title'], 'Enable' if enable else 'Disable'))
-
-    exclude_files = ['__init__.py', 'google.py', 'bing.py', 'iciba.py']
+    exclude_files = ['__init__.py']
     for file in os.listdir(plugins_dir):
         if file.endswith('.py') and file not in exclude_files:
             modulename = os.path.splitext(file)[0]
