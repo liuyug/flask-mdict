@@ -58,7 +58,7 @@ def create_app(config=None):
 
     @app.route('/favicon.ico')
     def favicon():
-        return redirect(url_for('mdict.static', filename='logo.ico'))
+        return redirect(url_for('mdict.static', filename='favicon.ico'))
 
     @app.teardown_appcontext
     def close_connection(exception):
@@ -77,6 +77,7 @@ def cli():
     parser.add_argument('--version', action='version', version=about, help='show version')
 
     parser.add_argument('--config-file', default='flask_mdict.json', help='app config json file. default: flask_mdict.json')
+    parser.add_argument('--debug', action='store_true', help='flask run as debug mode')
     parser.add_argument('--host', help='service listen ip:port')
     parser.add_argument('--mdict-dir', default='content', help='mdict dictionary path')
 
@@ -95,12 +96,14 @@ def cli():
     else:
         ip = '127.0.0.1'
         port = '5248'
-        debug = False
+        debug = args.debug
         threaded = True
         process = 1
 
     if args.host:
         ip, port = args.host.split(':')
+    if args.debug:
+        debug = args.debug
 
     if args.mdict_dir:
         if 'mdict' not in config_data:

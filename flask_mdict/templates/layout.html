@@ -10,28 +10,75 @@
 <link rel="stylesheet" href="{{url_for('.static', filename='/css/mdict.css')}}" />
 {% endblock %}</head>
 <body>
-<div class="container">
-    {% block maincontent %}
-    <div class="row">
-        <div class="col">
-            {% block content %}
-            <h1>Hello World!</h1>
+    <nav class="navbar sticky-top navbar-expand-md navbar-light bg-light shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{{url_for('.query_word_all')}}">
+            <img width="24"
+                 height="24"
+                 class="d-inline-block align-text-top"
+                 src="{{url_for('.static', filename='favicon.ico')}}" />
+            首页
+        </a>
+        <button class="navbar-toggler" type="button"
+                                       data-bs-toggle="collapse"
+                                       data-bs-target="#navbar-item"
+                                       aria-controls="navbar-item"
+                                       aria-expanded="false"
+                                       aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbar-item">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle"
+                       href="#"
+                       role="button"
+                       data-toggle="dropdown"
+                       aria-expanded="false" >
+                       在线词典
+                    </a>
+                        <ul id="online_dict" class="dropdown-menu">
+                            <li><a class="dropdown-item" href="https://www.oxfordlearnersdictionaries.com/definition/english/" target="_blank">牛津_Oxford</a></li>
+                            <li><a class="dropdown-item" href="https://www.ldoceonline.com/dictionary/" target="_blank">朗文_Longman</a></li>
+                            <li><a class="dropdown-item" href="https://dictionary.cambridge.org/dictionary/english-chinese-simplified/" target="_blank">剑桥_Cambridge</a></li>
+                            <li><a class="dropdown-item" href="https://www.collinsdictionary.com/dictionary/english-chinese/" target="_blank">柯林斯_Collins</a></li>
+                            <li><a class="dropdown-item" href="https://www.merriam-webster.com/dictionary/" target="_blank">韦氏_Merriam-Webster</a></li>
+                            <li><a class="dropdown-item" href="https://www.macmillandictionary.com/dictionary/british/" target="_blank">麦克米伦_Macmillan</a></li>
+                            {#
+                            <li><a class="dropdown-item" href="" target="_blank"></a></li>
+                            <li><div class="dropdown-divider"></div></li>
+                            #}
+                        </ul>
+                </li>
+            </ul>
+            {% block navmenu %}
             {% endblock %}
         </div>
     </div>
-    {% endblock %}
-    <div class="row">
-        <div class="col-sm">
-            <hr />
-            <div class="text-center">
-            <p>{% block footer %} &copy; Copyright 2025 {% endblock %}</p>
+    </nav>
+    <div class="container">
+        {% block maincontent %}
+            <div class="row">
+                <div class="col">
+                    {% block content %}
+                        <h1>Hello World!</h1>
+                    {% endblock %}
+                </div>
+            </div>
+        {% endblock %}
+        <div class="row">
+            <div class="col-sm">
+                <hr />
+                <div class="text-center">
+                    <p>{% block footer %} &copy; Copyright 2025 {% endblock %}</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% block script %}
-    <script src="{{url_for('.static', filename='jquery-3.5.1/jquery.min.js')}}"></script>
-    <script src="{{url_for('.static', filename='bootstrap-4.5.0/js/bootstrap.bundle.min.js')}}"></script>
-{% endblock %}
+    {% block script %}
+        <script src="{{url_for('.static', filename='jquery-3.5.1/jquery.min.js')}}"></script>
+        <script src="{{url_for('.static', filename='bootstrap-4.5.0/js/bootstrap.bundle.min.js')}}"></script>
+    {% endblock %}
 </body>
 </html>

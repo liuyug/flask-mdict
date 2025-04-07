@@ -8,6 +8,21 @@
 
 {% block subtitle %}{{word}} - {{config.APP_NAME}}{% endblock %}
 
+{% block navmenu %}
+    <form method="POST" action="{{url_for('.query_word_all')}}" class="col">
+        <div class="input-group">
+            {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
+            <div class="input-group-append">
+                <button id="btn-search" type="submit" class="btn btn-outline-info" style="z-index:1;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        {{ form.csrf_token }}
+    </form>
+
+{% endblock %}
+
 {% block maincontent %}
     <div class="modal fade" id="message" tabindex="-1" role="dialog" aria-labelledby="message_body" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -23,20 +38,8 @@
     </div>
 <div class="row">
     <div class="col-sm-3">
-        <div class="sticky-top">
+        <div>
             <div class="anchor-fix"> </div>
-            <form method="POST">
-                <div class="input-group">
-                    {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
-                    <div class="input-group-append">
-                        <button id="btn-search" type="submit" class="btn btn-outline-info" style="z-index:1;">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                {{ form.csrf_token }}
-            </form>
-            <br />
             <h6>从以下词典查找：</h6>
             <div class="mdict-list">
             <ul class="list-group">
@@ -170,5 +173,9 @@ $('input[name="mdict_enable"]').each((index, element) => {
         });
     });
 });
+
+    $('#online_dict').find('a').each(function(index, element) {
+        element.href += '{{word}}';
+    });
 </script>
 {% endblock %}
