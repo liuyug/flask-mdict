@@ -36,7 +36,16 @@ Install
 
 Run
 ----
-::
+Cli::
+
+    python app.py
+
+    python app.py --mdict-dir your_mdict_path
+
+    python app.py --host 127.0.0.1:5248
+
+
+Flask::
 
     flask run
 
@@ -44,7 +53,7 @@ Browser
 --------
 ::
 
-    firefox http://127.0.0.1:5000
+    firefox http://127.0.0.1:5678
 
 .. note::
 
