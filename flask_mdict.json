@@ -1,0 +1,11 @@
+{
+    "server": {
+        "ip": "127.0.0.1",
+        "port": "5248",
+        "debug": false
+    },
+    "mdict": {
+        "MDICT_DIR": "content",
+        "SECRET_KEY": "21fwkepawlsafj2jaslfjdsaf"
+    }
+}
