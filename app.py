@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- encoding:utf-8 -*-
 import os
+import sys
 import json
 import argparse
 import logging
@@ -111,8 +112,12 @@ def cli():
 
     if 'mdict' not in config_data:
         config_data['mdict'] = {}
-        config_data['mdict']['MDICT_DIR'] = os.path.realpath('.')
         config_data['mdict']['SECRET_KEY'] = '21fwkepawlsafj2jaslfjdsaf'
+
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            config_data['mdict']['MDICT_DIR'] = os.path.realpath('.')
+        else:
+            config_data['mdict']['MDICT_DIR'] = os.path.realpath('content')
 
     if not os.path.exists(args.config_file):
         json.dump(config_data, open('flask_mdict.json', 'wt'), indent=4)
