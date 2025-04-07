@@ -8,7 +8,6 @@ import datetime
 import csv
 import logging
 from importlib import import_module
-from collections import OrderedDict
 
 from flask import url_for
 
@@ -229,7 +228,7 @@ def export_history(sio):
 
 
 def init_mdict(mdict_dir, index_dir=None):
-    mdicts = OrderedDict()
+    mdicts = {}
     db_names = {}
     mdict_setting = {}
     with sqlite3.connect(Config.DB_NAMES['app_db']) as conn:

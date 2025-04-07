@@ -7,13 +7,13 @@ if [ x"$1" = "x" ]; then
     echo ""
     echo "1. download ecdict"
     echo "wget $ecdict_csv"
-    echo "2. convert ecdict.csv to ecdict_wfd.db"
+    echo "2. convert ecdict.csv to flask_mdict_wfd.db"
     echo "$0 ecdict.csv"
     exit 1
 fi
 
 csv_file=$1
-db_name="ecdict_wfd"
+db_name="flask_mdict_wfd"
 
 sqlite3 "${db_name}.db" <<EOD
 

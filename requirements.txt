@@ -1,6 +1,6 @@
 # Flask
 Flask
-Flask-DebugToolbar
+# Flask-DebugToolbar
 Flask-WTF
 WTForms-Components
 translators
