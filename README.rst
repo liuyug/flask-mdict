@@ -30,8 +30,8 @@ Install
 
     # install word frequency database from ecdict csv
     ecdict.sh
-    # or copy current ecdict_wfd.db to your content directory
-    # cp ecdict_wfd.db content/
+    # or copy current flask_mdict_wfd.db to your content directory
+    # cp flask_mdict_wfd.db content/
 
 
 Run
@@ -44,16 +44,18 @@ Cli::
 
     python app.py --host 127.0.0.1:5248
 
+Config
+-------
 
-Flask::
-
-    flask run
+flask_mdict.json: server settings
+flask_mdict.db: dictionary settings and searching history
+flask_mdict_wfd.db: word frequency db [option]
 
 Browser
 --------
 ::
 
-    firefox http://127.0.0.1:5678
+    firefox http://127.0.0.1:5248
 
 .. note::
 
@@ -64,14 +66,9 @@ Browser
 
 Donate 捐赠
 ===========
-请捐赠者在 issue 里留下捐赠信息，如交易流水号等，否则无法在支付系统里查找。再次感谢。
 
 .. image:: alipay_pay.jpg
     :width: 45%
 
 .. image:: wx_pay.png
     :width: 45%
-
-
-
-
