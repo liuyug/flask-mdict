@@ -42,6 +42,22 @@ Cli::
 
     python app.py --host 127.0.0.1:5248
 
+
+Window usage::
+
+    # 1. put files into root:
+    # root\
+    # root\flask_mdict.exe
+    # root\flask_mdict_wfd.db
+    # root\your_mdict_path
+
+    # 2. run
+    flask_mdict.exe
+
+    # 3. Browser
+    firefox http://127.0.0.1:5248
+
+
 Config
 -------
 
