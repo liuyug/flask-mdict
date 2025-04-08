@@ -45,11 +45,11 @@ Cli::
 
 Window usage::
 
-    # 1. put files into root:
-    # root\
-    # root\flask_mdict.exe
-    # root\flask_mdict_wfd.db
-    # root\your_mdict_path
+    # 1. put files into path:
+    # path\
+    # path\flask_mdict.exe
+    # path\flask_mdict_wfd.db
+    # path\your_mdict_path
 
     # 2. run
     flask_mdict.exe
@@ -81,8 +81,10 @@ Browser
 Donate 捐赠
 ===========
 
-.. image:: alipay_pay.jpg
+.. |alipay_pay| image:: alipay_pay.jpg
     :width: 45%
 
-.. image:: wx_pay.png
+.. |wx_pay| image:: wx_pay.png
     :width: 45%
+
+|wx_pay| |alipay_pay|
