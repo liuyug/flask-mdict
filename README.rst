@@ -9,8 +9,6 @@ Flask-MDict
 Screenshot
 ==========
 
-.. image:: mdict_screenshot2.png
-
 .. image:: mdict_screenshot.png
 
 Usage
@@ -47,9 +45,9 @@ Cli::
 Config
 -------
 
-flask_mdict.json: server settings
-flask_mdict.db: dictionary settings and searching history
-flask_mdict_wfd.db: word frequency db [option]
++ flask_mdict.json: server settings
++ flask_mdict.db: dictionary settings and searching history
++ flask_mdict_wfd.db: word frequency db [option]
 
 Browser
 --------

@@ -20,7 +20,7 @@ def init():
     title = '金山词霸 - 在线翻译'
     dict_uuid = 'iciba_translate'
     about = 'http://www.iciba.com/fy'
-    enable = True
+    enable = False
     config = {
         'title': title,
         'uuid': dict_uuid,
