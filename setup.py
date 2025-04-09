@@ -45,6 +45,8 @@ setup(
     license='MIT',
     description='Flask Mdict Server',
     long_description=long_description,
+    long_description_content_type="text/x-rst",
+    # long_description_content_type="text/markdown",
     python_requires='>=3.6',
     platforms=['noarch'],
     packages=find_packages(),

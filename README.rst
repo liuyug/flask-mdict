@@ -79,7 +79,7 @@ Browser
 .. _mdx-server: https://github.com/ninja33/mdx-server
 
 Donate 捐赠
-===========
+=============
 
 .. |alipay_pay| image:: alipay_pay.jpg
     :width: 45%
