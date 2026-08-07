@@ -1,15 +1,15 @@
-# English translations for PROJECT.
+# English translations for Flask-MDict.
 # Copyright (C) 2026 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+# This file is distributed under the same license as the Flask-MDict project.
+# Samyar Vahid, 2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"Report-Msgid-Bugs-To: samyarvahid/flask-mdict\n"
 "POT-Creation-Date: 2026-08-07 01:41-0400\n"
 "PO-Revision-Date: 2026-08-07 01:41-0400\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: Samyar Vahid\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
