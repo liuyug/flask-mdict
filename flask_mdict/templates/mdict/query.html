@@ -40,7 +40,7 @@
     <div class="col-sm-3">
         <div>
             <div class="anchor-fix"> </div>
-            <h6>从以下词典查找：</h6>
+            <h6>{{ _('从以下词典查找：') }}</h6>
             <div class="mdict-list">
             <ul class="list-group">
                 {% for uuid, item in contents.items() %}
@@ -82,9 +82,9 @@
             </ul>
             </div>
             <div id="export-history" class="float-right">
-                <a href="{{url_for('.export_history')}}">导出</a>
+                <a href="{{url_for('.export_history')}}">{{ _('导出') }}</a>
             </div>
-            <h6>历史：</h6>
+            <h6>{{ _('历史') }}：</h6>
             <div class="history-list">
                 <ul class="list-group">
                     {%for row in history%}

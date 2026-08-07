@@ -6,7 +6,9 @@ import json
 import argparse
 import logging
 
-from flask import Flask, redirect, url_for, g
+from flask import Flask, redirect, url_for, g, request
+
+from flask_babel import Babel
 
 from flask_mdict import __version__, init_app
 
@@ -27,6 +29,14 @@ def create_app(config=None):
     app.config['SECRET_KEY'] = "21ffjfdlsafj2ofjaslfjdsaf"
     app.config['INDEX_DIR'] = None
     app.config['APP_NAME'] = 'Flask Mdict'
+
+    # translations
+    app.config['LANGUAGES'] = ['zh', 'en', 'fr']
+
+    def get_locale():
+        translations = [str(translation) for translation in babel.list_translations()]
+        return request.accept_languages.best_match(app.config['LANGUAGES'])
+    babel = Babel(app, locale_selector=get_locale)
 
     if config:
         app.config.update(config)
