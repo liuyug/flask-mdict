@@ -4,3 +4,5 @@ Flask
 Flask-WTF
 WTForms-Components
 translators
+
+flask-babel
