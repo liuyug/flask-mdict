@@ -17,7 +17,7 @@
                  height="24"
                  class="d-inline-block align-text-top"
                  src="{{url_for('.static', filename='favicon.ico')}}" />
-            首页
+            {{ _('首页') }}
         </a>
         <button class="navbar-toggler" type="button"
                                        data-bs-toggle="collapse"
@@ -36,7 +36,7 @@
                        role="button"
                        data-toggle="dropdown"
                        aria-expanded="false" >
-                       在线词典
+                       {{ _('在线词典') }}
                     </a>
                         <ul id="online_dict" class="dropdown-menu">
                             <li><a class="dropdown-item" href="https://www.oxfordlearnersdictionaries.com/definition/english/" target="_blank">牛津_Oxford</a></li>
@@ -71,7 +71,7 @@
             <div class="col-sm">
                 <hr />
                 <div class="text-center">
-                    <p>{% block footer %} &copy; Copyright 2025 {% endblock %}</p>
+                    <p>{% block footer %} &copy; Copyright 2026 {% endblock %}</p>
                 </div>
             </div>
         </div>
