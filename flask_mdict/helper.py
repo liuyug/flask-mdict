@@ -235,7 +235,7 @@ def init_mdict(mdict_dir, index_dir=None):
         rows = conn.execute('SELECT name, value FROM setting;')
         for row in rows:
             mdict_setting[row[0]] = row[1] == '1'
-    for root, dirs, files in os.walk(mdict_dir, followlinks=True):
+    for root, dirs, files in sorted(os.walk(mdict_dir, followlinks=True)):
         for fname in files:
             if fname.endswith('.db') \
                     and not fname.endswith('.mdx.db') \
